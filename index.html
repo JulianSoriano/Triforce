@@ -9484,7 +9484,10 @@ function showFranchise(f, focus){
   if(focus){ const t = gamesEl.querySelector(`.fr-tab[aria-selected="true"]`); if(t) t.focus(); }
 }
 gamesEl.addEventListener("click",e=>{
-  const t = e.target.closest(".fr-tab"); if(t){ showFranchise(t.dataset.fr); return; }
+  const t = e.target.closest(".fr-tab"); if(t){
+    const f = t.dataset.fr; showFranchise(f);
+    if(frView === f && FRANCHISES.includes(f) && G.franchise !== f){ const first = GAMES.find(g=> g.franchise === f); if(first){ switchGame(first); showFranchise(f); } }
+    return; }
   const b = e.target.closest(".game");
   if(b && GBY[b.dataset.g] === G && document.documentElement.classList.contains("pick-mode")){ document.documentElement.classList.remove("pick-mode"); return; }
   if(b && b.dataset.lore){ showFranchise(LORE_TAB); return; }
