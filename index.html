@@ -525,6 +525,48 @@ html .playarea.mapfs>.fs-stats{grid-template-columns:minmax(0,3.3fr) minmax(210p
 html.box-mode .wrap>header,html.box-mode .wrap>.hud,html.box-mode #playArea,html.box-mode .wrap>.foot,html.box-mode #importRow{display:none!important}
 html.box-mode.playing .wrap{max-width:1560px}
 .fr-tab.fr-box{border-style:dashed}
+/* Home */
+html.home-mode .wrap>header,html.home-mode .wrap>.hud,html.home-mode #playArea,html.home-mode .wrap>.foot,html.home-mode #importRow,html.home-mode #missionTree,html.home-mode #list,html.home-mode #xfer,html.home-mode #lore,html.home-mode #mapBox,html.home-mode .wrap>.toolbar,html.home-mode #fsStats,
+html.pick-mode .wrap>header,html.pick-mode .wrap>.hud,html.pick-mode #playArea,html.pick-mode .wrap>.foot,html.pick-mode #importRow,html.pick-mode #missionTree,html.pick-mode #list,html.pick-mode #mapBox,html.pick-mode .wrap>.toolbar,html.pick-mode #fsStats{display:none!important}
+html.home-mode .wrap,html.pick-mode .wrap{max-width:1180px}
+.fr-tab.fr-home{font-weight:600}
+.pick-note{display:none;margin:18px 0;padding:18px 20px;border:1px dashed var(--line);border-radius:12px;color:var(--muted)}
+html.pick-mode .pick-note{display:block}
+.home{margin-top:8px}
+.home[hidden]{display:none}
+.home-hero{padding:34px 30px 30px;border:1px solid var(--line);border-radius:16px;background:radial-gradient(120% 140% at 0% 0%, rgba(201,162,39,.12), transparent 55%),var(--surface)}
+.home-hero h1{margin:0 0 10px;font-size:clamp(1.8rem,3.4vw,2.6rem);line-height:1.1;letter-spacing:-.01em}
+.home-hero p{margin:0;max-width:62ch;color:var(--muted);font-size:1.02rem;line-height:1.55}
+.home-hero .home-facts{display:flex;flex-wrap:wrap;gap:8px;margin-top:18px}
+.home-hero .home-facts span{font-size:12.5px;padding:5px 10px;border-radius:999px;border:1px solid var(--line);color:var(--ink);background:var(--surface-2)}
+.home h2{margin:34px 0 12px;font-size:1.15rem;letter-spacing:.01em}
+.home-series{margin:0 0 16px}
+.home-series h3{margin:0 0 8px;font-size:12px;text-transform:uppercase;letter-spacing:.12em;color:var(--muted);font-weight:500}
+.home-games{display:grid;grid-template-columns:repeat(auto-fill,minmax(200px,1fr));gap:10px}
+.home-game{all:unset;box-sizing:border-box;cursor:pointer;display:flex;flex-direction:column;gap:6px;padding:14px 14px 12px;border:1px solid var(--line);border-radius:12px;background:var(--surface);transition:border-color .15s,background .15s}
+.home-game:hover,.home-game:focus-visible{border-color:var(--acc);background:var(--surface-2)}
+.home-game b{font-family:var(--display);font-weight:600;font-size:14.5px;color:var(--ink)}
+.home-game small{color:var(--muted);font-size:12px}
+.home-game .home-bar{height:3px;border-radius:2px;background:var(--line);overflow:hidden}
+.home-game .home-bar i{display:block;height:100%;background:var(--acc)}
+.home-game.extra{border-style:dashed}
+.home-steps{counter-reset:st;display:grid;grid-template-columns:repeat(auto-fit,minmax(240px,1fr));gap:10px;padding:0;margin:0;list-style:none}
+.home-steps li{counter-increment:st;position:relative;padding:16px 16px 14px 52px;border:1px solid var(--line);border-radius:12px;background:var(--surface);line-height:1.5;color:var(--muted);font-size:14px}
+.home-steps li::before{content:counter(st);position:absolute;left:16px;top:15px;width:24px;height:24px;border-radius:50%;display:grid;place-items:center;font:600 13px var(--mono);color:var(--ground);background:var(--acc)}
+.home-steps li b,.home-guide b{color:var(--ink);font-weight:600}
+.home-guide{display:grid;grid-template-columns:repeat(auto-fit,minmax(320px,1fr));gap:10px;align-items:start}
+.home-guide details{border:1px solid var(--line);border-radius:12px;background:var(--surface);padding:0 16px}
+.home-guide summary{cursor:pointer;padding:14px 0;font-family:var(--display);font-weight:600;color:var(--ink);list-style:none;display:flex;justify-content:space-between;gap:10px}
+.home-guide summary::-webkit-details-marker{display:none}
+.home-guide summary::after{content:"+";color:var(--muted);font-family:var(--mono)}
+.home-guide details[open] summary::after{content:"–"}
+.home-guide .g-body{padding:0 0 14px;color:var(--muted);font-size:14px;line-height:1.6}
+.home-guide .g-body p{margin:0 0 8px}
+.home-guide .g-body ul{margin:0 0 8px;padding-left:18px}
+.home-guide kbd{font:12px var(--mono);padding:1px 6px;border:1px solid var(--line);border-radius:5px;background:var(--surface-2);color:var(--ink)}
+.home-foot{margin:28px 0 8px;color:var(--muted);font-size:13px;line-height:1.55}
+@media (max-width:640px){ .home-hero{padding:24px 18px} .home-guide{grid-template-columns:1fr} }
+
 html.lore-mode .wrap>header,html.lore-mode .wrap>.hud,html.lore-mode #playArea,html.lore-mode .wrap>.foot,html.lore-mode #importRow,html.lore-mode #missionTree,html.lore-mode #list,html.lore-mode #xfer{display:none!important}
 html.lore-mode .wrap,html.lore-mode.playing .wrap{max-width:none}
 .lore{margin-top:10px}
@@ -871,6 +913,57 @@ h1{color:var(--ink);font-weight:650;letter-spacing:-.025em;line-height:1.1}
     </div>
   </section>
 
+  <p class="pick-note" id="pickNote">Pick a game above to open its checklist, map and player.</p>
+  <section class="home" id="home" hidden aria-label="Home">
+    <div class="home-hero">
+      <h1>Welcome to Triforce</h1>
+      <p>Keep track of everything you collect in classic Zelda, Pokémon and Ace Combat games, see where things are on a 3D map, and play the games right here in your browser using your own copies.</p>
+      <div class="home-facts"><span>No installs</span><span>Bring your own games</span><span>Nothing is uploaded</span><span>Works with controllers</span></div>
+    </div>
+
+    <h2>Pick a game</h2>
+    <div id="homeGames"></div>
+
+    <h2>How it works</h2>
+    <ol class="home-steps">
+      <li><b>Pick a game.</b> Use the tabs at the top or the cards above. Each game has a checklist of everything worth collecting, and most have a map.</li>
+      <li><b>Tick things off.</b> Tap a tile to tick it. Hover over it (or tap and hold) to see where it is and how to get it.</li>
+      <li><b>Or let your save do it.</b> <b>Import save file</b> reads a save from an emulator (.sav or .srm) and ticks everything you've already done. It only adds ticks, never removes them.</li>
+      <li><b>Play in your browser.</b> <b>Play in browser</b>, then <b>Choose ROM file</b> to load your copy of the game. Each time you save in the game, the checklist fills itself in.</li>
+    </ol>
+
+    <h2>Guide</h2>
+    <div class="home-guide">
+      <details open><summary>Playing games</summary><div class="g-body">
+        <p>Load the file for your own copy of the game:</p>
+        <ul><li>NES: <kbd>.nes</kbd> · Super Nintendo: <kbd>.sfc</kbd> <kbd>.smc</kbd> · Game Boy / Color: <kbd>.gb</kbd> <kbd>.gbc</kbd></li><li>Game Boy Advance: <kbd>.gba</kbd> · Nintendo 64 (Ocarina of Time): <kbd>.z64</kbd> <kbd>.n64</kbd> <kbd>.v64</kbd></li><li>PlayStation (Ace Combat 3): the disc images, <kbd>.bin</kbd></li></ul>
+        <p>Tick <b>Remember it on this device</b> and the game is there next time with <b>Play saved ROM</b>. The keys for each game are listed under the screen. Plug in a controller and it just works; <b>Controls</b> and <b>Controller</b> let you change the buttons. <b>Full screen</b> makes the game as big as your screen.</p>
+        <p>Your in-game saves are kept here too. <b>Export save</b> downloads one, <b>Use a save file</b> loads one you already have, and on some games <b>Edit save</b> opens a save editor.</p>
+      </div></details>
+      <details><summary>The maps</summary><div class="g-body">
+        <p>Most games have a 3D model of the world under the checklist. Drag to turn it, scroll (or pinch) to zoom, and right-drag or Shift-drag to move.</p>
+        <p><b>Whole map</b> shows everything, <b>Top-down</b> looks straight down, <b>Orbit</b> slowly circles, and <b>Free roam</b> lets you fly around. Tap a place's label to show only the things found there; the numbers show how many you have.</p>
+      </div></details>
+      <details><summary>Pokémon</summary><div class="g-body">
+        <p>Load a Pokémon ROM once (with <b>Remember it on this device</b> ticked) and the game's own pictures appear on the Pokédex. For Ruby, Sapphire, Emerald, FireRed and LeafGreen, the 3D map and where each Pokémon lives are read from your ROM too.</p>
+        <p><b>Pokémon Box</b> (in the Pokémon tab) moves Pokémon between your saves by dragging them:</p>
+        <ul><li>Red/Blue/Yellow ↔ Gold/Silver/Crystal, with the Time Capsule's rules</li><li>Between Gen 3 games, like a link-cable trade</li><li>Gen 1 and 2 Pokémon brought forward to Gen 3 (they keep their species, level, moves, names and shininess; held items have to come off first)</li></ul>
+        <p>Save in the game before you start, press <b>Save changes</b> when you're done, and <b>Undo</b> if you change your mind.</p>
+      </div></details>
+      <details><summary>Ace Combat 3</summary><div class="g-body">
+        <p>This plays the Japanese version, which has the full story, with the English fan translation built in. You need your own discs as <kbd>.bin</kbd> files: Ace Combat 3: Electrosphere (Japan) Rev 1, disc 1 and disc 2.</p>
+        <p>The first start takes a minute while it builds the English discs; after that it's quick. If something's wrong, <b>Your discs</b> shows which version you loaded.</p>
+        <p>The checklist is a tree of the story's mission paths. <b>Ace Combat Lore</b>, in the Ace Combat tab, opens the Strangereal Map.</p>
+      </div></details>
+      <details><summary>Your data</summary><div class="g-body">
+        <p>Everything stays on your computer, in this browser. Your games and saves are never uploaded, and no game files come with Triforce.</p>
+        <p class="home-when-sync">Your checklist progress is also kept with your account, so it follows you to your other devices.</p>
+        <p class="home-when-local"><b>Back up my progress</b>, at the bottom of a game's page, saves your progress and saves to a file. <b>Restore a backup</b> brings them back, or moves them to another computer or browser.</p>
+        <p><b>Reset this game's progress</b> clears one game's checklist.</p>
+      </div></details>
+    </div>
+    <p class="home-foot">Pokémon, The Legend of Zelda and Ace Combat are trademarks of their owners. Triforce is a fan project.</p>
+  </section>
   <section class="lore" id="lore" hidden aria-label="Ace Combat Lore">
     <div class="lore-bar"><span>Strangereal Map — your visual Ace Combat lore.</span><a href="#" id="loreOpen">Open in its own tab ↗</a></div>
     <iframe id="loreFrame" title="Strangereal Map" loading="lazy"></iframe>
@@ -9345,17 +9438,19 @@ async function flush(g){
 // ---------- game switcher ----------
 const gamesEl = document.getElementById("games");
 // One franchise at a time: tabs pick the franchise, its games sit in a single scrolling row.
-let frView = null;
+const HOME_TAB = "__home";   // the Home page: an introduction and a guide
+let frView = HOME_TAB;
 const LORE_FR = "Ace Combat";
 const LORE_TAB = "__lore";   // Ace Combat Lore: the Strangereal Map page
 const BOX_FR = "Pokémon";
 const BOX_TAB = "__box";   // the Pokémon Box tab: moving Pokémon between the Pokémon saves
 function renderGames(){
-  if(!frView || (frView !== BOX_TAB && frView !== LORE_TAB && !FRANCHISES.includes(frView))) frView = G.franchise;
+  if(!frView || (frView !== BOX_TAB && frView !== LORE_TAB && frView !== HOME_TAB && !FRANCHISES.includes(frView))) frView = G.franchise;
   const groups = new Map();
   FRANCHISES.forEach(f=>groups.set(f,[]));
   GAMES.forEach(g=>groups.get(g.franchise).push(g));
   let tabs = `<div class="fr-tabs" role="tablist" aria-label="Franchise">`;
+  tabs += `<button type="button" role="tab" class="fr-tab fr-home" data-fr="${HOME_TAB}" aria-selected="${frView===HOME_TAB}" aria-controls="home">Home</button>`;
   groups.forEach((list,f)=>{
     const done = list.reduce((a,g)=>a+g.checked.size,0), all = list.reduce((a,g)=>a+g.all.length,0);
     const pct = all ? Math.round(done/all*100) : 0, here = list.includes(G);
@@ -9376,8 +9471,14 @@ function renderGames(){
 }
 function showFranchise(f, focus){
   if(frView === BOX_TAB && f !== BOX_TAB && typeof PLAYER !== "undefined" && PLAYER.box && !PLAYER.box.close()) return;
-  const wasBox = frView === BOX_TAB;
+  const wasBox = frView === BOX_TAB, fromHome = frView === HOME_TAB;
   frView = f; renderGames();
+  const root = document.documentElement;
+  root.classList.toggle("home-mode", f === HOME_TAB);
+  document.getElementById("home").hidden = f !== HOME_TAB;
+  if(f === HOME_TAB){ root.classList.remove("pick-mode"); renderHome(); }
+  else if(fromHome && FRANCHISES.includes(f) && G.franchise !== f) root.classList.add("pick-mode");
+  else if(FRANCHISES.includes(f) && G.franchise === f) root.classList.remove("pick-mode");
   document.documentElement.classList.toggle("box-mode", f === BOX_TAB);
   document.documentElement.classList.toggle("lore-mode", f === LORE_TAB);
   const loreEl = document.getElementById("lore"); loreEl.hidden = f !== LORE_TAB;
@@ -9387,7 +9488,9 @@ function showFranchise(f, focus){
 }
 gamesEl.addEventListener("click",e=>{
   const t = e.target.closest(".fr-tab"); if(t){ showFranchise(t.dataset.fr); return; }
-  const b = e.target.closest(".game"); if(b && b.dataset.lore){ showFranchise(LORE_TAB); return; }
+  const b = e.target.closest(".game");
+  if(b && GBY[b.dataset.g] === G && document.documentElement.classList.contains("pick-mode")){ document.documentElement.classList.remove("pick-mode"); return; }
+  if(b && b.dataset.lore){ showFranchise(LORE_TAB); return; }
   if(b && b.dataset.box){ showFranchise(BOX_TAB); return; }
   if(b && frView === BOX_TAB && GBY[b.dataset.g]){ showFranchise(BOX_FR); if(frView === BOX_TAB) return; if(GBY[b.dataset.g]!==G) switchGame(GBY[b.dataset.g]); return; }
   if(b && frView === LORE_TAB && GBY[b.dataset.g]){ if(GBY[b.dataset.g]!==G) switchGame(GBY[b.dataset.g]); showFranchise(LORE_FR); return; }
@@ -9396,8 +9499,30 @@ gamesEl.addEventListener("click",e=>{
 });
 gamesEl.addEventListener("keydown",e=>{
   const t = e.target.closest(".fr-tab"); if(!t || (e.key!=="ArrowRight" && e.key!=="ArrowLeft")) return;
-  e.preventDefault(); const tabsAll = [...FRANCHISES], i = tabsAll.indexOf(t.dataset.fr), n = tabsAll.length;
+  e.preventDefault(); const tabsAll = [HOME_TAB, ...FRANCHISES], i = tabsAll.indexOf(t.dataset.fr), n = tabsAll.length;
   showFranchise(tabsAll[(i + (e.key==="ArrowRight"?1:n-1)) % n], true);
+});
+
+// ---------- Home ----------
+function renderHome(){
+  const box = document.getElementById("homeGames"); if(!box) return;
+  const extra = { "Pokémon":[BOX_TAB, "Pokémon Box", "Move Pokémon between your saves"], "Ace Combat":[LORE_TAB, "Ace Combat Lore", "The Strangereal Map"] };
+  box.innerHTML = FRANCHISES.map(f=>{
+    const list = GAMES.filter(g=> g.franchise === f);
+    const cards = list.map(g=>{ const pct = g.all.length ? Math.round(g.checked.size / g.all.length * 100) : 0;
+      return `<button type="button" class="home-game" data-home-g="${g.id}"><b>${esc(g.name)}</b><small>${g.year} · ${esc(g.console)}${g.all.length ? ` · ${g.checked.size}/${g.all.length}` : ""}</small><span class="home-bar"><i style="width:${pct}%"></i></span></button>`; }).join("")
+      + (extra[f] ? `<button type="button" class="home-game extra" data-home-tab="${extra[f][0]}" data-home-fr="${esc(f)}"><b>${esc(extra[f][1])}</b><small>${esc(extra[f][2])}</small></button>` : "");
+    return `<div class="home-series"><h3>${esc(f)}</h3><div class="home-games">${cards}</div></div>`;
+  }).join("");
+  const sync = !document.getElementById("bkOut");
+  document.querySelectorAll(".home-when-sync").forEach(el=> el.hidden = !sync);
+  document.querySelectorAll(".home-when-local").forEach(el=> el.hidden = sync);
+}
+document.getElementById("home").addEventListener("click", e=>{
+  const g = e.target.closest("[data-home-g]");
+  if(g){ const game = GBY[g.dataset.homeG]; if(!game) return; if(game !== G) switchGame(game); showFranchise(game.franchise); document.documentElement.classList.remove("pick-mode"); window.scrollTo({ top:0 }); return; }
+  const t = e.target.closest("[data-home-tab]");
+  if(t){ showFranchise(t.dataset.homeTab); window.scrollTo({ top:0 }); }
 });
 // ---------- save import ----------
 const importRow = document.getElementById("importRow"), importBtn = document.getElementById("importBtn");
@@ -9442,6 +9567,7 @@ function applyImport(game, res){
 }
 
 function switchGame(g){
+  document.documentElement.classList.remove("pick-mode");
   if(typeof PLAYER!=="undefined") PLAYER.setGame(g);
   loadSprites(g);
   importMsg.hidden = true;
@@ -10116,6 +10242,8 @@ function render(){
 try{ mapBox.open = true; }catch(e){}
 render(); showFranchise(G.franchise);
 PLAYER.init(); PLAYER.setGame(G); loadSprites(G);
+// open on the Home page; the brand at the top goes back to it
+try{ showFranchise(HOME_TAB); const br = document.querySelector(".brand"); if(br){ br.style.cursor = "pointer"; br.setAttribute("role", "link"); br.tabIndex = 0; br.addEventListener("click", ()=> showFranchise(HOME_TAB)); br.addEventListener("keydown", e=>{ if(e.key === "Enter") showFranchise(HOME_TAB); }); } }catch(e){}
 // The 3D map follows Link while the game runs (the player reads his screen and position from the console; each game turns that into a spot on its own map).
 const POS_TO_CELL = {
   loz:d=>({ x:(d.room & 15) * 32 + Math.min(31.9, d.x / 8 + 1), y:(d.room >> 4) * 21 + Math.max(0.2, Math.min(20.6, (d.y - 56) / 8)), room:d.room }),
