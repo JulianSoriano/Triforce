@@ -46,6 +46,8 @@ window.EMB = (function(){
   --pkrse:#86DDA8; --pkrse-fill:#3FA56B; --pkrse-soft:#16301F;
   --ac3:#8FC9F2; --ac3-fill:#3E8FCC; --ac3-soft:#16283A;
   --pkfrlg:#F6B56E; --pkfrlg-fill:#DB7A2B; --pkfrlg-soft:#3A2310;
+  --gs:#C9A8F0; --gs-fill:#8C5CC8; --gs-soft:#271A3A;
+  --gstla:#72D8CA; --gstla-fill:#2F9F92; --gstla-soft:#12302D;
   --display:"Geist",system-ui,-apple-system,"Segoe UI",sans-serif;
   --body:"Geist",system-ui,-apple-system,"Segoe UI",sans-serif;
   --mono:"Geist Mono",ui-monospace,SFMono-Regular,Menlo,monospace;
@@ -62,6 +64,8 @@ body.g-pkgsc{--acc:var(--pkgsc);--acc-fill:var(--pkgsc-fill);--acc-soft:var(--pk
 body.g-ac3{--acc:var(--ac3);--acc-fill:var(--ac3-fill);--acc-soft:var(--ac3-soft)}
 body.g-pkrse{--acc:var(--pkrse);--acc-fill:var(--pkrse-fill);--acc-soft:var(--pkrse-soft)}
 body.g-pkfrlg{--acc:var(--pkfrlg);--acc-fill:var(--pkfrlg-fill);--acc-soft:var(--pkfrlg-soft)}
+body.g-gs{--acc:var(--gs);--acc-fill:var(--gs-fill);--acc-soft:var(--gs-soft)}
+body.g-gstla{--acc:var(--gstla);--acc-fill:var(--gstla-fill);--acc-soft:var(--gstla-soft)}
 *{box-sizing:border-box}
 body{background:var(--ground);color:var(--ink);font-family:var(--body);font-size:16px;line-height:1.45;padding:0 16px}
 .wrap{max-width:1040px;margin:0 auto;padding-block:20px 64px}
@@ -102,6 +106,8 @@ body{background:var(--ground);color:var(--ink);font-family:var(--body);font-size
 .game[data-g="ac3"] .gbar span{background:var(--ac3-fill)}
 .game[data-g="pkrse"] .gbar span{background:var(--pkrse-fill)}
 .game[data-g="pkfrlg"] .gbar span{background:var(--pkfrlg-fill)}
+.game[data-g="gs"] .gbar span{background:var(--gs-fill)}
+.game[data-g="gstla"] .gbar span{background:var(--gstla-fill)}
 .game[aria-pressed="true"]{border-color:var(--acc-fill);box-shadow:inset 0 0 0 1px var(--acc-fill)}
 .game[aria-pressed="false"]{opacity:.8}
 .game[aria-pressed="false"]:hover{opacity:1}
@@ -917,7 +923,7 @@ h1{color:var(--ink);font-weight:650;letter-spacing:-.025em;line-height:1.1}
   <section class="home" id="home" hidden aria-label="Home">
     <div class="home-hero">
       <h1>Welcome to Triforce</h1>
-      <p>Keep track of everything you collect in classic Zelda, Pokémon and Ace Combat games, see where things are on a 3D map, and play the games right here in your browser using your own copies.</p>
+      <p>Keep track of everything you collect in classic Zelda, Pokémon, Golden Sun and Ace Combat games, see where things are on a 3D map, and play the games right here in your browser using your own copies.</p>
       <div class="home-facts"><span>No installs</span><span>Bring your own games</span><span>Nothing is uploaded</span><span>Works with controllers</span></div>
     </div>
 
@@ -947,6 +953,10 @@ h1{color:var(--ink);font-weight:650;letter-spacing:-.025em;line-height:1.1}
         <ul><li>Red/Blue/Yellow ↔ Gold/Silver/Crystal, with the Time Capsule's rules</li><li>Between Gen 3 games, like a link-cable trade</li><li>Gen 1 and 2 Pokémon brought forward to Gen 3 (they keep their species, level, moves, names and shininess; held items have to come off first)</li></ul>
         <p>Save in the game before you start, press <b>Save changes</b> when you're done, and <b>Undo</b> if you change your mind.</p>
       </div></details>
+      <details><summary>Golden Sun</summary><div class="g-body">
+        <p>Golden Sun and The Lost Age each have their own page in the Golden Sun tab, with every Djinni (28 and 72), the summon tablets and the Psynergy items, and where to find them.</p>
+        <p>While you play Golden Sun here, the Djinn and Psynergy items your party collects tick themselves off. The Lost Age is ticked by hand for now.</p>
+      </div></details>
       <details><summary>Ace Combat 3</summary><div class="g-body">
         <p>This plays the Japanese version, which has the full story, with the English fan translation built in. You need your own discs as <kbd>.bin</kbd> files: Ace Combat 3: Electrosphere (Japan) Rev 1, disc 1 and disc 2.</p>
         <p>The first start takes a minute while it builds the English discs; after that it's quick. If something's wrong, <b>Your discs</b> shows which version you loaded.</p>
@@ -959,7 +969,7 @@ h1{color:var(--ink);font-weight:650;letter-spacing:-.025em;line-height:1.1}
         <p><b>Reset this game's progress</b> clears one game's checklist.</p>
       </div></details>
     </div>
-    <p class="home-foot">Pokémon, The Legend of Zelda and Ace Combat are trademarks of their owners. Triforce is a fan project.</p>
+    <p class="home-foot">Pokémon, The Legend of Zelda, Golden Sun and Ace Combat are trademarks of their owners. Triforce is a fan project.</p>
   </section>
   <section class="lore" id="lore" hidden aria-label="Ace Combat Lore">
     <div class="lore-bar"><span>Strangereal Map — your visual Ace Combat lore.</span><a href="#" id="loreOpen">Open in its own tab ↗</a></div>
@@ -8188,7 +8198,7 @@ const PLAYER = (function(){
     } else if(sys === SYSTEMS.n64){
       if(!/ZELDA/i.test(info.title||"")) return `Heads up: this ROM says "${info.title||"unknown"}", which doesn't look like Ocarina of Time. Ship of Harkinian only runs Ocarina of Time.`;
     } else if(sys === SYSTEMS.gba){
-      const want = { tmc:/^BZM/, pkrse:/^(AX[VP]|BPE)/, pkfrlg:/^BP[RG]/ }[id];
+      const want = { tmc:/^BZM/, pkrse:/^(AX[VP]|BPE)/, pkfrlg:/^BP[RG]/, gs:/^AGS/, gstla:/^AGF/ }[id];
       if(want && !want.test(info.code||"")) return `Heads up: this ROM says "${info.title||"unknown"}", which doesn't look like ${game.name}. It may still run, but the checklist sync expects this game.`;
     } else {
       if(info.mapper !== 1) return `Heads up: this doesn't look like ${game.name} (unexpected cartridge type). It may still run.`;
@@ -8230,10 +8240,45 @@ const PLAYER = (function(){
   };
   // Ocarina of Time: the engine reports the scene Link is in and his position in that scene's own units.
   POS.oot = m=> m.pos ? m.pos() : { ok:false };
-  let posTimer = 0, posKey = "";
-  function stopPos(){ clearInterval(posTimer); posTimer = 0; posKey = ""; }
+  let posTimer = 0, posKey = "", ramTimer = 0;
+  // Golden Sun reads: while the game runs, its own memory says which Djinn and Psynergy items the party has, so the checklist can tick them off as you collect them.
+  // Addresses are from Dyrati's Golden Sun password research: the four adepts are 0x14C bytes apart from 0x02000500, with the level at +0xF,
+  // 15 item words at +0xD8 (item number in the low 9 bits) and one Djinn bit-mask per element (Venus, Mercury, Mars, Jupiter) at +0xF8.
+  const RAM_SYNC = {
+    gs(m, g){
+      const B = 0x02000500, S = 0x14C, r8 = a=> m.ram(a), r16 = a=> r8(a) | (r8(a+1) << 8), r32 = a=> (r16(a) | (r16(a+2) << 16)) >>> 0;
+      const chars = [0, 1, 2, 3].map(i=> B + S*i).filter(b=>{ const lv = r8(b + 0xF); return lv >= 1 && lv <= 99; });
+      if(!chars.length) return null;
+      const ids = new Set(), els = ["venus", "mercury", "mars", "jupiter"];
+      for(let e = 0; e < 4; e++){
+        let mask = 0; chars.forEach(b=>{ mask |= r32(b + 0xF8 + 4*e); });
+        if(mask & ~0x7F) return null;   // not a Djinn mask: the game isn't in the state we expect
+        const cat = g.cats.find(c=> c.id === els[e]);
+        for(let k = 0; k < 7; k++) if((mask >> k) & 1) ids.add(cat.items[k].id);
+      }
+      const psy = g.cats.find(c=> c.id === "psy");
+      chars.forEach(b=>{ for(let j = 0; j < 15; j++){ const id = r16(b + 0xD8 + 2*j) & 0x1FF; if(id >= 0xC8 && id <= 0xCF) ids.add(psy.items[id - 0xC8].id); } });
+      return ids;
+    }
+  };
+  function stopPos(){ clearInterval(posTimer); posTimer = 0; posKey = ""; clearInterval(ramTimer); ramTimer = 0; }
+  function startRamSync(){
+    const g = game; if(!machine || !machine.ram || !g || !RAM_SYNC[g.id]) return;
+    const read = RAM_SYNC[g.id];
+    ramTimer = setInterval(()=>{
+      if(!machine || !playing || game !== g) return;
+      let ids; try{ ids = read(machine, g); }catch(e){ return; }
+      if(!ids || !ids.size) return;
+      const skip = editIgnore(g.id); let added = 0;
+      ids.forEach(id=>{ if(g.byId[id] && !g.checked.has(id) && !skip.has(id)){ g.checked.add(id); added++; } });
+      if(!added) return;
+      saveLocal(g); scheduleSave(g);
+      if(g === G){ renderHud(); renderTabs(); renderGames(); renderMap(); renderList(); }
+      syncMsg(`<strong>Checklist updated:</strong> ${added} new ${added === 1 ? "entry" : "entries"} from the game.`);
+    }, 2500);
+  }
   function startPos(){
-    stopPos(); if(!machine || !(machine.ram || machine.pos) || !game || !POS[game.id]) return;
+    stopPos(); startRamSync(); if(!machine || !(machine.ram || machine.pos) || !game || !POS[game.id]) return;
     const read = POS[game.id], gid = game.id;
     posTimer = setInterval(()=>{
       if(!machine || !playing) return;
@@ -9227,6 +9272,900 @@ const AC3_CATS = (()=>{
   walk(AC3_TREE, 0);
   return [{ id:"m", name:"Missions", note:"Every mission in the Japanese version, as a tree.", rows }];
 })();
+// ---------- Golden Sun and Golden Sun: The Lost Age ----------
+const GS_CATS = [
+ {
+  "id": "venus",
+  "name": "Venus Djinn",
+  "note": "Seven Venus Djinn, in the order the game counts them. They use the Earth element.",
+  "rows": [
+   [
+    "Flint",
+    "World map, south of Vale",
+    "Joins you",
+    "Joins you on the world map just south of Vale."
+   ],
+   [
+    "Granite",
+    "Kolima",
+    "",
+    "Waiting in Kolima."
+   ],
+   [
+    "Quartz",
+    "Mogall Forest",
+    "Fight",
+    "Found in Mogall Forest; you have to beat it in a fight."
+   ],
+   [
+    "Vine",
+    "World map, west of Lamakan Desert",
+    "Fight",
+    "Out on the world map west of Lamakan Desert; you have to beat it in a fight."
+   ],
+   [
+    "Sap",
+    "Vault",
+    "",
+    "Found in the Vault."
+   ],
+   [
+    "Ground",
+    "Kalay Docks",
+    "",
+    "Found at the Kalay docks."
+   ],
+   [
+    "Bane",
+    "Crossbone Isle",
+    "Cloak + Halt",
+    "On Crossbone Isle. You need the Cloak and Halt Psynergy to reach it."
+   ]
+  ]
+ },
+ {
+  "id": "mercury",
+  "name": "Mercury Djinn",
+  "note": "Seven Mercury Djinn.",
+  "rows": [
+   [
+    "Fizz",
+    "Mercury Lighthouse",
+    "Joins you",
+    "Joins you in Mercury Lighthouse."
+   ],
+   [
+    "Sleet",
+    "Mercury Lighthouse",
+    "Fight",
+    "Also in Mercury Lighthouse; you have to beat it in a fight."
+   ],
+   [
+    "Mist",
+    "Xian",
+    "",
+    "Found in Xian."
+   ],
+   [
+    "Spritz",
+    "Altin Peak",
+    "Fight",
+    "Found at Altin Peak; you have to beat it in a fight."
+   ],
+   [
+    "Hail",
+    "World map, south of Altmiller Cave",
+    "Fight",
+    "Out on the world map south of Altmiller Cave; you have to beat it in a fight."
+   ],
+   [
+    "Tonic",
+    "Lunpa Fortress",
+    "",
+    "Found in Lunpa Fortress."
+   ],
+   [
+    "Dew",
+    "Suhalla Gate",
+    "Fight",
+    "Found at Suhalla Gate; you have to beat it in a fight."
+   ]
+  ]
+ },
+ {
+  "id": "mars",
+  "name": "Mars Djinn",
+  "note": "Seven Mars Djinn.",
+  "rows": [
+   [
+    "Forge",
+    "Goma Cave",
+    "Fight",
+    "Found in Goma Cave; you have to beat it in a fight."
+   ],
+   [
+    "Fever",
+    "Imil",
+    "",
+    "Found in Imil."
+   ],
+   [
+    "Corona",
+    "World map, north of Xian",
+    "Fight",
+    "Out on the world map north of Xian; you have to beat it in a fight."
+   ],
+   [
+    "Scorch",
+    "Kalay Tunnel",
+    "",
+    "Found in Kalay Tunnel."
+   ],
+   [
+    "Ember",
+    "Tolbi",
+    "",
+    "Found in Tolbi."
+   ],
+   [
+    "Flash",
+    "Suhalla Desert",
+    "Fight",
+    "Found in Suhalla Desert; you have to beat it in a fight."
+   ],
+   [
+    "Torch",
+    "Lalivero",
+    "",
+    "Found in Lalivero."
+   ]
+  ]
+ },
+ {
+  "id": "jupiter",
+  "name": "Jupiter Djinn",
+  "note": "Seven Jupiter Djinn.",
+  "rows": [
+   [
+    "Gust",
+    "Bilibin",
+    "",
+    "Found in Bilibin."
+   ],
+   [
+    "Breeze",
+    "Tret Tree",
+    "Fight",
+    "Found at Tret Tree; you have to beat it in a fight."
+   ],
+   [
+    "Zephyr",
+    "Fuchin Falls Cave",
+    "Fight",
+    "Found in Fuchin Falls Cave; you have to beat it in a fight."
+   ],
+   [
+    "Smog",
+    "Lamakan Desert",
+    "",
+    "Found in Lamakan Desert."
+   ],
+   [
+    "Kite",
+    "Vale Cave",
+    "",
+    "Found in Vale Cave."
+   ],
+   [
+    "Squall",
+    "Altmiller Cave",
+    "Fight",
+    "Found in Altmiller Cave; you have to beat it in a fight."
+   ],
+   [
+    "Luff",
+    "Babi Lighthouse",
+    "Fight",
+    "Found at Babi Lighthouse; you have to beat it in a fight."
+   ]
+  ]
+ },
+ {
+  "id": "psy",
+  "name": "Psynergy items",
+  "note": "The eight items that let a character use Psynergy outside of battle.",
+  "rows": [
+   [
+    "Orb of Force",
+    "Fuchin Falls Cave",
+    "",
+    "A chest, once you pass the test in Fuchin Falls Cave. Gives Force."
+   ],
+   [
+    "Douse Drop",
+    "Mogall Forest",
+    "",
+    "Dropped by the Killer Ape in Mogall Forest. Gives Douse."
+   ],
+   [
+    "Frost Jewel",
+    "Altin Mines",
+    "",
+    "Dropped by the first Living Statue in Altin Mines. Gives Frost."
+   ],
+   [
+    "Lifting Gem",
+    "Altin Mines",
+    "",
+    "A chest that appears after you destroy the Hydros Statue in Altin Mines. Gives Lift."
+   ],
+   [
+    "Halt Gem",
+    "Vale Cave",
+    "",
+    "Found in Vale Cave. Gives Halt."
+   ],
+   [
+    "Cloak Ball",
+    "Colosso",
+    "",
+    "Babi gives it to you after you fight in Colosso. Gives Cloak."
+   ],
+   [
+    "Carry Stone",
+    "Venus Lighthouse",
+    "",
+    "A chest in the early part of Venus Lighthouse. Gives Carry."
+   ],
+   [
+    "Catch Beads",
+    "Vale",
+    "",
+    "Given to you automatically when Isaac leaves Vale. Gives Catch."
+   ]
+  ]
+ }
+];
+const GSTLA_CATS = [
+ {
+  "id": "venus",
+  "name": "Venus Djinn",
+  "note": "18 Venus Djinn: the 7 from Golden Sun and 11 new ones.",
+  "rows": [
+   [
+    "Flint",
+    "From Golden Sun",
+    "Golden Sun",
+    "One of the 28 Djinn from Golden Sun. It comes across with a Golden Sun password."
+   ],
+   [
+    "Granite",
+    "From Golden Sun",
+    "Golden Sun",
+    "One of the 28 Djinn from Golden Sun. It comes across with a Golden Sun password."
+   ],
+   [
+    "Quartz",
+    "From Golden Sun",
+    "Golden Sun",
+    "One of the 28 Djinn from Golden Sun. It comes across with a Golden Sun password."
+   ],
+   [
+    "Vine",
+    "From Golden Sun",
+    "Golden Sun",
+    "One of the 28 Djinn from Golden Sun. It comes across with a Golden Sun password."
+   ],
+   [
+    "Sap",
+    "From Golden Sun",
+    "Golden Sun",
+    "One of the 28 Djinn from Golden Sun. It comes across with a Golden Sun password."
+   ],
+   [
+    "Ground",
+    "From Golden Sun",
+    "Golden Sun",
+    "One of the 28 Djinn from Golden Sun. It comes across with a Golden Sun password."
+   ],
+   [
+    "Bane",
+    "From Golden Sun",
+    "Golden Sun",
+    "One of the 28 Djinn from Golden Sun. It comes across with a Golden Sun password."
+   ],
+   [
+    "Echo",
+    "World map, south of Daila",
+    "Joins you",
+    "Joins you on the world map south of Daila."
+   ],
+   [
+    "Iron",
+    "World map, near Madra",
+    "Fight",
+    "Out on the world map near Madra; you have to beat it in a fight."
+   ],
+   [
+    "Steel",
+    "Gabomba Statue",
+    "Fight",
+    "Found at the Gabomba Statue; you have to beat it in a fight."
+   ],
+   [
+    "Mud",
+    "Gabomba Catacombs",
+    "Fight",
+    "Found in the Gabomba Catacombs; you have to beat it in a fight."
+   ],
+   [
+    "Flower",
+    "Taopo Swamp",
+    "Fight",
+    "Found in Taopo Swamp; you have to beat it in a fight."
+   ],
+   [
+    "Meld",
+    "Islet Cave",
+    "",
+    "Found in Islet Cave on Sea of Time Islet, after the Turtle quest."
+   ],
+   [
+    "Salt",
+    "Contigo",
+    "",
+    "Found in Contigo."
+   ],
+   [
+    "Petra",
+    "World map, north-east of Shaman Village",
+    "Fight",
+    "In a small forest north-east of the Shaman Village cave; you have to beat it in a fight."
+   ],
+   [
+    "Geode",
+    "Atteka Inlet",
+    "",
+    "Found at Atteka Inlet."
+   ],
+   [
+    "Mold",
+    "Prox",
+    "",
+    "Found in Prox."
+   ],
+   [
+    "Crystal",
+    "Yampi Desert Cave",
+    "Fight",
+    "Found in Yampi Desert Cave; you have to beat it in a fight."
+   ]
+  ]
+ },
+ {
+  "id": "mercury",
+  "name": "Mercury Djinn",
+  "note": "18 Mercury Djinn: the 7 from Golden Sun and 11 new ones.",
+  "rows": [
+   [
+    "Fizz",
+    "From Golden Sun",
+    "Golden Sun",
+    "One of the 28 Djinn from Golden Sun. It comes across with a Golden Sun password."
+   ],
+   [
+    "Sleet",
+    "From Golden Sun",
+    "Golden Sun",
+    "One of the 28 Djinn from Golden Sun. It comes across with a Golden Sun password."
+   ],
+   [
+    "Mist",
+    "From Golden Sun",
+    "Golden Sun",
+    "One of the 28 Djinn from Golden Sun. It comes across with a Golden Sun password."
+   ],
+   [
+    "Spritz",
+    "From Golden Sun",
+    "Golden Sun",
+    "One of the 28 Djinn from Golden Sun. It comes across with a Golden Sun password."
+   ],
+   [
+    "Hail",
+    "From Golden Sun",
+    "Golden Sun",
+    "One of the 28 Djinn from Golden Sun. It comes across with a Golden Sun password."
+   ],
+   [
+    "Tonic",
+    "From Golden Sun",
+    "Golden Sun",
+    "One of the 28 Djinn from Golden Sun. It comes across with a Golden Sun password."
+   ],
+   [
+    "Dew",
+    "From Golden Sun",
+    "Golden Sun",
+    "One of the 28 Djinn from Golden Sun. It comes across with a Golden Sun password."
+   ],
+   [
+    "Fog",
+    "Kandorean Temple",
+    "Fight",
+    "Found in Kandorean Temple; you have to beat it in a fight."
+   ],
+   [
+    "Sour",
+    "World map, north-east of Mikasalla",
+    "Fight",
+    "Out on the world map north-east of Mikasalla; you have to beat it in a fight."
+   ],
+   [
+    "Chill",
+    "World map, south-west of Naribwe",
+    "Fight",
+    "Out on the world map south-west of Naribwe; you have to beat it in a fight."
+   ],
+   [
+    "Spring",
+    "Kibombo",
+    "Joins you",
+    "Comes with Piers when he joins you in Kibombo."
+   ],
+   [
+    "Shade",
+    "Kibombo",
+    "Joins you",
+    "Comes with Piers when he joins you in Kibombo."
+   ],
+   [
+    "Steam",
+    "Aqua Rock",
+    "Fight",
+    "Found in Aqua Rock; you have to beat it in a fight."
+   ],
+   [
+    "Rime",
+    "Ancient Lemuria",
+    "",
+    "Found at the west dock in Ancient Lemuria."
+   ],
+   [
+    "Gel",
+    "Kalt Island",
+    "",
+    "Found on Kalt Island."
+   ],
+   [
+    "Eddy",
+    "Shaman Village Cave",
+    "Fight",
+    "Found in the Shaman Village cave; you have to beat it in a fight."
+   ],
+   [
+    "Serac",
+    "Islet Cave",
+    "Teleport",
+    "Found in Islet Cave on Sea of Time Islet, after you have Teleport."
+   ],
+   [
+    "Balm",
+    "Mars Lighthouse",
+    "Fight",
+    "Found in Mars Lighthouse; you have to beat it in a fight."
+   ]
+  ]
+ },
+ {
+  "id": "mars",
+  "name": "Mars Djinn",
+  "note": "18 Mars Djinn: the 7 from Golden Sun and 11 new ones.",
+  "rows": [
+   [
+    "Forge",
+    "From Golden Sun",
+    "Golden Sun",
+    "One of the 28 Djinn from Golden Sun. It comes across with a Golden Sun password."
+   ],
+   [
+    "Fever",
+    "From Golden Sun",
+    "Golden Sun",
+    "One of the 28 Djinn from Golden Sun. It comes across with a Golden Sun password."
+   ],
+   [
+    "Corona",
+    "From Golden Sun",
+    "Golden Sun",
+    "One of the 28 Djinn from Golden Sun. It comes across with a Golden Sun password."
+   ],
+   [
+    "Scorch",
+    "From Golden Sun",
+    "Golden Sun",
+    "One of the 28 Djinn from Golden Sun. It comes across with a Golden Sun password."
+   ],
+   [
+    "Ember",
+    "From Golden Sun",
+    "Golden Sun",
+    "One of the 28 Djinn from Golden Sun. It comes across with a Golden Sun password."
+   ],
+   [
+    "Flash",
+    "From Golden Sun",
+    "Golden Sun",
+    "One of the 28 Djinn from Golden Sun. It comes across with a Golden Sun password."
+   ],
+   [
+    "Torch",
+    "From Golden Sun",
+    "Golden Sun",
+    "One of the 28 Djinn from Golden Sun. It comes across with a Golden Sun password."
+   ],
+   [
+    "Cannon",
+    "Dehkan Plateau",
+    "Fight",
+    "Found on Dehkan Plateau; you have to beat it in a fight. It rewards you with the Pound Cube."
+   ],
+   [
+    "Spark",
+    "Mikasalla",
+    "Scoop",
+    "Found in Mikasalla. You need Scoop to reach it."
+   ],
+   [
+    "Kindle",
+    "Gondowan Cliffs",
+    "Fight",
+    "Found on the Gondowan Cliffs; you have to beat it in a fight."
+   ],
+   [
+    "Char",
+    "Madra",
+    "",
+    "Found in Madra: give the Healing Fungus to the old man."
+   ],
+   [
+    "Coal",
+    "Izumo",
+    "",
+    "Found in Izumo: give Lady Uzume the dancing idol, after Gaia Rock."
+   ],
+   [
+    "Reflux",
+    "Tundaria Tower",
+    "Fight",
+    "Found in Tundaria Tower; you have to beat it in a fight."
+   ],
+   [
+    "Core",
+    "World map, west of Contigo",
+    "Fight",
+    "Out on the world map, in a forest west of Contigo; you have to beat it in a fight."
+   ],
+   [
+    "Tinder",
+    "Hesperia Settlement",
+    "",
+    "Found in Hesperia Settlement."
+   ],
+   [
+    "Shine",
+    "Contigo",
+    "Force",
+    "Found in Contigo. You need Force to reach it."
+   ],
+   [
+    "Fury",
+    "Magma Rock",
+    "Fight",
+    "Found in Magma Rock; you have to beat it in a fight."
+   ],
+   [
+    "Fugue",
+    "Mars Lighthouse",
+    "Fight",
+    "Found in Mars Lighthouse; you have to beat it in a fight."
+   ]
+  ]
+ },
+ {
+  "id": "jupiter",
+  "name": "Jupiter Djinn",
+  "note": "18 Jupiter Djinn: the 7 from Golden Sun and 11 new ones.",
+  "rows": [
+   [
+    "Gust",
+    "From Golden Sun",
+    "Golden Sun",
+    "One of the 28 Djinn from Golden Sun. It comes across with a Golden Sun password."
+   ],
+   [
+    "Breeze",
+    "From Golden Sun",
+    "Golden Sun",
+    "One of the 28 Djinn from Golden Sun. It comes across with a Golden Sun password."
+   ],
+   [
+    "Zephyr",
+    "From Golden Sun",
+    "Golden Sun",
+    "One of the 28 Djinn from Golden Sun. It comes across with a Golden Sun password."
+   ],
+   [
+    "Smog",
+    "From Golden Sun",
+    "Golden Sun",
+    "One of the 28 Djinn from Golden Sun. It comes across with a Golden Sun password."
+   ],
+   [
+    "Kite",
+    "From Golden Sun",
+    "Golden Sun",
+    "One of the 28 Djinn from Golden Sun. It comes across with a Golden Sun password."
+   ],
+   [
+    "Squall",
+    "From Golden Sun",
+    "Golden Sun",
+    "One of the 28 Djinn from Golden Sun. It comes across with a Golden Sun password."
+   ],
+   [
+    "Luff",
+    "From Golden Sun",
+    "Golden Sun",
+    "One of the 28 Djinn from Golden Sun. It comes across with a Golden Sun password."
+   ],
+   [
+    "Breath",
+    "Shrine of the Sea God",
+    "Fight",
+    "Found in the Shrine of the Sea God; you have to beat it in a fight."
+   ],
+   [
+    "Blitz",
+    "Yampi Desert",
+    "Fight",
+    "Found in Yampi Desert; you have to beat it in a fight."
+   ],
+   [
+    "Ether",
+    "Garoh",
+    "Reveal",
+    "Found in Garoh, after Air's Rock. Talk to Maha during the day."
+   ],
+   [
+    "Waft",
+    "Kibombo Mountains",
+    "Fight",
+    "Found in the Kibombo Mountains; you have to beat it in a fight."
+   ],
+   [
+    "Haze",
+    "Apojii Islands",
+    "Sand",
+    "Found on the Apojii Islands, after Gaia Rock. You need Sand."
+   ],
+   [
+    "Wheeze",
+    "World map, south-west of Tundaria Tower",
+    "Fight",
+    "Out on the world map south-west of Tundaria Tower; you have to beat it in a fight."
+   ],
+   [
+    "Aroma",
+    "Shaman Village",
+    "",
+    "Found in Shaman Village, after the Trial Road."
+   ],
+   [
+    "Whorl",
+    "Jupiter Lighthouse",
+    "Fight",
+    "Found in Jupiter Lighthouse; you have to beat it in a fight."
+   ],
+   [
+    "Gasp",
+    "Trial Road",
+    "Fight",
+    "Found at the end of the Trial Road; you have to beat it in a fight."
+   ],
+   [
+    "Lull",
+    "Loho",
+    "",
+    "Found in Loho, after Magma Rock."
+   ],
+   [
+    "Gale",
+    "Treasure Isle",
+    "Fight",
+    "Found on Treasure Isle; you have to beat it in a fight."
+   ]
+  ]
+ },
+ {
+  "id": "makeup",
+  "name": "Make-up Djinn",
+  "note": "Four extra Djinn, one per element. They are optional.",
+  "rows": [
+   [
+    "Venus Make-up Djinni",
+    "Treasure Isle",
+    "",
+    "An optional extra Venus Djinni on Treasure Isle."
+   ],
+   [
+    "Mercury Make-up Djinni",
+    "Prox",
+    "",
+    "An optional extra Mercury Djinni in Prox."
+   ],
+   [
+    "Mars Make-up Djinni",
+    "Magma Rock",
+    "",
+    "An optional extra Mars Djinni in Magma Rock."
+   ],
+   [
+    "Jupiter Make-up Djinni",
+    "South-west Atteka islet",
+    "",
+    "An optional extra Jupiter Djinni on the small islet south-west of Atteka."
+   ]
+  ]
+ },
+ {
+  "id": "summons",
+  "name": "Summon tablets",
+  "note": "Thirteen stone tablets. Each teaches a summon that needs the Djinn shown.",
+  "rows": [
+   [
+    "Zagan",
+    "Indra Cavern",
+    "1 Venus, 1 Mars",
+    "Tablet in Indra Cavern, north of Madra."
+   ],
+   [
+    "Megaera",
+    "Osenia Cavern",
+    "1 Mars, 1 Jupiter",
+    "Tablet in Osenia Cavern, north-east of Mikasalla."
+   ],
+   [
+    "Flora",
+    "Air's Rock",
+    "1 Venus, 2 Jupiter",
+    "Tablet in the third room from the top of Air's Rock."
+   ],
+   [
+    "Moloch",
+    "Madra Catacombs",
+    "2 Mercury, 1 Jupiter",
+    "Tablet in the Madra Catacombs, behind a door the Ruin Key opens."
+   ],
+   [
+    "Ulysses",
+    "Izumo Ruins",
+    "2 Mars, 2 Mercury",
+    "Tablet in the Izumo Ruins."
+   ],
+   [
+    "Eclipse",
+    "Lemuria",
+    "3 Jupiter, 2 Mercury",
+    "The prize at the Lucky Medal Fountain in Lemuria."
+   ],
+   [
+    "Haures",
+    "Angara Cavern",
+    "3 Venus, 2 Mars",
+    "Tablet in Angara Cavern, north of Loho."
+   ],
+   [
+    "Coatlicue",
+    "Atteka Cavern",
+    "3 Jupiter, 3 Mercury",
+    "Tablet in Atteka Cavern, in the south of Atteka."
+   ],
+   [
+    "Azul",
+    "Treasure Isle",
+    "3 Venus, 4 Mercury",
+    "Tablet at the back of Treasure Isle."
+   ],
+   [
+    "Daedalus",
+    "Yampi Desert Cave",
+    "3 Venus, 4 Mars",
+    "Tablet at the back of Yampi Desert Cave."
+   ],
+   [
+    "Catastrophe",
+    "Islet Cave",
+    "3 Mars, 5 Jupiter",
+    "Tablet at the back of Islet Cave on Sea of Time Islet."
+   ],
+   [
+    "Charon",
+    "Anemos Sanctum",
+    "8 Venus, 2 Jupiter",
+    "Tablet near the entrance to Anemos Sanctum. You need all 72 Djinn."
+   ],
+   [
+    "Iris",
+    "Anemos Sanctum",
+    "9 Mars, 4 Mercury",
+    "Tablet at the back of Anemos Sanctum, guarded by Dullahan."
+   ]
+  ]
+ },
+ {
+  "id": "psy",
+  "name": "Psynergy items",
+  "note": "Nine new items. The ones from Golden Sun (Catch Beads, Carry Stone and so on) come across with a Gold password and aren't listed here.",
+  "rows": [
+   [
+    "Burst Brooch",
+    "Tundaria Tower",
+    "",
+    "At the top of Tundaria Tower. Gives Burst."
+   ],
+   [
+    "Cyclone Chip",
+    "Madra",
+    "",
+    "The mayor of Madra gives it to you for capturing Briggs. Gives Cyclone."
+   ],
+   [
+    "Grindstone",
+    "King Hydros",
+    "Venus Adept",
+    "King Hydros gives it to a Venus Adept. Gives Grind."
+   ],
+   [
+    "Hover Jade",
+    "Trial Road",
+    "",
+    "Moapa gives it to you after you return the Shaman's Rod and beat him at the Trial Road. Gives Hover."
+   ],
+   [
+    "Lash Pebble",
+    "Kandorean Temple",
+    "",
+    "Master Poi gives it to you after the Kandorean Temple trial. Gives Lash."
+   ],
+   [
+    "Pound Cube",
+    "Dehkan Plateau",
+    "",
+    "The Mars Djinni Cannon gives it to you after a puzzle on Dehkan Plateau. Gives Pound."
+   ],
+   [
+    "Scoop Gem",
+    "Yampi Desert",
+    "",
+    "King Scorpion gives it to you in Yampi Desert. Gives Scoop."
+   ],
+   [
+    "Teleport Lapis",
+    "Mars Lighthouse",
+    "",
+    "A chest in Mars Lighthouse. Gives Teleport."
+   ],
+   [
+    "Tremor Bit",
+    "Madra Catacombs",
+    "",
+    "A chest in the Madra Catacombs. Gives Tremor."
+   ]
+  ]
+ }
+];
+
 const GAMES = [
  { id:"oot", emu:"n64", importer:"oot", name:"Ocarina of Time", year:1998, console:"Nintendo 64", cats:OOT_CATS, prefix:"", doc:"main", ls:"oot-checklist-v1",
    sub:"Every stone, song, item, upgrade, Heart Piece and Gold Skulltula token, with where to find it.",
@@ -9291,6 +10230,18 @@ const GAMES = [
    hud:"stats", stats:[{label:"Pokédex", cats:["dex"]},{label:"Badges", cats:["badges"]}],
    areaCats:[],
    mark:`<path d="M2 8a6 6 0 0 1 12 0Z" fill="var(--check-ink)"/><circle cx="8" cy="8" r="2" fill="var(--check-ink)"/>` },
+ { id:"gs", emu:"gba", franchise:"Golden Sun", name:"Golden Sun", sortName:"Golden Sun", year:2001, console:"Game Boy Advance", cats:GS_CATS, prefix:"gs-", doc:"gs", ls:"gs-checklist-v1",
+   sub:"Game Boy Advance: all 28 Djinn with where to find them, and the eight Psynergy items. While you play here, the Djinn and items you collect tick themselves off.",
+   filterOpts:null, tagMode:"req", tags:{},
+   hud:"stats", stats:[{label:"Djinn", cats:["venus","mercury","mars","jupiter"]},{label:"Psynergy items", cats:["psy"]}],
+   areaCats:[],
+   mark:`<circle cx="8" cy="8" r="3" fill="var(--check-ink)"/><path d="M8 1v2.4M8 12.6V15M1 8h2.4M12.6 8H15M3 3l1.7 1.7M11.3 11.3 13 13M13 3l-1.7 1.7M4.7 11.3 3 13" stroke="var(--check-ink)" stroke-width="1.4" stroke-linecap="round"/>` },
+ { id:"gstla", emu:"gba", franchise:"Golden Sun", name:"Golden Sun: The Lost Age", sortName:"Golden Sun The Lost Age", year:2002, console:"Game Boy Advance", cats:GSTLA_CATS, prefix:"gstla-", doc:"gstla", ls:"gstla-checklist-v1",
+   sub:"Game Boy Advance: all 72 Djinn, the 13 summon tablets and the new Psynergy items, with where to find each.",
+   filterOpts:null, tagMode:"req", tags:{},
+   hud:"stats", stats:[{label:"Djinn", cats:["venus","mercury","mars","jupiter"]},{label:"Summons", cats:["summons"]},{label:"Psynergy items", cats:["psy"]}],
+   areaCats:[],
+   mark:`<circle cx="8" cy="8" r="3" fill="var(--check-ink)"/><path d="M8 1.4v2M8 12.6v2M1.4 8h2M12.6 8h2" stroke="var(--check-ink)" stroke-width="1.6" stroke-linecap="round"/>` },
 ];
 // Games are grouped by franchise (franchises alphabetical, ignoring a leading "The"),
 // then alphabetical by title within each franchise, then by release year for the same title.
@@ -9298,7 +10249,7 @@ GAMES.forEach(g=>{ g.franchise = g.franchise || "The Legend of Zelda"; });
 const frKey = f=>f.replace(/^The\s+/i,"");
 const FRANCHISES = [...new Set(GAMES.map(g=>g.franchise))].sort((a,b)=>frKey(a).localeCompare(frKey(b)));
 // Games line up by release date within each series (month matters where two came out the same year)
-const RELEASED = { loz:"1986-02", z2:"1987-01", alttp:"1991-11", oot:"1998-11", ladx:"1998-12", tmc:"2004-11", pkmn:"1996-02", pkgsc:"1999-11", pkrse:"2002-11", pkfrlg:"2004-01", ac3:"1999-05" };
+const RELEASED = { loz:"1986-02", z2:"1987-01", alttp:"1991-11", oot:"1998-11", ladx:"1998-12", tmc:"2004-11", pkmn:"1996-02", pkgsc:"1999-11", pkrse:"2002-11", pkfrlg:"2004-01", ac3:"1999-05", gs:"2001-08", gstla:"2002-06" };
 const relKey = g=>RELEASED[g.id] || String(g.year || 9999);
 GAMES.sort((a,b)=>FRANCHISES.indexOf(a.franchise)-FRANCHISES.indexOf(b.franchise) || relKey(a).localeCompare(relKey(b)) || (a.sortName||a.name).localeCompare(b.sortName||b.name));
 GAMES.forEach(g=>{

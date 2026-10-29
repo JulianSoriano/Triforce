@@ -18,9 +18,11 @@ Your progress is kept in that browser on that computer. Use **Back up my progres
 | --- | --- |
 | The Legend of Zelda | The Legend of Zelda, Zelda II, A Link to the Past, Ocarina of Time, Link's Awakening DX, The Minish Cap |
 | Pokémon | Red/Blue/Yellow, Gold/Silver/Crystal, Ruby/Sapphire/Emerald, FireRed/LeafGreen |
+| Golden Sun | Golden Sun, Golden Sun: The Lost Age |
 | Ace Combat | Ace Combat 3: Electrosphere (Japanese version, with the English fan translation) |
 
 - **Pokémon:** The Pokédex sprites, the 3D maps and where each Pokémon is found are read from your own ROM once you've loaded it. The **Pokémon Box** moves Pokémon between saves: Gen 1 ↔ Gen 2 (Time Capsule rules), Gen 3 ↔ Gen 3, and Gen 1/2 → Gen 3.
+- **Golden Sun:** Each game has its own page with every Djinni, the summon tablets (Lost Age) and the Psynergy items. While you play Golden Sun here, the Djinn and Psynergy items your party collects tick themselves off. The memory addresses come from [Dyrati](https://github.com/Dyrati)'s Golden Sun password research.
 - **Ace Combat Lore:** The Ace Combat tab includes the [Strangereal Map](https://github.com/JulianSoriano/Strangereal-Map).
 
 This public build leaves out game artwork. The Zelda maps are plain coloured 3D models, and the checklist tiles have no item icons.
