@@ -921,12 +921,9 @@ h1{color:var(--ink);font-weight:650;letter-spacing:-.025em;line-height:1.1}
       <div class="home-facts"><span>No installs</span><span>Bring your own games</span><span>Nothing is uploaded</span><span>Works with controllers</span></div>
     </div>
 
-    <h2>Pick a game</h2>
-    <div id="homeGames"></div>
-
     <h2>How it works</h2>
     <ol class="home-steps">
-      <li><b>Pick a game.</b> Use the tabs at the top or the cards above. Each game has a checklist of everything worth collecting, and most have a map.</li>
+      <li><b>Pick a game.</b> Use the tabs at the top. Each game has a checklist of everything worth collecting, and most have a map.</li>
       <li><b>Tick things off.</b> Tap a tile to tick it. Hover over it (or tap and hold) to see where it is and how to get it.</li>
       <li><b>Or let your save do it.</b> <b>Import save file</b> reads a save from an emulator (.sav or .srm) and ticks everything you've already done. It only adds ticks, never removes them.</li>
       <li><b>Play in your browser.</b> <b>Play in browser</b>, then <b>Choose ROM file</b> to load your copy of the game. Each time you save in the game, the checklist fills itself in.</li>
@@ -9505,25 +9502,10 @@ gamesEl.addEventListener("keydown",e=>{
 
 // ---------- Home ----------
 function renderHome(){
-  const box = document.getElementById("homeGames"); if(!box) return;
-  const extra = { "Pokémon":[BOX_TAB, "Pokémon Box", "Move Pokémon between your saves"], "Ace Combat":[LORE_TAB, "Ace Combat Lore", "The Strangereal Map"] };
-  box.innerHTML = FRANCHISES.map(f=>{
-    const list = GAMES.filter(g=> g.franchise === f);
-    const cards = list.map(g=>{ const pct = g.all.length ? Math.round(g.checked.size / g.all.length * 100) : 0;
-      return `<button type="button" class="home-game" data-home-g="${g.id}"><b>${esc(g.name)}</b><small>${g.year} · ${esc(g.console)}${g.all.length ? ` · ${g.checked.size}/${g.all.length}` : ""}</small><span class="home-bar"><i style="width:${pct}%"></i></span></button>`; }).join("")
-      + (extra[f] ? `<button type="button" class="home-game extra" data-home-tab="${extra[f][0]}" data-home-fr="${esc(f)}"><b>${esc(extra[f][1])}</b><small>${esc(extra[f][2])}</small></button>` : "");
-    return `<div class="home-series"><h3>${esc(f)}</h3><div class="home-games">${cards}</div></div>`;
-  }).join("");
   const sync = !document.getElementById("bkOut");
   document.querySelectorAll(".home-when-sync").forEach(el=> el.hidden = !sync);
   document.querySelectorAll(".home-when-local").forEach(el=> el.hidden = sync);
 }
-document.getElementById("home").addEventListener("click", e=>{
-  const g = e.target.closest("[data-home-g]");
-  if(g){ const game = GBY[g.dataset.homeG]; if(!game) return; if(game !== G) switchGame(game); showFranchise(game.franchise); document.documentElement.classList.remove("pick-mode"); window.scrollTo({ top:0 }); return; }
-  const t = e.target.closest("[data-home-tab]");
-  if(t){ showFranchise(t.dataset.homeTab); window.scrollTo({ top:0 }); }
-});
 // ---------- save import ----------
 const importRow = document.getElementById("importRow"), importBtn = document.getElementById("importBtn");
 const importFile = document.getElementById("importFile"), importMsg = document.getElementById("importMsg");
