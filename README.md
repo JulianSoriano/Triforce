@@ -22,6 +22,7 @@ Your progress is kept in that browser on that computer. Use **Back up my progres
 | Ace Combat | Ace Combat 3: Electrosphere (Japanese version, with the English fan translation) |
 
 - **Pokémon:** The Pokédex sprites, the 3D maps and where each Pokémon is found are read from your own ROM once you've loaded it. The **Pokémon Box** moves Pokémon between saves: Gen 1 ↔ Gen 2 (Time Capsule rules), Gen 3 ↔ Gen 3, and Gen 1/2 → Gen 3.
+- **Emulators:** a general retro player in its own tab: Genesis / Mega Drive, Master System, Game Gear, NES, SNES, Game Boy, Game Boy Color and GBA. It keeps a library of the games you add, four save-state slots per game and a save-state editor with value search; keys can be rebound and controllers work. Bring your own game files; everything stays in your browser. The cores are libretro builds (Genesis Plus GX, FCEUmm, Snes9x 2010, mGBA) compiled to WebAssembly.
 - **Golden Sun:** Each game has its own page with every Djinni, the summon tablets (Lost Age) and the Psynergy items. While you play Golden Sun here, the Djinn and Psynergy items your party collects tick themselves off. The **Password Generator** tab is the [Golden Sun Password Generator](https://github.com/JulianSoriano/Golden-Sun-Password), for carrying a Golden Sun party into The Lost Age. The memory addresses come from [Dyrati](https://github.com/Dyrati)'s Golden Sun password research.
 - **Ace Combat Lore:** The Ace Combat tab includes the [Strangereal Map](https://github.com/JulianSoriano/Strangereal-Map).
 
