@@ -577,6 +577,8 @@ html.pick-mode .pick-note{display:block}
 .home-guide .g-body{padding:0 0 14px;color:var(--muted);font-size:14px;line-height:1.6}
 .home-guide .g-body p{margin:0 0 8px}
 .home-guide .g-body ul{margin:0 0 8px;padding-left:18px}
+.tab-guide{margin:0 0 14px}
+html.playing .tab-guide{display:none}
 .home-guide kbd{font:12px var(--mono);padding:1px 6px;border:1px solid var(--line);border-radius:5px;background:var(--surface-2);color:var(--ink)}
 .about-lede{margin:0 0 14px;max-width:70ch;color:var(--muted);line-height:1.55}
 .about-grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(min(100%,280px),1fr));gap:14px}
@@ -957,6 +959,36 @@ h1{color:var(--ink);font-weight:650;letter-spacing:-.025em;line-height:1.1}
   </section>
 
   <p class="pick-note" id="pickNote">Pick a game above to open its checklist, map and player.</p>
+  <div id="guideBank" hidden>
+    <div data-guide="Pokémon">
+      <details><summary>Pokémon</summary><div class="g-body">
+        <p>Load a Pokémon ROM once (with <b>Remember it on this device</b> ticked) and the game's own pictures appear on the Pokédex. For Ruby, Sapphire, Emerald, FireRed and LeafGreen, the 3D map and where each Pokémon lives are read from your ROM too.</p>
+        <p><b>Pokémon Box</b> (in the Pokémon tab) moves Pokémon between your saves by dragging them:</p>
+        <ul><li>Red/Blue/Yellow ↔ Gold/Silver/Crystal, with the Time Capsule's rules</li><li>Between Gen 3 games, like a link-cable trade</li><li>Gen 1 and 2 Pokémon brought forward to Gen 3 (they keep their species, level, moves, names and shininess; held items have to come off first)</li></ul>
+        <p>Save in the game before you start, press <b>Save changes</b> when you're done, and <b>Undo</b> if you change your mind.</p>
+      </div></details>
+    </div>
+    <div data-guide="Ace Combat">
+      <details><summary>Ace Combat 3</summary><div class="g-body">
+        <p>This plays the Japanese version, which has the full story, with the English fan translation built in. You need your own discs as <kbd>.bin</kbd> files: Ace Combat 3: Electrosphere (Japan) Rev 1, disc 1 and disc 2.</p>
+        <p>The first start takes a minute while it builds the English discs; after that it's quick. If something's wrong, <b>Your discs</b> shows which version you loaded.</p>
+        <p>The checklist is a tree of the story's mission paths. <b>Ace Combat Lore</b>, in the Ace Combat tab, opens the Strangereal Map.</p>
+      </div></details>
+    </div>
+    <div data-guide="Golden Sun">
+      <details><summary>Golden Sun</summary><div class="g-body">
+        <p>Golden Sun and The Lost Age each have their own page in the Golden Sun tab, with every Djinni (28 and 72), the summon tablets and the Psynergy items, and where to find them.</p>
+        <p>While you play Golden Sun here, the Djinn and Psynergy items your party collects tick themselves off. The Lost Age is ticked by hand for now.</p>
+      </div></details>
+    </div>
+    <div data-guide="emu">
+      <details><summary>Emulators</summary><div class="g-body">
+        <p>The <b>Emulators</b> tab is a general retro player, separate from the checklists. It plays Genesis / Mega Drive, Master System, Game Gear, NES, SNES, Game Boy, Game Boy Color and Game Boy Advance games (<kbd>.md</kbd> <kbd>.gen</kbd> <kbd>.sms</kbd> <kbd>.gg</kbd> <kbd>.nes</kbd> <kbd>.sfc</kbd> <kbd>.gb</kbd> <kbd>.gbc</kbd> <kbd>.gba</kbd>, or a <kbd>.zip</kbd> of one).</p>
+        <p>It keeps a library of the games you add, four save-state slots per game, and a save-state editor with value search. Controls can be rebound, and controllers and touch buttons work. Everything stays in this browser.</p>
+      </div></details>
+    </div>
+  </div>
+  <div class="home-guide tab-guide" id="tabGuide" hidden></div>
   <section class="home" id="home" hidden aria-label="Home">
     <div class="home-hero">
       <h1>Welcome to Triforce</h1>
@@ -984,27 +1016,8 @@ h1{color:var(--ink);font-weight:650;letter-spacing:-.025em;line-height:1.1}
         <p>Most games have a 3D model of the world under the checklist. Drag to turn it, scroll (or pinch) to zoom, and right-drag or Shift-drag to move.</p>
         <p><b>Whole map</b> shows everything, <b>Top-down</b> looks straight down, <b>Orbit</b> slowly circles, and <b>Free roam</b> lets you fly around. Tap a place's label to show only the things found there; the numbers show how many you have.</p>
       </div></details>
-      <details><summary>Pokémon</summary><div class="g-body">
-        <p>Load a Pokémon ROM once (with <b>Remember it on this device</b> ticked) and the game's own pictures appear on the Pokédex. For Ruby, Sapphire, Emerald, FireRed and LeafGreen, the 3D map and where each Pokémon lives are read from your ROM too.</p>
-        <p><b>Pokémon Box</b> (in the Pokémon tab) moves Pokémon between your saves by dragging them:</p>
-        <ul><li>Red/Blue/Yellow ↔ Gold/Silver/Crystal, with the Time Capsule's rules</li><li>Between Gen 3 games, like a link-cable trade</li><li>Gen 1 and 2 Pokémon brought forward to Gen 3 (they keep their species, level, moves, names and shininess; held items have to come off first)</li></ul>
-        <p>Save in the game before you start, press <b>Save changes</b> when you're done, and <b>Undo</b> if you change your mind.</p>
-      </div></details>
       <details><summary>Final Fantasy XIV</summary><div class="g-body">
         <p>The <b>Final Fantasy</b> tab shows your Final Fantasy XIV jobs: levels, progress to the next level, and the closest level-ups. Paste your Lodestone link, open your job page, copy the whole page and paste it in. It stays in this browser.</p>
-      </div></details>
-      <details><summary>Emulators</summary><div class="g-body">
-        <p>The <b>Emulators</b> tab is a general retro player, separate from the checklists. It plays Genesis / Mega Drive, Master System, Game Gear, NES, SNES, Game Boy, Game Boy Color and Game Boy Advance games (<kbd>.md</kbd> <kbd>.gen</kbd> <kbd>.sms</kbd> <kbd>.gg</kbd> <kbd>.nes</kbd> <kbd>.sfc</kbd> <kbd>.gb</kbd> <kbd>.gbc</kbd> <kbd>.gba</kbd>, or a <kbd>.zip</kbd> of one).</p>
-        <p>It keeps a library of the games you add, four save-state slots per game, and a save-state editor with value search. Controls can be rebound, and controllers and touch buttons work. Everything stays in this browser.</p>
-      </div></details>
-      <details><summary>Golden Sun</summary><div class="g-body">
-        <p>Golden Sun and The Lost Age each have their own page in the Golden Sun tab, with every Djinni (28 and 72), the summon tablets and the Psynergy items, and where to find them.</p>
-        <p>While you play Golden Sun here, the Djinn and Psynergy items your party collects tick themselves off. The Lost Age is ticked by hand for now.</p>
-      </div></details>
-      <details><summary>Ace Combat 3</summary><div class="g-body">
-        <p>This plays the Japanese version, which has the full story, with the English fan translation built in. You need your own discs as <kbd>.bin</kbd> files: Ace Combat 3: Electrosphere (Japan) Rev 1, disc 1 and disc 2.</p>
-        <p>The first start takes a minute while it builds the English discs; after that it's quick. If something's wrong, <b>Your discs</b> shows which version you loaded.</p>
-        <p>The checklist is a tree of the story's mission paths. <b>Ace Combat Lore</b>, in the Ace Combat tab, opens the Strangereal Map.</p>
       </div></details>
       <details><summary>Your data</summary><div class="g-body">
         <p>Everything stays on your computer, in this browser. Your games and saves are never uploaded, and no game files come with Triforce.</p>
@@ -10527,6 +10540,9 @@ function showFranchise(f, focus){
   document.getElementById("ff").hidden = f !== FF_TAB;
   if(f === FF_TAB){ const fr = document.getElementById("ffFrame"); if(!fr.getAttribute("srcdoc")) EMB.text("ff").then(t=>{ fr.srcdoc = t; }); }
   document.getElementById("hacks").hidden = f !== HACKS_TAB;
+  { const gk = FRANCHISES.includes(f) ? f : f === LORE_TAB ? LORE_FR : f === GSPW_TAB ? GSPW_FR : f === BOX_TAB ? BOX_FR : f === EMU_TAB ? "emu" : "";
+    const tg = document.getElementById("tabGuide"), src = gk && document.querySelector('#guideBank [data-guide="'+gk+'"]');
+    tg.innerHTML = src ? src.innerHTML : ""; tg.hidden = !src; }
   document.getElementById("emu").hidden = f !== EMU_TAB;
   if(f === EMU_TAB){ const fr = document.getElementById("emuFrame"); if(!fr.getAttribute("srcdoc")) EMB.text("emu").then(t=>{ fr.srcdoc = t; }); }
   document.getElementById("gspw").hidden = f !== GSPW_TAB;
