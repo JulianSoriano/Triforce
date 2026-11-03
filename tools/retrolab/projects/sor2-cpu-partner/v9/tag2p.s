@@ -3,16 +3,20 @@
 ; extra sprites added to the end of the sprite list after the game has built it for the frame.
 ; Only when the CPU partner mode is on ($FFFE10 non-zero) and she is on the screen, and only if the sprite list
 ; has room (the Mega Drive shows 80 per frame; the tag needs 2).
-;   Her position on screen is worked out the way the game does it for its own sprites:
-;     x = X + $80 + scroll ($FFFC22)      y = Y + $80 - $FFFC64 - $FFFC26 - height ($70(a5))
-;   the tag sits 40 px above that, centred over her head.
+;   Her position on screen is worked out the way the game does it for its own sprites, but from her position only,
+;   never from the current animation frame, so the tag does not move when her pose changes (her Y already includes
+;   jumps, so it follows her up and down):
+;     x = X + $80 + scroll ($FFFC22)      y = Y + $80 - $FFFC64 - $FFFC26
+;   the tag sits a fixed 92 px above her feet, centred over her.
 ; Hook: at $001A1A  jsr $020BDC (build the sprite list)  becomes  jsr $1FAF00; this code calls the builder first.
 	org	$1FAF00
 	jsr	$20BDC			; what the original call did: build the sprite list
 	tst.b	$FFFFFE10.w		; CPU partner mode?
-	beq.s	.done
-	tst.w	$FFFFF000.w		; is she there?
-	beq.s	.done
+	beq.w	.done
+	cmpi.w	#$34,$FFFFF000.w	; her state: 0 = not there, $34 and up = the menus (the character select
+	bcc.w	.done			;   screen and so on), where a tag would only get in the way
+	tst.w	$FFFFF000.w
+	beq.w	.done
 	movem.l	d0-d4/a3,-(a7)
 	move.w	$FFFFFC14.w,d0		; sprites so far
 	cmpi.w	#78,d0			; room for 2 more?
@@ -21,8 +25,7 @@
 	addi.w	#$80,d1
 	sub.w	$FFFFFC64.w,d1
 	sub.w	$FFFFFC26.w,d1
-	sub.w	$FFFFF070.w,d1		; minus her height
-	subi.w	#40,d1			; above her head
+	subi.w	#92,d1			; a fixed 92 px above her feet: just over her head
 	cmpi.w	#$88,d1
 	bcs.s	.out
 	cmpi.w	#$160,d1
@@ -30,6 +33,7 @@
 	move.w	$FFFFF002.w,d2		; her X
 	addi.w	#$80,d2
 	add.w	$FFFFFC22.w,d2
+	subq.w	#8,d2			; the tag is 16 px wide: centre it on her
 	cmpi.w	#$88,d2
 	bcs.s	.out
 	cmpi.w	#$1B0,d2
