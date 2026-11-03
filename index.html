@@ -595,14 +595,25 @@ html.lore-mode .wrap,html.lore-mode.playing .wrap{max-width:none}
 .lore[hidden]{display:none}
 .lore iframe{display:block;width:100%;height:calc(100vh - 150px);min-height:560px;border:1px solid var(--line);border-radius:10px;background:#03070e}
 #gspwFrame,#emuFrame,#ffFrame{background:var(--ground);border-color:var(--line)}
-.hk-wrap{display:grid;gap:12px;max-width:900px;margin-inline:auto}
-.hk-card{background:var(--surface);border:1px solid var(--line);border-radius:10px;padding:14px 16px;display:grid;gap:8px}
-.hk-card h3{margin:0;font-size:17px}
-.hk-meta{color:var(--muted);font-size:13px}
-.hk-card p{margin:0;color:var(--ink);font-size:14px}
-.hk-links{display:flex;flex-wrap:wrap;gap:8px;margin-top:2px}
-.hk-links a{font-size:14px;color:var(--acc);text-decoration:none;border:1px solid var(--line);background:var(--surface-2);padding:6px 12px;border-radius:999px}
-.hk-links a:hover,.hk-links a:focus-visible{border-color:var(--acc)}
+/*HK-START ROM Hacks tab: the portfolio's cartridge cards, in Triforce's dark theme*/
+#hacks{--hk-c:#b88cf0;--hk-warm:#e8a63c;--hk-ok:#4fc18a}
+.hk-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(300px,1fr));gap:18px}
+.hk-cart{position:relative;background:var(--surface);border:1px solid var(--line);display:flex;flex-direction:column;min-width:0;clip-path:polygon(0 0,calc(100% - 22px) 0,100% 22px,100% 100%,0 100%)}
+.hk-label{display:flex;justify-content:space-between;align-items:center;gap:8px;background:var(--hk-c);color:var(--ground);padding:6px 30px 6px 12px;font-family:var(--mono,ui-monospace,Menlo,monospace);font-size:11px;letter-spacing:.1em;text-transform:uppercase}
+.hk-body{padding:16px 16px 18px;display:flex;flex-direction:column;gap:10px;flex:1;min-width:0}
+.hk-cart h3{font-size:22px;line-height:1.1;margin:0;text-wrap:balance}
+.hk-summary{margin:0;color:var(--muted);overflow-wrap:anywhere}
+.hk-stack{display:flex;flex-wrap:wrap;gap:6px;margin-top:auto}
+.hk-stack span{font-family:var(--mono,ui-monospace,Menlo,monospace);font-size:11px;border:1px solid var(--line);padding:2px 7px}
+.hk-meta{display:flex;justify-content:space-between;align-items:center;gap:10px;font-family:var(--mono,ui-monospace,Menlo,monospace);font-size:12px;border-top:1px dashed var(--line);padding-top:10px}
+.hk-mlinks{display:flex;flex-wrap:wrap;gap:4px 14px;justify-content:flex-end}
+.hk-mlinks a{color:var(--acc)}
+.hk-mlinks .live{font-weight:500}
+.hk-status{display:inline-flex;align-items:center;gap:6px}
+.hk-status::before{content:"";width:8px;height:8px;border-radius:50%;background:var(--hk-warm)}
+.hk-status.done::before{background:var(--hk-ok)}
+@media (prefers-reduced-motion:no-preference){.hk-cart{transition:transform .15s}.hk-cart:hover{transform:translateY(-2px)}}
+/*HK-END*/
 
 .lore-bar{display:flex;gap:12px;align-items:center;justify-content:space-between;margin-bottom:8px;color:var(--muted);font-size:13px}
 .lore-bar a{color:var(--acc);text-decoration:none}
@@ -1051,30 +1062,24 @@ h1{color:var(--ink);font-weight:650;letter-spacing:-.025em;line-height:1.1}
     <iframe id="emuFrame" title="Emulators" allow="autoplay; gamepad; fullscreen" allowfullscreen loading="lazy"></iframe>
   </section>
   <section class="lore" id="hacks" hidden aria-label="ROM Hacks">
-    <div class="lore-bar"><span>ROM Hacks — my Genesis and NES hacks, made as RAMENPHOLIFE. Each one is an IPS patch: you need your own copy of the original game.</span></div>
-    <div class="hk-wrap">
-      <article class="hk-card">
-        <h3>Streets of Rage 2: CPU Partner</h3>
-        <div class="hk-meta">Sega Genesis · patch for the original USA ROM</div>
-        <p>A new CPU PARTNER mode: you play Player 1 and the computer fights beside you as Player 2, with a floating "2P" tag over it so you can always tell the two of you apart.</p>
-        <div class="hk-links"><a href="https://github.com/JulianSoriano/sor2-cpu-partner" target="_blank" rel="noopener">GitHub: patch and source ↗</a></div>
+    <div class="hk-grid">
+      <article class="hk-cart">
+        <div class="hk-label"><span>RH · ROM Hacks</span><span>2026</span></div>
+        <div class="hk-body"><h3>Zelda Three Swords</h3><p class="hk-summary">An NES Legend of Zelda ROM hack that adds CPU partners who fight alongside Link.</p>
+        <div class="hk-stack"><span>NES</span><span>6502 ASM</span><span>ROM hack</span></div>
+        <div class="hk-meta"><span class="hk-status done">Released</span><span class="hk-mlinks"><a class="live" href="https://www.romhacking.net/hacks/10142/" target="_blank" rel="noopener noreferrer">ROM hack page ↗</a><a href="https://github.com/JulianSoriano/Zelda-Three-Swords" target="_blank" rel="noopener noreferrer">Repo ↗</a></span></div></div>
       </article>
-      <article class="hk-card">
-        <h3>Zelda: Three Swords</h3>
-        <div class="hk-meta">NES · The Legend of Zelda</div>
-        <p>A CPU-partner hack of the first Zelda game.</p>
-        <div class="hk-links"><a href="https://github.com/JulianSoriano/Zelda-Three-Swords" target="_blank" rel="noopener">GitHub: patch and source ↗</a></div>
+      <article class="hk-cart">
+        <div class="hk-label"><span>RH · ROM Hacks</span><span>2026</span></div>
+        <div class="hk-body"><h3>Streets of Rage 2 CPU Partner</h3><p class="hk-summary">A Genesis mod that gives Streets of Rage 2 a computer-controlled partner for solo players. The project that started Trash Panda.</p>
+        <div class="hk-stack"><span>Genesis</span><span>68000 ASM</span><span>ROM hack</span></div>
+        <div class="hk-meta"><span class="hk-status done">Released</span><span class="hk-mlinks"><a class="live" href="https://www.romhacking.net/hacks/10132/" target="_blank" rel="noopener noreferrer">ROM hack page ↗</a><a href="https://github.com/JulianSoriano/sor2-cpu-partner" target="_blank" rel="noopener noreferrer">Repo ↗</a></span></div></div>
       </article>
-      <article class="hk-card">
-        <h3>Castlevania: CPU Co-op</h3>
-        <div class="hk-meta">NES · Castlevania</div>
-        <p>A CPU partner added on top of MateriaShrine's co-op patch. The original co-op mod is by MateriaShrine, and all credit for it goes to them.</p>
-        <div class="hk-links"><a href="https://github.com/JulianSoriano/Castlevania-CPU-Coop" target="_blank" rel="noopener">GitHub: patch and source ↗</a></div>
-      </article>
-      <article class="hk-card">
-        <h3>On RomHacking.net</h3>
-        <div class="hk-meta">The ROM hacking community's hack database</div>
-        <div class="hk-links"><a href="https://www.romhacking.net/hacks/10132/" target="_blank" rel="noopener">My RomHacking.net listing ↗</a></div>
+      <article class="hk-cart">
+        <div class="hk-label"><span>RH · ROM Hacks</span><span>2026</span></div>
+        <div class="hk-body"><h3>Castlevania CPU Co-op</h3><p class="hk-summary">A CPU partner for NES Castlevania, built on top of MateriaShrine&#x27;s co-op patch. All credit for the original co-op mod goes to MateriaShrine.</p>
+        <div class="hk-stack"><span>NES</span><span>6502 ASM</span><span>ROM hack</span></div>
+        <div class="hk-meta"><span class="hk-status done">Released</span><span class="hk-mlinks"><a class="live" href="https://www.romhacking.net/hacks/10156/" target="_blank" rel="noopener noreferrer">ROM hack page ↗</a><a href="https://github.com/JulianSoriano/Castlevania-CPU-Coop" target="_blank" rel="noopener noreferrer">Repo ↗</a></span></div></div>
       </article>
     </div>
   </section>
