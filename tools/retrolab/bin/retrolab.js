@@ -29,6 +29,11 @@ Systems: Genesis/Mega Drive, Master System, Game Gear, NES, SNES, Game Boy, Game
       e.g. --steps "run 60; up 1; run 1; up 1; run 1; up 1; show"
   retrolab dis <rom|file> <start> [len] [--cpu 68000|6502|65816|z80|sm83|arm|thumb] [--org ADDR] [--m16] [--x16]
       Disassemble from a file offset. The CPU and the address it runs at come from the system by default.
+  retrolab asm <source.s> --cpu 68000|6502|65816|z80|sm83 [--org ADDR] [--list]
+               [--out FILE.bin] [--into ROM --out NEWROM [--at FILE-OFFSET] [--fix-checksum]]
+      Assemble. Labels end with ':' (local ones start with '.'), NAME equ VALUE, dc.b/dc.w/dc.l, ds.b,
+      org, even, align. --into writes the code into a copy of a ROM (Genesis and GBA work out the file
+      offset from the address; for other systems give --at).
   retrolab patch <rom> <offset> <hexbytes> [--expect HEX] --out FILE [--fix-checksum]
       Change bytes at a file offset (with --expect, only if the old bytes match).
   retrolab checksum <rom> [--fix --out FILE]
@@ -139,6 +144,29 @@ async function main() {
     const snesHi = sys === 'snes' && lab.rom.snesHeader(b).hirom;
     const org = opt.org !== undefined ? num(opt.org) : sys ? lab.disasm.defaultOrg(sys, b, start, snesHi) : start;
     console.log(lab.disasm.format(lab.disasm.disassemble(cpu, b, start, len, org, { m16: !!opt.m16, x16: !!opt.x16 })));
+    return;
+  }
+
+  if (cmd === 'asm') {
+    const src = fs.readFileSync(pos[0], 'utf8');
+    const CPUS = { 68000: 'm68k', '68k': 'm68k', m68k: 'm68k', 6502: '6502', 65816: '65816', z80: 'z80', sm83: 'sm83', gbz80: 'sm83' };
+    const cpu = CPUS[String(opt.cpu || '').toLowerCase()]; if (!cpu) throw new Error('say which CPU: --cpu 68000|6502|65816|z80|sm83');
+    const r = lab.asm.assemble(cpu, src, { org: num(opt.org) || 0, m16: !!opt.m16, x16: !!opt.x16 });
+    const total = r.chunks.reduce((a, c) => a + c.bytes.length, 0);
+    if (opt.list) for (const l of r.listing) console.log(`${l.addr.toString(16).toUpperCase().padStart(6, '0')}  ${l.bytes.padEnd(20)} ${l.src}`);
+    if (opt.into) {
+      if (!opt.out) throw new Error('--into needs --out NEWROM (the original is never changed)');
+      const rom = fs.readFileSync(opt.into), sys = opt.system || lab.systemForFile(opt.into, rom);
+      let toOff;
+      if (opt.at !== undefined) { const base = r.chunks[0].org, at = num(opt.at); toOff = (a) => at + (a - base); }
+      else if (sys === 'md') toOff = (a) => a;
+      else if (sys === 'gba') toOff = (a) => a - 0x08000000;
+      else throw new Error('give --at FILE-OFFSET for this system');
+      let out = lab.asm.place(rom, r.chunks, toOff);
+      if (opt['fix-checksum']) out = lab.rom.fixChecksum(sys, out);
+      fs.writeFileSync(opt.out, out); console.log(`assembled ${total} bytes into ${opt.out}`);
+    } else if (opt.out) { if (r.chunks.length !== 1) throw new Error('more than one org block: use --into'); fs.writeFileSync(opt.out, Buffer.from(r.chunks[0].bytes)); console.log(`assembled ${total} bytes -> ${opt.out}`); }
+    else if (!opt.list) console.log(r.chunks.map((c) => `$${c.org.toString(16).toUpperCase()}: ${Buffer.from(c.bytes).toString('hex')}`).join('\n'));
     return;
   }
 

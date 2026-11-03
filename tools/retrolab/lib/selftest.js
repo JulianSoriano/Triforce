@@ -2,6 +2,8 @@
 // Boots each test ROM and checks the memory map address by address, plus a write round-trip.
 const { Machine, MAPS } = require('./machine');
 const { ROMS, PATTERN } = require('./testroms');
+const D = require('./disasm');
+const { assemble } = require('./asm');
 
 const CHECKS = {
   nes: [[0x0000, 0x800], [0x6000, 0x2000], [0x0800, 0x800, (a) => PATTERN.nes(a & 0x7FF)]],     // + a mirror
@@ -38,6 +40,17 @@ async function selftest(log = console.log) {
     const ok = !bad && wrote;
     if (!ok) failed++;
     log(`${ok ? 'ok  ' : 'FAIL'} ${sys.padEnd(4)} ${total} bytes checked${bad ? `, ${bad} wrong (first: ${firstBad})` : ''}, write ${wrote ? 'ok' : 'failed'}, located in ${cal} ms`);
+  }
+  // assemblers: disassemble each test ROM's code and assemble it back, line by line
+  const CODE = { nes: ['6502', 0x10, 0x130, 0xC000], snes: ['65816', 0, 0x1E, 0x8000], gb: ['sm83', 0x150, 0x34, 0x150], md: ['m68k', 0x200, 0x56, 0x200], sms: ['z80', 0, 0x12, 0] };
+  for (const [sys, [cpu, start, len, org]] of Object.entries(CODE)) {
+    const rom = ROMS[sys]().bytes; let ok = 0, bad = '';
+    for (const l of D.disassemble(cpu, rom, start, len, org)) {
+      let got; try { got = assemble(cpu, l.text, { org: l.addr }).bytes.toString('hex'); } catch (e) { got = 'error: ' + e.message; }
+      if (got === l.bytes) ok++; else if (!bad) bad = `${l.text}: ${got} instead of ${l.bytes}`;
+    }
+    if (bad) failed++;
+    log(`${bad ? 'FAIL' : 'ok  '} ${cpu.padEnd(5)} assembler: ${ok} instructions round-trip${bad ? '; ' + bad : ''}`);
   }
   return failed;
 }

@@ -8,5 +8,6 @@ const disasm = require('./lib/disasm');
 const { SYSTEMS, systemForFile } = require('./lib/core');
 const { selftest } = require('./lib/selftest');
 const { encodePNG } = require('./lib/png');
+const asm = require('./lib/asm');
 
-module.exports = { Machine, MAPS, BUTTONS, Search, trace, toCSV, rom, disasm, SYSTEMS, systemForFile, selftest, encodePNG };
+module.exports = { Machine, MAPS, BUTTONS, Search, trace, toCSV, rom, disasm, asm, SYSTEMS, systemForFile, selftest, encodePNG };

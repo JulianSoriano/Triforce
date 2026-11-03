@@ -120,6 +120,7 @@ function oneZ80(b, i, pc) {
       if (z === 1) return { len: 2, text: y === 6 ? 'OUT (C),0' : `OUT (C),${Z.r[y]}` };
       if (z === 2) return { len: 2, text: `${q ? 'ADC' : 'SBC'} HL,${Z.rp[p]}` };
       if (z === 3) return { len: 4, text: q ? `LD ${Z.rp[p]},(${hx(w, 4)})` : `LD (${hx(w, 4)}),${Z.rp[p]}` };
+      if ((z === 4 && y) || (z === 5 && y > 1) || (z === 6 && ![0, 2, 3].includes(y))) return { len: 2, text: `.db $ED,${hx(o2, 2)} ; ${z === 4 ? 'NEG' : z === 5 ? 'RETN' : 'IM ' + Z.im[y]} (undocumented copy)` };
       if (z === 4) return { len: 2, text: 'NEG' };
       if (z === 5) return { len: 2, text: y === 1 ? 'RETI' : 'RETN' };
       if (z === 6) return { len: 2, text: `IM ${Z.im[y]}` };
@@ -160,6 +161,7 @@ function oneZ80(b, i, pc) {
     else if (z === 6) { len = base + 1; t = `${Z.alu[y]}${hx(n8(), 2)}`; }
     else { target = y * 8; t = `RST ${hx(y * 8, 2)}`; }
   }
+  if (ix && d === null && !/I[XY]/.test(t)) return { len: 1, text: `.db ${hx(b[p0], 2)}` };   // the prefix does nothing here
   return { len, text: t, target };
 }
 function oneSM83(b, i, pc) {
@@ -169,7 +171,7 @@ function oneSM83(b, i, pc) {
   let len = 1, t, target;
   if (x === 0) {
     if (z === 0) {
-      if (y === 0) t = 'NOP'; else if (y === 1) { len = 3; t = `LD (${hx(w, 4)}),SP`; } else if (y === 2) { len = 2; t = 'STOP'; }
+      if (y === 0) t = 'NOP'; else if (y === 1) { len = 3; t = `LD (${hx(w, 4)}),SP`; } else if (y === 2) { if (n8) t = `.db ${hx(op, 2)}`; else { len = 2; t = 'STOP'; } }
       else { len = 2; target = (pc + 2 + s8(n8)) & 0xFFFF; t = y === 3 ? `JR ${hx(target, 4)}` : `JR ${cc[y - 4]},${hx(target, 4)}`; }
     } else if (z === 1) { if (q) t = `ADD HL,${Z.rp[p]}`; else { len = 3; t = `LD ${Z.rp[p]},${hx(w, 4)}`; } }
     else if (z === 2) { const m = ['(BC)', '(DE)', '(HL+)', '(HL-)'][p]; t = q ? `LD A,${m}` : `LD ${m},A`; }
@@ -256,4 +258,4 @@ function defaultOrg(system, rom, offset, snesHi) {
 }
 function format(lines) { return lines.map((l) => `${l.addr.toString(16).toUpperCase().padStart(6, '0')}  ${(l.bytes || '').padEnd(20)} ${l.text}`).join('\n'); }
 
-module.exports = { disassemble, format, CPU_FOR, defaultOrg, llvmObjdump };
+module.exports = { disassemble, format, CPU_FOR, defaultOrg, llvmObjdump, OPS6502, OPS816, LEN6502, oneZ80, oneSM83 };

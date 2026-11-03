@@ -35,6 +35,28 @@ node bin/retrolab.js patch game.md 0x1741E 0c420030 --expect 0c420046 --out test
 
 Run `node bin/retrolab.js` with no arguments for every command.
 
+### Assemblers
+
+`retrolab asm` turns instructions into bytes for the 68000 (Genesis), 6502 (NES), 65816 (SNES), Z80 (Master System, Game Gear, Genesis sound) and SM83 (Game Boy). They read the same syntax the disassemblers print, so you can copy code out of `dis`, change it and assemble it back.
+
+```
+; jumpkick.s - make the check at $1741E use a shorter distance
+        org     $1741E
+        cmpi.w  #$30,d2          ; was #$46
+```
+
+```sh
+node bin/retrolab.js asm jumpkick.s --cpu 68000 --list --into game.md --out test.md --fix-checksum
+```
+
+- Labels end with `:`; local labels start with `.` and belong to the label above. `NAME equ VALUE` (or `=`).
+- Numbers: `$1F`, `0x1F`, `1Fh`, `%1010`, `65`, `'A'`. Expressions: `+ - * / % & | ^ << >> ~`, brackets, `*` for the current address.
+- Directives: `org`, `dc.b`/`db` (text in quotes too), `dc.w`/`dw`, `dc.l`, `ds.b`, `even`, `align`. On the 65816, `.a8 .a16 .i8 .i16` set register widths (`REP`/`SEP` also do).
+- Sizes are what you write: a 68000 address is long unless it ends in `.w`, a branch is `.w` unless it is `.s`; on the 6502 and 65816, `$12` is zero page or direct page, `$1234` absolute and `$123456` long.
+- The 68000 writes `$017356(pc)` with the address of the data, the way the disassembler shows it.
+
+Checked by disassembling real games and assembling every instruction back: 117,063 instructions from Streets of Rage 2 (68000) and 214,475 from its sound code (Z80), 138,349 from Zelda and Zelda II (6502), 469,830 from A Link to the Past (65816) and 2,524,421 from Pokémon Crystal and Link's Awakening DX (SM83). All came back byte for byte. ARM/Thumb (GBA) has no assembler yet; `llvm-mc --triple=thumbv4t` works in the meantime.
+
 ### Input scripts
 
 One line per step:
@@ -63,7 +85,7 @@ m.step(1); s.increased(1);
 m.screenshot('now.png');
 ```
 
-Also there: `lab.trace`, `lab.rom` (`info`, `fixChecksum`, `patchBytes`, `applyIPS`, `makeIPS`, `diff`) and `lab.disasm` (`disassemble(cpu, rom, start, len, org)` for `m68k`, `6502`, `65816`, `z80`, `sm83`, `arm`, `thumb`).
+Also there: `lab.asm.assemble(cpu, source, { org })`, `lab.trace`, `lab.rom` (`info`, `fixChecksum`, `patchBytes`, `applyIPS`, `makeIPS`, `diff`) and `lab.disasm` (`disassemble(cpu, rom, start, len, org)` for `m68k`, `6502`, `65816`, `z80`, `sm83`, `arm`, `thumb`).
 
 ## How it reaches the memory
 

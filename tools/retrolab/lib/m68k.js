@@ -10,7 +10,7 @@ function dis68k(b, i, pc) {
   const sw = () => { const v = w(); return v > 32767 ? v - 65536 : v; };
   const l = () => { const v = ((b[p] << 24) | (b[p + 1] << 16) | (b[p + 2] << 8) | b[p + 3]) >>> 0; p += 4; return v; };
   const op = w();
-  let target;
+  let target, bad = false;
   // effective address text; size: 0 b, 1 w, 2 l (for immediates)
   const ea = (mode, reg, size) => {
     switch (mode) {
@@ -20,17 +20,17 @@ function dis68k(b, i, pc) {
       case 3: return `(a${reg})+`;
       case 4: return `-(a${reg})`;
       case 5: return `${sw()}(a${reg})`;
-      case 6: { const e = w(); const d8 = (e & 0xFF) > 127 ? (e & 0xFF) - 256 : e & 0xFF; return `${d8}(a${reg},${e & 0x8000 ? 'a' : 'd'}${(e >> 12) & 7}.${e & 0x800 ? 'l' : 'w'})`; }
+      case 6: { const e = w(); if (e & 0x700) bad = true; const d8 = (e & 0xFF) > 127 ? (e & 0xFF) - 256 : e & 0xFF; return `${d8}(a${reg},${e & 0x8000 ? 'a' : 'd'}${(e >> 12) & 7}.${e & 0x800 ? 'l' : 'w'})`; }
       case 7:
         switch (reg) {
           case 0: { const v = sw(); return H((v < 0 ? v + 0x1000000 : v) & 0xFFFFFF, 4) + '.w'; }
           case 1: return H(l(), 6);
           case 2: { const base = pc + (p - i); const d = sw(); target = (base + d) >>> 0; return `${H(target, 6)}(pc)`; }
-          case 3: { const base = pc + (p - i); const e = w(); const d8 = (e & 0xFF) > 127 ? (e & 0xFF) - 256 : e & 0xFF; return `${H((base + d8) >>> 0, 6)}(pc,${e & 0x8000 ? 'a' : 'd'}${(e >> 12) & 7}.${e & 0x800 ? 'l' : 'w'})`; }
-          case 4: return '#' + (size === 2 ? H(l()) : size === 1 ? H(w()) : H(w() & 0xFF));
+          case 3: { const base = pc + (p - i); const e = w(); if (e & 0x700) bad = true; const d8 = (e & 0xFF) > 127 ? (e & 0xFF) - 256 : e & 0xFF; return `${H((base + d8) >>> 0, 6)}(pc,${e & 0x8000 ? 'a' : 'd'}${(e >> 12) & 7}.${e & 0x800 ? 'l' : 'w'})`; }
+          case 4: { if (size === 2) return '#' + H(l()); const v = w(); if (size === 0 && (v & 0xFF00)) bad = true; return '#' + H(size === 0 ? v & 0xFF : v); }
         }
     }
-    return '?';
+    bad = true; return '?';
   };
   const eaOK = (mode, reg, allowed) => allowed.includes(mode === 7 ? 7 + reg : mode);   // 0-6, 7 abs.w, 8 abs.l, 9 d16pc, 10 d8pc, 11 imm
   const regList = (mask, pre) => {
@@ -45,12 +45,12 @@ function dis68k(b, i, pc) {
   if (top === 0) {
     if ((op & 0x0100) && mode === 1) { const d = sw(); const s = op & 0x40 ? 'l' : 'w'; t = op & 0x80 ? `movep.${s} d${reg9},${d}(a${reg})` : `movep.${s} ${d}(a${reg}),d${reg9}`; }
     else if (op & 0x0100) { t = `${['btst', 'bchg', 'bclr', 'bset'][sz]} d${reg9},${ea(mode, reg, 0)}`; }
-    else if ((op & 0x0F00) === 0x0800) { const n = w() & 0xFF; t = `${['btst', 'bchg', 'bclr', 'bset'][sz]} #${n},${ea(mode, reg, 0)}`; }
+    else if ((op & 0x0F00) === 0x0800) { const nw = w(); if (nw & 0xFF00) bad = true; const n = nw & 0xFF; t = `${['btst', 'bchg', 'bclr', 'bset'][sz]} #${n},${ea(mode, reg, 0)}`; }
     else {
       const names = { 0: 'ori', 2: 'andi', 4: 'subi', 6: 'addi', 0xA: 'eori', 0xC: 'cmpi' }, nm = names[(op >> 8) & 0xF];
       if (nm && sz < 3) {
-        if (mode === 7 && reg === 4 && (nm === 'ori' || nm === 'andi' || nm === 'eori')) { const v = w(); t = `${nm} #${H(sz === 0 ? v & 0xFF : v)},${sz === 0 ? 'ccr' : 'sr'}`; }
-        else { const imm = sz === 2 ? l() : sz === 1 ? w() : w() & 0xFF; t = `${nm}.${SZ[sz]} #${H(imm)},${ea(mode, reg, sz)}`; }
+        if (mode === 7 && reg === 4) { if ((op & 0xFF) === 0x3C || (op & 0xFF) === 0x7C) { if (nm === 'ori' || nm === 'andi' || nm === 'eori') { const v = w(); if (sz === 0 && (v & 0xFF00)) bad = true; t = `${nm} #${H(sz === 0 ? v & 0xFF : v)},${sz === 0 ? 'ccr' : 'sr'}`; } } }
+        else { let imm; if (sz === 2) imm = l(); else { imm = w(); if (sz === 0) { if (imm & 0xFF00) bad = true; imm &= 0xFF; } } t = `${nm}.${SZ[sz]} #${H(imm)},${ea(mode, reg, sz)}`; }
       }
     }
   } else if (top >= 1 && top <= 3) {
@@ -69,7 +69,7 @@ function dis68k(b, i, pc) {
     else if ((op & 0xFFF8) === 0x4840) t = `swap d${reg}`;
     else if ((op & 0xFFC0) === 0x4840) t = `pea ${ea(mode, reg, 2)}`;
     else if ((op & 0xFFB8) === 0x4880) t = `ext.${op & 0x40 ? 'l' : 'w'} d${reg}`;
-    else if ((op & 0xFB80) === 0x4880) { const mask = w(), s = op & 0x40 ? 'l' : 'w'; const e = ea(mode, reg, 1); t = op & 0x400 ? `movem.${s} ${e},${regList(mask, false)}` : `movem.${s} ${regList(mask, mode === 4)},${e}`; }
+    else if ((op & 0xFB80) === 0x4880) { if (mode <= 1 || (op & 0x400 ? mode === 4 || (mode === 7 && reg > 3) : mode === 3 || (mode === 7 && reg > 1))) bad = true; const mask = w(), s = op & 0x40 ? 'l' : 'w'; const e = ea(mode, reg, 1); t = op & 0x400 ? `movem.${s} ${e},${regList(mask, false)}` : `movem.${s} ${regList(mask, mode === 4)},${e}`; }
     else if ((op & 0xF1C0) === 0x41C0) t = `lea ${ea(mode, reg, 2)},a${reg9}`;
     else if ((op & 0xF1C0) === 0x4180) t = `chk.w ${ea(mode, reg, 1)},d${reg9}`;
     else if ((op & 0xFFC0) === 0x40C0) t = `move sr,${ea(mode, reg, 1)}`;
@@ -105,16 +105,17 @@ function dis68k(b, i, pc) {
     else if (top === 0xB && opm >= 4) t = `eor.${SZ[sz]} d${reg9},${ea(mode, reg, sz)}`;
     else {
       const nm = { 8: 'or', 9: 'sub', 0xB: 'cmp', 0xC: 'and', 0xD: 'add' }[top], s = opm & 3;
+      if ((opm & 4) && mode <= 1) bad = true;   // register-to-register only exists the other way round
       t = opm & 4 ? `${nm}.${SZ[s]} d${reg9},${ea(mode, reg, s)}` : `${nm}.${SZ[s]} ${ea(mode, reg, s)},d${reg9}`;
     }
   } else if (top === 0xE) {
     const kinds = ['as', 'ls', 'rox', 'ro'];
-    if (sz === 3) { const k = (op >> 9) & 3; t = `${kinds[k]}${op & 0x100 ? 'l' : 'r'}.w ${ea(mode, reg, 1)}`; }
+    if (sz === 3) { if (op & 0x800) bad = true; const k = (op >> 9) & 3; t = `${kinds[k]}${op & 0x100 ? 'l' : 'r'}.w ${ea(mode, reg, 1)}`; }
     else { const k = (op >> 3) & 3, cnt = op & 0x20 ? `d${reg9}` : `#${reg9 || 8}`; t = `${kinds[k]}${op & 0x100 ? 'l' : 'r'}.${SZ[sz]} ${cnt},d${reg}`; }
   } else if (top === 0xA) t = `dc.w ${H(op, 4)} ; line A`;
   else if (top === 0xF) t = `dc.w ${H(op, 4)} ; line F`;
 
-  if (t === null) return { len: 2, text: `dc.w ${H(op, 4)}` };
+  if (t === null || bad) return { len: 2, text: `dc.w ${H(op, 4)}` };
   return { len: p - i, text: t, target };
 }
 function absTarget(e) { const m = /^\$([0-9A-F]+)(\.w)?$/.exec(e); return m ? parseInt(m[1], 16) : undefined; }
