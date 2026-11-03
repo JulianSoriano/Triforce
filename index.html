@@ -10540,7 +10540,7 @@ function showFranchise(f, focus){
   document.getElementById("ff").hidden = f !== FF_TAB;
   if(f === FF_TAB){ const fr = document.getElementById("ffFrame"); if(!fr.getAttribute("srcdoc")) EMB.text("ff").then(t=>{ fr.srcdoc = t; }); }
   document.getElementById("hacks").hidden = f !== HACKS_TAB;
-  { const gk = FRANCHISES.includes(f) ? f : f === LORE_TAB ? LORE_FR : f === GSPW_TAB ? GSPW_FR : f === BOX_TAB ? BOX_FR : f === EMU_TAB ? "emu" : "";
+  { const gk = FRANCHISES.includes(f) ? f : f === BOX_TAB ? BOX_FR : f === EMU_TAB ? "emu" : "";
     const tg = document.getElementById("tabGuide"), src = gk && document.querySelector('#guideBank [data-guide="'+gk+'"]');
     tg.innerHTML = src ? src.innerHTML : ""; tg.hidden = !src; }
   document.getElementById("emu").hidden = f !== EMU_TAB;
