@@ -35,6 +35,24 @@ node bin/retrolab.js patch game.md 0x1741E 0c420030 --expect 0c420046 --out test
 
 Run `node bin/retrolab.js` with no arguments for every command.
 
+### Debug emulator (Genesis, Master System, Game Gear)
+
+`cores/gpgx-debug.wasm` is Genesis Plus GX built with its CPU hooks switched on (source and build script in `cores-src/gpgx-debug/`). It answers "which instruction changed this?" and "where does the 68000 spend its time?".
+
+```sh
+node bin/retrolab.js run game.md --debug --script start.txt --save stage1.dbg.state
+node bin/retrolab.js watch game.md '$FFECC2-$FFECC3' --load stage1.dbg.state --input "30 RIGHT"
+#   30 writes ... from 1 instruction(s):
+#   $020DE6  write x30  first frame 0  values $409 $109 $09   move.w d2,(a3)+
+node bin/retrolab.js profile game.md --load stage1.dbg.state --frames 300
+#   10739 instructions a frame on average
+#   $001A4E  11.22%  tst.b $FFFC10.w      <- the game waiting for the next frame: its idle time
+```
+
+From scripts: open with `{ debug: true }`, then `m.watch(lo, hi, { read, write })`, `m.hits()`, `m.clearHits()`, `m.instructions()` (68000 instructions in the last frame), `m.profile(true)` and `m.profileTop(n)`.
+
+Use save states made with `--debug` for debug runs. The two builds are different versions of the emulator: a state from one loads in the other but the game can stop working (the profile then shows the 68000 stuck at the start of the ROM, and `profile` warns about it).
+
 ### Assemblers
 
 `retrolab asm` turns instructions into bytes for the 68000 (Genesis), 6502 (NES), 65816 (SNES), Z80 (Master System, Game Gear, Genesis sound) and SM83 (Game Boy). They read the same syntax the disassemblers print, so you can copy code out of `dis`, change it and assemble it back.

@@ -12,7 +12,7 @@ Systems: Genesis/Mega Drive, Master System, Game Gear, NES, SNES, Game Boy, Game
       Boot a test ROM on every system and check the whole memory map.
   retrolab info <rom>
       Header details and checksum status.
-  retrolab run <rom> [--frames N] [--script FILE | --input "60 RIGHT+A; tap START"]
+  retrolab run <rom> [--debug] [--frames N] [--script FILE | --input "60 RIGHT+A; tap START"]
                      [--load STATE] [--save STATE] [--shot PNG] [--shots DIR --every N] [--scale 2]
       Play the game for a while and save what you need. Script lines: "N" waits N frames,
       "N BUTTONS" holds buttons (RIGHT+A), "N BUTTONS | BUTTONS" adds player 2, "tap START" presses once.
@@ -27,6 +27,11 @@ Systems: Genesis/Mega Drive, Master System, Game Gear, NES, SNES, Game Boy, Game
       Narrow down which address holds something. Steps, separated by ";":
         eq N | changed | same | up [N] | down [N] | run SCRIPT-LINE | tap BUTTON | show
       e.g. --steps "run 60; up 1; run 1; up 1; run 1; up 1; show"
+  retrolab watch <rom> <addr>[-<addr>] [--read] [--load STATE] [--script FILE | --input ...] [--frames N] [--limit N]
+      Debug emulator (Genesis/SMS/GG): list every instruction that writes (or with --read, reads) the address,
+      with the code at that spot.
+  retrolab profile <rom> [--load STATE] [--script FILE | --input ...] [--frames N] [--top N]
+      Debug emulator: which instructions the 68000 spends its time on, and instructions per frame.
   retrolab dis <rom|file> <start> [len] [--cpu 68000|6502|65816|z80|sm83|arm|thumb] [--org ADDR] [--m16] [--x16]
       Disassemble from a file offset. The CPU and the address it runs at come from the system by default.
   retrolab asm <source.s> --cpu 68000|6502|65816|z80|sm83 [--org ADDR] [--list]
@@ -57,7 +62,7 @@ const num = (s) => { if (s === undefined || s === true) return undefined; s = St
 const hex = (v, d = 2) => '$' + v.toString(16).toUpperCase().padStart(d, '0');
 
 async function open(file, opt, noStep) {
-  const m = await lab.Machine.open(file, { system: opt.system });
+  const m = await lab.Machine.open(file, { system: opt.system, debug: !!opt.debug });
   if (opt.load) m.loadState(opt.load);
   if (!noStep && opt.frames && !opt.script && !opt.input) m.step(num(opt.frames));
   return m;
@@ -132,6 +137,37 @@ async function main() {
       else throw new Error('Unknown step: ' + st);
       console.log(`${st.padEnd(12)} -> ${n} candidates`);
     }
+    return;
+  }
+
+  if (cmd === 'watch' || cmd === 'profile') {
+    opt.debug = true;
+    const m = await open(pos[0], opt, true), sc = script(opt), frames = num(opt.frames) || (sc ? 0 : 300);
+    let range;
+    if (cmd === 'watch') { const [a, b] = String(pos[1]).split('-'); range = [num(a), num(b || a)]; m.watch(range[0], range[1], { read: !!opt.read, write: !opt['no-write'] }); }
+    else m.profile(true);
+    const per = [];
+    const each = () => { per.push(m.instructions()); };
+    if (sc) m.runScript(sc, each);
+    if (frames) m.step(frames, 0, 0, each);
+    const rom = m.rom;
+    const code = (pc) => { if (pc >= rom.length) return '(code in RAM)'; try { return lab.disasm.disassemble('m68k', rom, pc, 10, pc)[0].text; } catch (e) { return ''; } };
+    if (cmd === 'watch') {
+      const hits = m.hits(); const byPc = new Map();
+      for (const h of hits) { const k = h.pc + ':' + h.kind; const e = byPc.get(k) || { ...h, count: 0, first: h.frame, values: new Set() }; e.count++; if (e.values.size < 6) e.values.add(h.value); byPc.set(k, e); }
+      console.log(`${hits.length} ${opt.read ? 'reads/writes' : 'writes'} to ${hex(range[0], 6)}${range[1] !== range[0] ? '-' + hex(range[1], 6) : ''} over ${per.length} frames, from ${byPc.size} instruction(s):`);
+      for (const e of [...byPc.values()].sort((a, b) => b.count - a.count).slice(0, num(opt.limit) || 40))
+        console.log(`  ${hex(e.pc, 6)}  ${e.kind.padEnd(5)} x${String(e.count).padEnd(6)} first frame ${e.first}  values ${[...e.values].map((v) => hex(v)).join(' ')}   ${code(e.pc)}`);
+      if (opt.log) { const lim = num(opt.log); for (const h of hits.slice(0, lim)) console.log(`    frame ${h.frame} ${hex(h.pc, 6)} ${h.kind} ${hex(h.addr, 6)} = ${hex(h.value)} (${h.width})`); }
+    } else {
+      const r = m.profileTop(num(opt.top) || 30);
+      const low = r.top.filter((t) => t.pc < 0x200).reduce((a, t) => a + t.share, 0);
+      if (low > 0.5) console.log('warning: the 68000 is stuck in the exception vectors. If you used --load, the state was probably saved by the normal emulator; save states for debugging with --debug.');
+      const avg = per.reduce((a, b) => a + b, 0) / Math.max(1, per.length);
+      console.log(`${per.length} frames, ${Math.round(avg)} instructions a frame on average (min ${Math.min(...per)}, max ${Math.max(...per)})`);
+      for (const t of r.top) console.log(`  ${hex(t.pc, 6)}  ${(t.share * 100).toFixed(2).padStart(6)}%  ${String(t.count).padStart(9)}   ${code(t.pc)}`);
+    }
+    if (opt.save) m.saveState(opt.save);
     return;
   }
 

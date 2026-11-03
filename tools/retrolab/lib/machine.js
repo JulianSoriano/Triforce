@@ -82,7 +82,9 @@ class Machine {
     else { file = source; bytes = fs.readFileSync(source); }
     const system = opts.system || systemForFile(file || ('x.' + (opts.ext || '')), bytes);
     if (!system) throw new Error('Unknown system. Pass --system (one of ' + Object.keys(SYSTEMS).join(', ') + ').');
-    const core = await loadCore(SYSTEMS[system].core);
+    let coreName = SYSTEMS[system].core;
+    if (opts.debug) { if (coreName !== 'gpgx') throw new Error('The debug emulator is only built for Genesis / Master System / Game Gear so far.'); coreName = 'gpgx-debug'; }
+    const core = await loadCore(coreName);
     const ext = opts.ext || (file ? path.extname(file).slice(1).toLowerCase() : SYSTEMS[system].exts[0]);
     if (!core.load(bytes, ext)) throw new Error('The core refused this ROM.');
     if (system === 'md' && opts.sixButton !== false) { core.setPortDevice(0, 0x201); core.setPortDevice(1, 0x201); }
@@ -238,6 +240,33 @@ class Machine {
     return out;
   }
   sram() { const s = this.core.sram(); return s ? Buffer.from(s) : null; }
+
+  // ---------- debugging (debug emulator only: open with { debug: true }) ----------
+  get debug() { return typeof this.core.exports.dbg_watch === 'function'; }
+  _dbg() { if (!this.debug) throw new Error('This needs the debug emulator: open the game with { debug: true } (--debug on the command line).'); return this.core.exports; }
+  // Record every write (and with read: true, every read) the 68000 makes to addresses lo..hi.
+  watch(lo, hi = lo, { read = false, write = true } = {}) { const x = this._dbg(); if (!x.dbg_watch(lo, hi, (write ? 1 : 0) | (read ? 2 : 0))) throw new Error('at most 16 watched ranges'); }
+  unwatch() { this._dbg().dbg_unwatch(); }
+  // [{ pc, addr, value, width, kind: 'write'|'read', frame }] since the last clearHits()
+  hits() {
+    const x = this._dbg(), n = x.dbg_hit_count(), sz = x.dbg_hit_size(), p = x.dbg_hits(), dv = new DataView(this.core.memory.buffer), out = [];
+    for (let i = 0; i < n; i++) { const o = p + i * sz; out.push({ pc: dv.getUint32(o, true), addr: dv.getUint32(o + 4, true), value: dv.getUint32(o + 8, true), frame: dv.getUint32(o + 12, true), width: dv.getUint8(o + 16), kind: dv.getUint8(o + 17) === 1 ? 'write' : 'read' }); }
+    return out;
+  }
+  clearHits() { this._dbg().dbg_clear_hits(); }
+  // How many 68000 instructions ran in the last frame.
+  instructions() { return this._dbg().dbg_instructions(); }
+  // Count how often each instruction runs. profile(true) starts (and clears), profileTop(n) lists the busiest.
+  profile(on = true) { const x = this._dbg(); x.dbg_profile(on ? 1 : 0); if (on) x.dbg_profile_clear(); }
+  profileTop(n = 30) {
+    const x = this._dbg(), heap = this.core.memory.buffer, rows = [];
+    const rom = new Uint32Array(heap, x.dbg_profile_rom(), 0x200000), ram = new Uint32Array(heap, x.dbg_profile_ram(), 0x8000);
+    let total = 0;
+    for (let i = 0; i < rom.length; i++) if (rom[i]) { total += rom[i]; rows.push([i * 2, rom[i]]); }
+    for (let i = 0; i < ram.length; i++) if (ram[i]) { total += ram[i]; rows.push([0xFF0000 + i * 2, ram[i]]); }
+    rows.sort((a, b) => b[1] - a[1]);
+    return { total, top: rows.slice(0, n).map(([pc, count]) => ({ pc, count, share: count / total })) };
+  }
 
   // ---------- picture ----------
   screenshot(file, scale = 2) {

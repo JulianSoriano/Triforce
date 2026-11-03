@@ -77,7 +77,7 @@ const compiled = {};
 async function loadCore(name) {
   if (!compiled[name]) compiled[name] = await WebAssembly.compile(fs.readFileSync(path.join(CORE_DIR, name + '.wasm')));
   let mem;
-  const instance = await WebAssembly.instantiate(compiled[name], { wasi_snapshot_preview1: wasiFor(() => mem) });
+  const instance = await WebAssembly.instantiate(compiled[name], { wasi_snapshot_preview1: wasiFor(() => mem), env: { emscripten_notify_memory_growth: () => {} } });
   const x = instance.exports;
   mem = x.memory;
   x._initialize(); x.web_init();
