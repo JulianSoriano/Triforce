@@ -52,17 +52,18 @@ node bin/retrolab.js check original.md v8.md --script projects/sor2-cpu-partner/
 
 ## v9 (work in progress)
 
-`v9/make-v9.js` turns a v8 ROM into the v9 test ROM with four small patches (no compiler needed; each checks the old
-bytes first). `v9/idle-target.s` is the one piece of new code.
+`v9/make-v9.js` turns a v8 ROM into the v9 test ROM with small patches (no compiler needed; each checks the old bytes
+first). The `.s` files in `v9/` are the new code, placed in free ROM from `$1FAC00`.
 
 | Patch | What it changes |
 |---|---|
-| `jk-cooldown` | The partner's jump-kick cooldown: 40 -> 180 frames (JK_CD) |
-| `jk-min`, `jk-max` | Jump-kick range 32..90 -> 48..80 pixels, so it closes a real gap instead of kicking up close |
-| `idle-target-*` | With nothing to fight, the partner heads for camera + 230 (not camera + 400, the far edge) and never gets more than 150 ahead of the human |
+| `jk-cooldown`, `jk-min`, `jk-max` | The partner's jump kick: cooldown 40 -> 180 frames; range 32..90 -> 48..80 px (it closes a real gap instead of kicking up close) |
+| `idle-target-*` (`idle-target.s`) | Nothing to fight: head for camera + 230 (not camera + 400, the far edge) and never get more than 150 px ahead of the human |
+| `sticky-side-*` (`sticky-side.s`) | Which side of an enemy she stands on only changes once she is 16 px past him (it flipped every frame when level with him) |
+| `pace-zone-*` (`pace-zone.s`) | The twitch: waiting for an off-screen enemy she walked to her spot, turned to face him (a 2 px step), which put her outside the 6 px zone, so she stepped back and turned away, every frame. Once she faces him the zone is 24 px. This is a v8 bug |
 
-Measured with `walk-stage1.txt` / `route-stage1.txt` (scripted human): jump kicks started 114 -> 50 over 31,000 frames;
-`check` shows no crashes and no extra slowdown (46 -> 28 slow frames, 64.6% -> 63.6% busy). The scripted human just
-holds a direction, so how the partner feels next to a real player still needs a playtest.
+Measured on a 31,000-frame scripted route (the scripted human just holds a direction):
+jump kicks started 114 -> ~60; turn-around twitches 37 -> 1; `check` shows no crashes and no extra slowdown
+(46 -> 45 slow frames, 64.6% busy both). How the partner feels next to a real player still needs a playtest.
 The enemies' own jump kicks (Donovan, Jack) are separate and not touched yet: their routines run only after stage 1's
 first section, so the stage 1 route never reaches them.

@@ -17,6 +17,16 @@ const PATCHES = [
   //    the old 3 instructions at $1FA5F0 become a jump to it.
   { name: 'idle-target-code', at: 0x1FAC00, old: 'ff'.repeat(30), now: '202f003cd0bc000000e6222f0074d2bc00000096b0816f022001' + '2f40007c4ef9001fa5fe' },
   { name: 'idle-target-hook', at: 0x1FA5F0, old: '203c00000190d0af003c2f40007c', now: '4ef9001fac00' + '4e714e714e714e71' },
+  // 4. Which side of an enemy the partner stands on no longer flips every frame when she is level with it
+  //    (sticky-side.s, in free ROM at $1FAC40; the compare at $1FA14E becomes a jump to it).
+  { name: 'sticky-side-code', at: 0x1FAC40, old: 'ff'.repeat(50), now: '200490af0074b0bc000000106e18b0bcfffffff06d064a38fea0660a4238fea04ef9001fa15411fc0001fea04ef9001fa15c' },
+  { name: 'sticky-side-hook', at: 0x1FA14E, old: 'b8af00746c08', now: '4ef9001fac40' },
+  // 5. The twitching: waiting for an off-screen enemy she walks to her waiting spot, then turns to face him. The turn
+  //    steps her 2 px, which put her just outside the 6 px "at my spot" zone, so she stepped back, turned away, and
+  //    repeated every frame (a v8 bug). Once she is facing the enemy the zone is now 24 px, so the turn sticks.
+  //    (pace-zone.s, in free ROM at $1FAC80; the zone test at $1F9264 becomes a jump to it)
+  { name: 'pace-zone-code', at: 0x1FAC80, old: 'ff'.repeat(38), now: '7206082a0000000f67064a856f0860044a856e027218b2806d064ef9001f92864ef9001f926a' },
+  { name: 'pace-zone-hook', at: 0x1F9264, old: '7206b2806c1c', now: '4ef9001fac80' },
 ];
 const [romFile, out, ...rest] = process.argv.slice(2);
 if (!out) { console.error('usage: make-v9.js <v8 rom> <out rom> [--only a,b]'); process.exit(1); }
