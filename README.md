@@ -42,3 +42,7 @@ Triforce builds on other people's work, each under its own license:
 - Fonts under the SIL Open Font License: [Geist and Geist Mono](https://github.com/vercel/geist-font), Chakra Petch, Barlow, Share Tech Mono, Marcellus SC, Cinzel, Cinzel Decorative, Alegreya Sans, Figtree and IBM Plex Mono
 
 Pokémon, The Legend of Zelda and Ace Combat are trademarks of their owners. This is a fan project with no ties to Nintendo, Game Freak, The Pokémon Company or Bandai Namco.
+
+## RetroLab (tools/retrolab)
+
+Headless tools for studying and modding the games the Emulators tab plays (Genesis, Master System, Game Gear, NES, SNES, Game Boy, Game Boy Color, GBA): script the emulator, read and write RAM by console address, search for values, trace them frame by frame, take screenshots and save states, disassemble every CPU involved, patch ROMs with checksum fixes. Node.js 18+, no install. See [tools/retrolab/README.md](tools/retrolab/README.md).

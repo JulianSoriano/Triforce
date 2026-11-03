@@ -1,0 +1,11 @@
+{
+  "name": "retrolab",
+  "version": "1.0.0",
+  "description": "Headless tools for studying and modding retro games: script the emulator, read and write RAM, search, trace, disassemble, patch.",
+  "main": "index.js",
+  "bin": { "retrolab": "bin/retrolab.js" },
+  "scripts": { "test": "node bin/retrolab.js selftest" },
+  "engines": { "node": ">=18" },
+  "license": "SEE README",
+  "private": true
+}
