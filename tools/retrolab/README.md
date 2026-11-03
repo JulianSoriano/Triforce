@@ -35,12 +35,12 @@ node bin/retrolab.js patch game.md 0x1741E 0c420030 --expect 0c420046 --out test
 
 Run `node bin/retrolab.js` with no arguments for every command.
 
-### Debug emulator (Genesis, Master System, Game Gear)
+### Debug hooks (Genesis, Master System, Game Gear)
 
-`cores/gpgx-debug.wasm` is Genesis Plus GX built with its CPU hooks switched on (source and build script in `cores-src/gpgx-debug/`). It answers "which instruction changed this?" and "where does the 68000 spend its time?".
+`cores/gpgx.wasm` is Genesis Plus GX built with its CPU hooks (source and build script in `cores-src/gpgx-debug/`). It is the same file Triforce's Emulators tab uses, so save states and recordings move freely between the app and RetroLab. The hooks cost nothing until something uses them. They answer "which instruction changed this?" and "where does the 68000 spend its time?".
 
 ```sh
-node bin/retrolab.js run game.md --debug --script start.txt --save stage1.dbg.state
+node bin/retrolab.js run game.md --script start.txt --save stage1.dbg.state
 node bin/retrolab.js watch game.md '$FFECC2-$FFECC3' --load stage1.dbg.state --input "30 RIGHT"
 #   30 writes ... from 1 instruction(s):
 #   $020DE6  write x30  first frame 0  values $409 $109 $09   move.w d2,(a3)+
@@ -49,9 +49,30 @@ node bin/retrolab.js profile game.md --load stage1.dbg.state --frames 300
 #   $001A4E  11.22%  tst.b $FFFC10.w      <- the game waiting for the next frame: its idle time
 ```
 
-From scripts: open with `{ debug: true }`, then `m.watch(lo, hi, { read, write })`, `m.hits()`, `m.clearHits()`, `m.instructions()` (68000 instructions in the last frame), `m.profile(true)` and `m.profileTop(n)`.
+From scripts: `m.watch(lo, hi, { read, write })`, `m.hits()`, `m.clearHits()`, `m.instructions()` (68000 instructions in the last frame), `m.profile(true)` and `m.profileTop(n)`.
 
-Use save states made with `--debug` for debug runs. The two builds are different versions of the emulator: a state from one loads in the other but the game can stop working (the profile then shows the 68000 stuck at the start of the ROM, and `profile` warns about it).
+### Recordings
+
+The Emulators tab has a **Record** button: it saves a state and then every button press, frame by frame, to a `.rlmovie.json` file. `retrolab replay` plays it back exactly (checked: a recording made in the browser and replayed here ends on the same save state, byte for byte). Add `--watch ADDR` or `--profile` to investigate what happened in it.
+
+```sh
+node bin/retrolab.js replay game.md my-bug.rlmovie.json --shot end.png --watch '$FFECC2'
+```
+
+### Checks
+
+`retrolab check` plays a route and reports slowdown frames (frames where the game never got back to its wait-for-the-next-frame loop), how busy the 68000 was, frozen pictures and crashes. Give several ROMs to compare versions:
+
+```
+node bin/retrolab.js check original.md v8.md --script route-stage1.txt --skip 2058
+                  original.md   v8.md
+slowdown frames   0 (0.0%)      0 (0.0%)
+68000 busy        56.9%         63.6%
+```
+
+### Projects
+
+`projects/<mod>/` keeps a mod's notes, address list, routes and ROM fingerprints (never the ROMs), so work can pick up where it stopped. See `projects/sor2-cpu-partner/`.
 
 ### Assemblers
 
@@ -103,7 +124,7 @@ m.step(1); s.increased(1);
 m.screenshot('now.png');
 ```
 
-Also there: `lab.asm.assemble(cpu, source, { org })`, `lab.trace`, `lab.rom` (`info`, `fixChecksum`, `patchBytes`, `applyIPS`, `makeIPS`, `diff`) and `lab.disasm` (`disassemble(cpu, rom, start, len, org)` for `m68k`, `6502`, `65816`, `z80`, `sm83`, `arm`, `thumb`).
+Also there: `lab.asm.assemble(cpu, source, { org })`, `lab.movie.replay(m, lab.movie.loadMovie(file))`, `lab.check.runCheck(rom, { script })`, `lab.trace`, `lab.rom` (`info`, `fixChecksum`, `patchBytes`, `applyIPS`, `makeIPS`, `diff`) and `lab.disasm` (`disassemble(cpu, rom, start, len, org)` for `m68k`, `6502`, `65816`, `z80`, `sm83`, `arm`, `thumb`).
 
 ## How it reaches the memory
 

@@ -82,13 +82,13 @@ class Machine {
     else { file = source; bytes = fs.readFileSync(source); }
     const system = opts.system || systemForFile(file || ('x.' + (opts.ext || '')), bytes);
     if (!system) throw new Error('Unknown system. Pass --system (one of ' + Object.keys(SYSTEMS).join(', ') + ').');
-    let coreName = SYSTEMS[system].core;
-    if (opts.debug) { if (coreName !== 'gpgx') throw new Error('The debug emulator is only built for Genesis / Master System / Game Gear so far.'); coreName = 'gpgx-debug'; }
-    const core = await loadCore(coreName);
+    const core = await loadCore(SYSTEMS[system].core);
+    if (opts.debug && typeof core.exports.dbg_enable !== 'function') throw new Error('The debug hooks are only built into the Genesis / Master System / Game Gear core so far.');
     const ext = opts.ext || (file ? path.extname(file).slice(1).toLowerCase() : SYSTEMS[system].exts[0]);
     if (!core.load(bytes, ext)) throw new Error('The core refused this ROM.');
     if (system === 'md' && opts.sixButton !== false) { core.setPortDevice(0, 0x201); core.setPortDevice(1, 0x201); }
     const m = new Machine(core, system, bytes, file);
+    if (opts.debug) core.exports.dbg_enable(1);
     return m;
   }
 
@@ -241,9 +241,9 @@ class Machine {
   }
   sram() { const s = this.core.sram(); return s ? Buffer.from(s) : null; }
 
-  // ---------- debugging (debug emulator only: open with { debug: true }) ----------
+  // ---------- debugging (Genesis / Master System / Game Gear core; turns the hooks on when first used) ----------
   get debug() { return typeof this.core.exports.dbg_watch === 'function'; }
-  _dbg() { if (!this.debug) throw new Error('This needs the debug emulator: open the game with { debug: true } (--debug on the command line).'); return this.core.exports; }
+  _dbg() { if (!this.debug) throw new Error('The debug hooks are only built into the Genesis / Master System / Game Gear core so far.'); const x = this.core.exports; x.dbg_enable(1); return x; }
   // Record every write (and with read: true, every read) the 68000 makes to addresses lo..hi.
   watch(lo, hi = lo, { read = false, write = true } = {}) { const x = this._dbg(); if (!x.dbg_watch(lo, hi, (write ? 1 : 0) | (read ? 2 : 0))) throw new Error('at most 16 watched ranges'); }
   unwatch() { this._dbg().dbg_unwatch(); }

@@ -1,4 +1,4 @@
-/* RetroLab debug build of Genesis Plus GX.
+/* Genesis Plus GX for Triforce and RetroLab (one build for both, so save states move freely between them).
  * A small libretro frontend with the same web_* exports as Triforce's player cores, plus:
  *   - write and read watchpoints on 68000 addresses: each hit records the instruction (PC) that did it
  *   - an instruction counter per frame (how busy the 68000 is: the slowdown meter)
@@ -18,10 +18,12 @@ static uint32_t pads[2];
 static const void *vid_data; static unsigned vid_w = 320, vid_h = 224; static size_t vid_pitch;
 static enum retro_pixel_format pixfmt = RETRO_PIXEL_FORMAT_0RGB1555;
 static uint32_t *rgba; static int loaded;
-static int16_t audio_buf[8192]; static unsigned audio_n;
+static int16_t audio_buf[16384]; static unsigned audio_n;   /* stereo frames produced by the last web_run */
 
 static uint8_t *rom_copy; static size_t rom_len; static char rom_ext[16] = "md";
+#ifdef RETRO_ENVIRONMENT_GET_GAME_INFO_EXT
 static struct retro_game_info_ext info_ext;
+#endif
 static void log_cb(enum retro_log_level level, const char *fmt, ...) { (void)level; (void)fmt; }
 static bool env_cb(unsigned cmd, void *data) {
   switch (cmd) {
@@ -31,21 +33,28 @@ static bool env_cb(unsigned cmd, void *data) {
     case RETRO_ENVIRONMENT_GET_VARIABLE: { struct retro_variable *v = data; v->value = NULL; return false; }
     case RETRO_ENVIRONMENT_GET_LOG_INTERFACE: ((struct retro_log_callback *)data)->log = log_cb; return true;
     case RETRO_ENVIRONMENT_GET_CAN_DUPE: *(bool *)data = true; return true;
+#ifdef RETRO_ENVIRONMENT_GET_GAME_INFO_EXT
     case RETRO_ENVIRONMENT_GET_GAME_INFO_EXT:   /* hand the ROM over from memory (there are no files here) */
       memset(&info_ext, 0, sizeof info_ext);
       info_ext.full_path = "/game"; info_ext.dir = "/"; info_ext.name = "game"; info_ext.ext = rom_ext;
       info_ext.data = rom_copy; info_ext.size = rom_len;
       *(const struct retro_game_info_ext **)data = &info_ext; return true;
+#endif
     default: return false;
   }
 }
 static void video_cb(const void *data, unsigned w, unsigned h, size_t pitch) { if (data) { vid_data = data; vid_w = w; vid_h = h; vid_pitch = pitch; } }
-static void audio_cb(int16_t l, int16_t r) { (void)l; (void)r; }
-static size_t audio_batch_cb(const int16_t *d, size_t frames) { (void)d; return frames; }
+static void audio_cb(int16_t l, int16_t r) { if (audio_n < 8192) { audio_buf[audio_n * 2] = l; audio_buf[audio_n * 2 + 1] = r; audio_n++; } }
+static size_t audio_batch_cb(const int16_t *d, size_t frames) {
+  size_t n = frames; if (audio_n + n > 8192) n = 8192 - audio_n;
+  memcpy(audio_buf + audio_n * 2, d, n * 4); audio_n += n; return frames;
+}
 static void input_poll_cb(void) {}
 static int16_t input_state_cb(unsigned port, unsigned device, unsigned index, unsigned id) {
   (void)device; (void)index; if (port > 1) return 0;
+#ifdef RETRO_DEVICE_ID_JOYPAD_MASK
   if (id == RETRO_DEVICE_ID_JOYPAD_MASK) return (int16_t)pads[port];
+#endif
   return (pads[port] >> id) & 1;
 }
 
@@ -74,16 +83,18 @@ static void hook(hook_type_t type, int width, unsigned int address, unsigned int
     break;
   }
 }
-static void update_hook(void) { set_cpu_hook(hook); }
+static int hook_on;   /* the hook costs time on every instruction, so it is only installed while something uses it */
+static void update_hook(void) { set_cpu_hook(hook_on ? hook : NULL); }
+EXPORT void dbg_enable(int on) { hook_on = on; update_hook(); }
 
-EXPORT int dbg_watch(uint32_t lo, uint32_t hi, int kind) { if (nwatch >= MAXW) return 0; wlo[nwatch] = lo & 0xFFFFFF; whi[nwatch] = hi & 0xFFFFFF; wkind[nwatch] = (uint8_t)(kind ? kind : 1); nwatch++; return 1; }
+EXPORT int dbg_watch(uint32_t lo, uint32_t hi, int kind) { if (!hook_on) dbg_enable(1); if (nwatch >= MAXW) return 0; wlo[nwatch] = lo & 0xFFFFFF; whi[nwatch] = hi & 0xFFFFFF; wkind[nwatch] = (uint8_t)(kind ? kind : 1); nwatch++; return 1; }
 EXPORT void dbg_unwatch(void) { nwatch = 0; }
 EXPORT hit_t *dbg_hits(void) { return hits; }
 EXPORT uint32_t dbg_hit_count(void) { return nhits; }
 EXPORT uint32_t dbg_hits_lost(void) { return lost; }
 EXPORT void dbg_clear_hits(void) { nhits = 0; lost = 0; }
 EXPORT uint32_t dbg_instructions(void) { return instr_frame; }           /* in the last frame */
-EXPORT void dbg_profile(int on) { if (on && !prof_rom) prof_rom = calloc(0x200000, 4); profiling = on && prof_rom; }
+EXPORT void dbg_profile(int on) { if (on && !hook_on) dbg_enable(1); if (on && !prof_rom) prof_rom = calloc(0x200000, 4); profiling = on && prof_rom; }
 EXPORT void dbg_profile_clear(void) { if (prof_rom) memset(prof_rom, 0, 0x200000 * 4); memset(prof_ram, 0, sizeof prof_ram); }
 EXPORT uint32_t *dbg_profile_rom(void) { return prof_rom; }              /* [pc / 2] for pc < $400000 */
 EXPORT uint32_t *dbg_profile_ram(void) { return prof_ram; }              /* [(pc & $FFFF) / 2] for pc >= $FF0000 */
@@ -96,7 +107,9 @@ EXPORT void web_set_verbose(int v) { (void)v; }
 EXPORT int web_init(void) {
   retro_set_environment(env_cb); retro_set_video_refresh(video_cb); retro_set_audio_sample(audio_cb);
   retro_set_audio_sample_batch(audio_batch_cb); retro_set_input_poll(input_poll_cb); retro_set_input_state(input_state_cb);
-  retro_init(); return 1;
+  retro_init();
+  rgba = malloc(1024 * 1024 * 4);   /* allocated up front so every user of this core gets the same memory layout */
+  return 1;
 }
 EXPORT void *web_alloc(size_t n) { return malloc(n); }
 EXPORT void web_free(void *p) { free(p); }
@@ -113,13 +126,12 @@ EXPORT int web_load(const uint8_t *data, size_t len, const char *ext) {
   return loaded;
 }
 EXPORT void web_reset(void) { retro_reset(); }
-EXPORT void web_run(void) { instr_frame = 0; retro_run(); frame_no++; }
+EXPORT unsigned web_run(void) { instr_frame = 0; audio_n = 0; retro_run(); frame_no++; return audio_n; }
 EXPORT void web_set_pad(int port, uint32_t mask) { if (port >= 0 && port < 2) pads[port] = mask; }
 EXPORT void web_set_port_device(int port, unsigned dev) { retro_set_controller_port_device(port, dev); }
 EXPORT uint32_t web_frame_w(void) { return vid_w; }
 EXPORT uint32_t web_frame_h(void) { return vid_h; }
 EXPORT uint32_t *web_frame(void) {
-  if (!rgba) rgba = malloc(1024 * 1024 * 4);
   if (!vid_data) return rgba;
   for (unsigned y = 0; y < vid_h; y++) {
     const uint8_t *row = (const uint8_t *)vid_data + y * vid_pitch; uint32_t *out = rgba + y * vid_w;

@@ -27,6 +27,14 @@ Systems: Genesis/Mega Drive, Master System, Game Gear, NES, SNES, Game Boy, Game
       Narrow down which address holds something. Steps, separated by ";":
         eq N | changed | same | up [N] | down [N] | run SCRIPT-LINE | tap BUTTON | show
       e.g. --steps "run 60; up 1; run 1; up 1; run 1; up 1; show"
+  retrolab replay <rom> <recording.rlmovie.json> [--shot PNG] [--save STATE] [--shots DIR --every N]
+                 [--watch ADDR[-ADDR]] [--profile] [--frames N]
+      Play back a recording made with Record in the Emulators tab, frame for frame. With --watch or
+      --profile (Genesis/SMS/GG) it also reports, like the watch and profile commands.
+  retrolab check <rom> [<rom2> ...] (--script FILE | --replay RECORDING | --load STATE) [--frames N] [--skip N] [--idle ADDR]
+      Play a route and measure slowdown (frames where the game ran out of time), freezes and crashes.
+      Give two or more ROMs to compare versions side by side (use a script from power-on for that);
+      --skip N leaves the first N frames (menus, intro) out of the numbers.
   retrolab watch <rom> <addr>[-<addr>] [--read] [--load STATE] [--script FILE | --input ...] [--frames N] [--limit N]
       Debug emulator (Genesis/SMS/GG): list every instruction that writes (or with --read, reads) the address,
       with the code at that spot.
@@ -137,6 +145,31 @@ async function main() {
       else throw new Error('Unknown step: ' + st);
       console.log(`${st.padEnd(12)} -> ${n} candidates`);
     }
+    return;
+  }
+
+  if (cmd === 'check') {
+    const sc = opt.script ? fs.readFileSync(opt.script, 'utf8') : opt.input ? String(opt.input).replace(/;/g, '\n') : null;
+    const results = [];
+    for (const f of pos) results.push(await lab.check.runCheck(f, { system: opt.system, script: sc, movie: opt.replay, state: opt.load, frames: num(opt.frames), skip: num(opt.skip) || 0, idlePc: opt.idle !== undefined ? num(opt.idle) : undefined }));
+    console.log(lab.check.report(results));
+    return;
+  }
+
+  if (cmd === 'replay') {
+    const mv = lab.movie.loadMovie(pos[1]);
+    const m = await lab.Machine.open(pos[0], { system: opt.system || mv.system, debug: !!(opt.watch || opt.profile) });
+    let range = null;
+    if (opt.watch) { const [a, b] = String(opt.watch).split('-'); range = [num(a), num(b || a)]; m.watch(range[0], range[1], { read: !!opt.read }); }
+    if (opt.profile) m.profile(true);
+    const every = num(opt.every) || 60;
+    const n = lab.movie.replay(m, mv, { upTo: num(opt.frames), onFrame: (mm, k) => { if (opt.shots && k % every === 0) { fs.mkdirSync(opt.shots, { recursive: true }); mm.screenshot(path.join(opt.shots, `r${String(k).padStart(6, '0')}.png`), num(opt.scale) || 2); } } });
+    console.log(`replayed ${n} of ${mv.frames} frames`);
+    if (opt.shot) m.screenshot(opt.shot, num(opt.scale) || 2);
+    if (opt.save) m.saveState(opt.save);
+    const code = (pc) => (pc < m.rom.length ? lab.disasm.disassemble('m68k', m.rom, pc, 10, pc)[0].text : '(code in RAM)');
+    if (range) { const by = new Map(); for (const h of m.hits()) { const e = by.get(h.pc) || { pc: h.pc, n: 0, first: h.frame }; e.n++; by.set(h.pc, e); } for (const e of [...by.values()].sort((a, b) => b.n - a.n)) console.log(`  ${hex(e.pc, 6)} x${e.n}  ${code(e.pc)}`); }
+    if (opt.profile) for (const t of m.profileTop(num(opt.top) || 15).top) console.log(`  ${hex(t.pc, 6)} ${(t.share * 100).toFixed(2).padStart(6)}%  ${code(t.pc)}`);
     return;
   }
 
