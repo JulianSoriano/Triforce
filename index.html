@@ -68,7 +68,9 @@ body.g-gs{--acc:var(--gs);--acc-fill:var(--gs-fill);--acc-soft:var(--gs-soft)}
 body.g-gstla{--acc:var(--gstla);--acc-fill:var(--gstla-fill);--acc-soft:var(--gstla-soft)}
 *{box-sizing:border-box}
 body{background:var(--ground);color:var(--ink);font-family:var(--body);font-size:16px;line-height:1.45;padding:0 16px}
-.wrap{max-width:1040px;margin:0 auto;padding-block:20px 64px}
+/* One page width for every view, so the tab row and the content stay put when you switch tabs (playing a game is the one exception: it widens for the map). */
+:root{--shell:1240px}
+.wrap{max-width:var(--shell);margin:0 auto;padding-block:20px 64px}
 .num{font-family:var(--mono);font-variant-numeric:tabular-nums}
 
 /* Game switcher */
@@ -81,9 +83,9 @@ body{background:var(--ground);color:var(--ink);font-family:var(--body);font-size
 .fr-tab[aria-selected="true"] .num{color:var(--surface)}
 .games-row{display:grid;grid-template-columns:repeat(auto-fill,minmax(190px,1fr));gap:10px;padding:6px 6px 10px}
 @media (max-width:520px){ .fr-tabs{display:grid;grid-template-columns:1fr 1fr} .fr-tab{white-space:normal;text-align:left;font-size:13px} .fr-tab .num{display:block;margin:2px 0 0} .games-row{grid-template-columns:1fr 1fr;gap:8px;padding:6px 4px 10px} .games-row .game{padding:10px 10px 10px 18px} .games-row .game .gname{font-size:14px} .games-row .game .gmeta{font-size:11px} }
-.fr-head{font-size:12px;text-transform:uppercase;letter-spacing:.14em;color:var(--muted);margin:0 0 8px;display:flex;align-items:center;gap:10px;font-weight:500}
-.fr-head::after{content:"";flex:1;height:1px;background:var(--line)}
-.games-grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(200px,1fr));gap:10px}
+
+
+
 .game{font:inherit;text-align:left;color:var(--ink);background:var(--surface);border:1px solid var(--line);border-radius:10px;padding:12px 14px;cursor:pointer;display:grid;gap:6px;position:relative;overflow:hidden}
 .game .gname{font-family:var(--display);font-size:19px;line-height:1.1}
 .game .gmeta{display:flex;justify-content:space-between;font-size:13px;color:var(--muted)}
@@ -111,7 +113,7 @@ body{background:var(--ground);color:var(--ink);font-family:var(--body);font-size
 .game[aria-pressed="true"]{border-color:var(--acc-fill);box-shadow:inset 0 0 0 1px var(--acc-fill)}
 .game[aria-pressed="false"]{opacity:.8}
 .game[aria-pressed="false"]:hover{opacity:1}
-.game.soon{cursor:default;opacity:.55;border-style:dashed}
+
 
 header{margin-top:26px}
 h1{font-family:var(--display);font-weight:400;font-size:clamp(28px,5vw,40px);letter-spacing:.02em;margin:0;text-wrap:balance}
@@ -153,7 +155,7 @@ button:focus-visible,input:focus-visible,.search:focus-visible{outline:2px solid
 .cat-head{display:flex;justify-content:space-between;align-items:baseline;gap:12px;border-bottom:2px solid var(--ink);padding-bottom:6px}
 .cat-head h2{font-family:var(--display);font-weight:400;font-size:24px;margin:0;letter-spacing:.02em}
 .cat-head .num{color:var(--muted);font-size:14px}
-.cat-note{color:var(--muted);font-size:14px;margin:8px 0 0;max-width:65ch}
+
 .area{font-size:12px;text-transform:uppercase;letter-spacing:.12em;color:var(--acc);margin:22px 0 4px;display:flex;gap:10px;align-items:center}
 .area::after{content:"";flex:1;height:1px;background:var(--line)}
 .area .num{color:var(--muted);letter-spacing:0}
@@ -162,7 +164,7 @@ ul.items{list-style:none;margin:0;padding:0}
 .item input{position:absolute;opacity:0;width:1px;height:1px}
 .spr{width:44px;height:44px;padding:2px;box-sizing:border-box;image-rendering:pixelated;flex:none;align-self:center;margin:-8px 2px -8px -2px;background:#F4F4EC;border:1px solid var(--line);border-radius:8px;transition:filter .2s,opacity .2s}
 .item:not(.got) .spr{filter:grayscale(1) contrast(.8);opacity:.6}
-.spr-hint{font-style:italic}
+
 .box{width:24px;height:24px;border:2px solid var(--muted);border-radius:5px;display:grid;place-items:center;cursor:pointer;margin-top:1px;background:var(--surface);transition:background .15s,border-color .15s}
 .box svg{width:14px;height:14px;opacity:0;transform:scale(.6);transition:opacity .15s,transform .15s}
 .item input:checked+.box{background:var(--acc-fill);border-color:var(--acc-fill)}
@@ -177,9 +179,9 @@ ul.items{list-style:none;margin:0;padding:0}
 @media (max-width:520px){ .pill{white-space:normal;overflow-wrap:anywhere;border-radius:10px} }
 .pill.t-green{background:var(--green-soft);color:var(--green)}
 .pill.t-gold{background:var(--gold-soft);color:var(--gold)}
-.pill.t-deku{background:var(--deku-soft);color:var(--deku)}
+
 .pill.t-zora{background:var(--zora-soft);color:var(--zora)}
-.pill.t-goron{background:var(--gold-soft);color:var(--gold)}
+
 .pill.t-claire{background:var(--loz-soft);color:var(--loz)}
 .pill.req{background:var(--acc-soft);color:var(--acc)}
 .pill.night{background:var(--night-soft);color:var(--night)}
@@ -282,7 +284,6 @@ ul.items{list-style:none;margin:0;padding:0}
 .player[data-sys="snes"],.player[data-sys="n64"],.player[data-sys="g1r"],.player[data-sys="ac3"]{--ar:1.3333}
 .playarea:not(:fullscreen) .player-screen:not(.fs):not(:fullscreen){width:min(100%,calc((100vh - 96px) * var(--ar)))}
 @supports (height:100dvh){.playarea:not(:fullscreen) .player-screen:not(.fs):not(:fullscreen){width:min(100%,calc((100dvh - 96px) * var(--ar)))}}
-body.play-only .wrap{max-width:min(1900px,100%)}
 body.play-only .playarea,html.playing body.play-only .playarea{display:block}
 html.playing body.play-only .wrap{max-width:min(1900px,100%)}
 body.play-only .player{padding:12px}
@@ -429,10 +430,10 @@ html .playarea.mapfs>.fs-stats{grid-template-columns:minmax(0,3.3fr) minmax(210p
 .fs-tile.got .zi{filter:none;opacity:1}
 .fs-tile.got::after{content:"\2713";position:absolute;top:2px;right:4px;font-size:11px;font-weight:700;color:#5fe08a}
 .fs-tile.plain{width:auto;max-width:150px;padding:4px 8px;font-size:var(--cf,11.5px);flex-direction:row}
-.fs-grp:has(>.fs-count){display:block}
-.fs-count{display:grid;grid-template-columns:1fr auto;gap:2px 8px;min-width:120px;font-size:var(--cf,11.5px);color:var(--muted);padding:4px 8px;border:1.5px solid var(--faint);border-radius:7px;background:rgba(255,255,255,.04)}
-.fs-count b{color:var(--ink);font-weight:600}.fs-count i{grid-column:1 / -1;height:3px;border-radius:2px;background:rgba(255,255,255,.12);overflow:hidden}.fs-count u{display:block;height:100%;background:var(--gold,#e8c050)}
-.fs-count.done{border-color:var(--gold,#e8c050)}
+
+
+
+
 .fs-side{font-size:var(--sf,13px)}.fs-kv{font-size:var(--sf,13px);grid-template-columns:repeat(auto-fill,minmax(calc(var(--sf,13px)*10),1fr))}.fs-cats{font-size:var(--sf,13px)}
 .fs-side{display:grid;gap:12px;align-content:start}
 .fs-tight .fs-cats,.fs-tight .fs-side>:not(:first-child){display:none}
@@ -440,10 +441,10 @@ html .playarea.mapfs>.fs-stats{grid-template-columns:minmax(0,3.3fr) minmax(210p
 .player-screen:fullscreen{max-width:none;width:100vw;height:100vh;aspect-ratio:auto;border:0;border-radius:0;display:grid;place-items:center;background:var(--ground)}
 .player-screen:-webkit-full-screen{max-width:none;width:100vw;height:100vh;aspect-ratio:auto;border:0;border-radius:0;display:grid;place-items:center;background:var(--ground)}
 .player-screen.fs canvas,.playarea:fullscreen .player-screen canvas{width:var(--fsw);height:var(--fsh);object-fit:fill;image-rendering:pixelated;border:1px solid var(--line);border-radius:4px;box-shadow:0 0 0 5px var(--ground),0 0 0 7px var(--faint),0 12px 40px rgba(0,0,0,.6)}
-.player-screen .player-3d{position:absolute;inset:0;cursor:grab;touch-action:none}
-.player-screen .player-3d[hidden]{display:none}
-.v3d-mode{display:inline-flex;align-items:center;gap:6px;font-size:13px;color:var(--muted)}
-.v3d-mode select{font:inherit;background:var(--surface-2);color:var(--ink);border:1px solid var(--line);border-radius:6px;padding:5px 6px}
+
+
+
+
 .player-screen canvas{display:block;width:100%;height:100%;image-rendering:pixelated;image-rendering:crisp-edges;object-fit:contain}
 .player-loader{position:absolute;inset:0;display:grid;place-content:center;justify-items:center;gap:10px;text-align:center;padding:16px;background:rgba(10,14,12,.86);color:#EEF2EE}
 .player-loader[hidden]{display:none}
@@ -538,11 +539,10 @@ html .playarea.mapfs>.fs-stats{grid-template-columns:minmax(0,3.3fr) minmax(210p
 .xf{margin-top:14px}
 html.box-mode .wrap>header,html.box-mode .wrap>.hud,html.box-mode #playArea,html.box-mode .wrap>.foot,html.box-mode #importRow{display:none!important}
 html.box-mode.playing .wrap{max-width:1560px}
-.fr-tab.fr-box{border-style:dashed}
+
 /* Home */
 html.home-mode .wrap>header,html.home-mode .wrap>.hud,html.home-mode #playArea,html.home-mode .wrap>.foot,html.home-mode #importRow,html.home-mode #missionTree,html.home-mode #list,html.home-mode #xfer,html.home-mode #lore,html.home-mode #mapBox,html.home-mode .wrap>.toolbar,html.home-mode #fsStats,
 html.pick-mode .wrap>header,html.pick-mode .wrap>.hud,html.pick-mode #playArea,html.pick-mode .wrap>.foot,html.pick-mode #importRow,html.pick-mode #missionTree,html.pick-mode #list,html.pick-mode #mapBox,html.pick-mode .wrap>.toolbar,html.pick-mode #fsStats{display:none!important}
-html.home-mode .wrap,html.pick-mode .wrap{max-width:1180px}
 .fr-tab.fr-home{font-weight:600}
 .pick-note{display:none;margin:18px 0;padding:18px 20px;border:1px dashed var(--line);border-radius:12px;color:var(--muted)}
 html.pick-mode .pick-note{display:block}
@@ -554,16 +554,16 @@ html.pick-mode .pick-note{display:block}
 .home-hero .home-facts{display:flex;flex-wrap:wrap;gap:8px;margin-top:18px}
 .home-hero .home-facts span{font-size:12.5px;padding:5px 10px;border-radius:999px;border:1px solid var(--line);color:var(--ink);background:var(--surface-2)}
 .home h2{margin:34px 0 12px;font-size:1.15rem;letter-spacing:.01em}
-.home-series{margin:0 0 16px}
-.home-series h3{margin:0 0 8px;font-size:12px;text-transform:uppercase;letter-spacing:.12em;color:var(--muted);font-weight:500}
-.home-games{display:grid;grid-template-columns:repeat(auto-fill,minmax(200px,1fr));gap:10px}
-.home-game{all:unset;box-sizing:border-box;cursor:pointer;display:flex;flex-direction:column;gap:6px;padding:14px 14px 12px;border:1px solid var(--line);border-radius:12px;background:var(--surface);transition:border-color .15s,background .15s}
-.home-game:hover,.home-game:focus-visible{border-color:var(--acc);background:var(--surface-2)}
-.home-game b{font-family:var(--display);font-weight:600;font-size:14.5px;color:var(--ink)}
-.home-game small{color:var(--muted);font-size:12px}
-.home-game .home-bar{height:3px;border-radius:2px;background:var(--line);overflow:hidden}
-.home-game .home-bar i{display:block;height:100%;background:var(--acc)}
-.home-game.extra{border-style:dashed}
+
+
+
+
+
+
+
+
+
+
 .home-steps{counter-reset:st;display:grid;grid-template-columns:repeat(auto-fit,minmax(240px,1fr));gap:10px;padding:0;margin:0;list-style:none}
 .home-steps li{counter-increment:st;position:relative;padding:16px 16px 14px 52px;border:1px solid var(--line);border-radius:12px;background:var(--surface);line-height:1.5;color:var(--muted);font-size:14px}
 .home-steps li::before{content:counter(st);position:absolute;left:16px;top:15px;width:24px;height:24px;border-radius:50%;display:grid;place-items:center;font:600 13px var(--mono);color:var(--ground);background:var(--acc)}
@@ -590,7 +590,7 @@ html.pick-mode .pick-note{display:block}
 @media (max-width:640px){ .home-hero{padding:24px 18px} .home-guide{grid-template-columns:1fr} }
 
 html.lore-mode .wrap>header,html.lore-mode .wrap>.hud,html.lore-mode #playArea,html.lore-mode .wrap>.foot,html.lore-mode #importRow,html.lore-mode #missionTree,html.lore-mode #list,html.lore-mode #xfer{display:none!important}
-html.lore-mode .wrap,html.lore-mode.playing .wrap{max-width:none}
+html.lore-mode.playing .wrap{max-width:var(--shell)}
 .lore{margin-top:10px}
 .lore[hidden]{display:none}
 .lore iframe{display:block;width:100%;height:calc(100vh - 150px);min-height:560px;border:1px solid var(--line);border-radius:10px;background:#03070e}
@@ -617,7 +617,7 @@ html.lore-mode .wrap,html.lore-mode.playing .wrap{max-width:none}
 
 .lore-bar{display:flex;gap:12px;align-items:center;justify-content:space-between;margin-bottom:8px;color:var(--muted);font-size:13px}
 .lore-bar a{color:var(--acc);text-decoration:none}
-.fr-tab.fr-box[aria-selected="true"]{border-style:solid}
+
 .xf-win{width:100%;padding:16px 18px;background:var(--surface);border:1px solid var(--line);border-radius:8px;box-shadow:0 1px 2px rgba(0,0,0,.4)}
 .xf-head{display:flex;justify-content:space-between;gap:16px;align-items:flex-start}
 .xf-head h2{margin:0 0 4px;font-size:20px;color:var(--gold)}
@@ -666,15 +666,15 @@ body{background:var(--ground);font-size:15.5px;line-height:1.5;-webkit-font-smoo
   background-image:radial-gradient(1100px 520px at 12% -8%,rgba(255,255,255,.045),transparent 60%);background-attachment:fixed}
 .win,.game,.hud,.mapbox,.player,.cat{background:var(--surface);border:1px solid var(--line);border-radius:14px;box-shadow:0 1px 0 rgba(255,255,255,.03) inset,0 8px 24px -12px rgba(0,0,0,.6)}
 h1,h2,h3,.gname,.cat-head h2,.tab,.seg button,.btn,.brand,.map-node text,.ed-group legend,.ed-fold summary,.map-zone text,.map-region{font-family:var(--display);font-weight:600}
-.fr-head,.area,.hud-label,.pill,.chip{font-family:var(--display);font-weight:500}
+.area,.hud-label,.pill,.chip{font-family:var(--display);font-weight:500}
 h1{color:var(--ink);font-weight:650;letter-spacing:-.025em;line-height:1.1}
-.sub,.cat-note,.how,.gmeta{color:var(--muted)}
+.sub,.how,.gmeta{color:var(--muted)}
 :focus-visible{outline:2px solid var(--acc-fill)!important;outline-offset:2px}
 
 .brand{color:var(--muted);font-size:.78rem;letter-spacing:.18em;text-transform:uppercase;display:flex;align-items:center;gap:9px}
 .brand svg{fill:var(--gold);width:18px;height:16px}
-.fr-head{color:var(--muted);letter-spacing:.14em;font-size:11.5px}
-.fr-head::after{background:var(--line);height:1px}
+
+
 
 /* game cards: the chosen one gets its own accent edge and a soft glow */
 .game{padding:13px 15px;transition:border-color .15s,background .15s,transform .15s}
@@ -726,7 +726,7 @@ h1{color:var(--ink);font-weight:650;letter-spacing:-.025em;line-height:1.1}
 .name{font-weight:600}
 .item.got .name{color:var(--muted);text-decoration-color:var(--faint);text-decoration-thickness:1px}
 .pill{border-radius:999px;border:0;background:var(--surface-2);font-size:11.5px;padding:2px 9px}
-.pill.t-green,.pill.t-gold,.pill.t-deku,.pill.t-zora,.pill.t-goron,.pill.t-claire,.pill.req,.pill.night{border:0}
+.pill.t-green,.pill.t-gold,.pill.t-zora,.pill.t-claire,.pill.req,.pill.night{border:0}
 .chip{border-radius:8px}
 .empty{color:var(--muted)}
 
@@ -787,8 +787,8 @@ h1{color:var(--ink);font-weight:650;letter-spacing:-.025em;line-height:1.1}
 .tl{list-style:none;margin:2px 0 0;padding:0}
 .tl .item{padding:8px 4px}
 .tl .item.hid .name{font-style:normal}
-.tdec{margin:8px 0 0;padding-top:2px}
-.tdec-label{font-size:11.5px;letter-spacing:.12em;text-transform:uppercase;color:var(--muted);margin:6px 0 0}
+
+
 .orig{margin-left:auto;font-family:var(--mono);font-size:10.5px;color:var(--faint)}
 .pill.end{background:var(--acc-soft);color:var(--acc)}
 .pill.hidm{background:var(--night-soft);color:var(--night)}
@@ -3568,7 +3568,7 @@ const SAVE_IMPORTERS = (function(){
     const fR = rowIdsByName(game,"figurines"); let figs = 0;
     game.cats.find(c=>c.id==="figurines").items.forEach((it,i)=>{ const n = i+1; COVER.add(it.id); if((d[0xD0 + (n>>3)] >> (n&7)) & 1){ ids.add(it.id); figs++; } });
     summary.push(`${figs} of 136 figurines`);
-    const oth = markRows(game,"other",{ "Joy Butterfly: faster arrows":()=>has(0x70), "Joy Butterfly: faster swimming":()=>has(0x72),
+    markRows(game,"other",{ "Joy Butterfly: faster arrows":()=>has(0x70), "Joy Butterfly: faster swimming":()=>has(0x72),
       "Joy Butterfly: faster digging":()=>has(0x71), "Tingle Trophy":()=>has(0x3D), "Carlov Medal":()=>has(0x3E) }, ids);
     summary.push(`${d[0x114+3]} of 100 Kinstone fusions (the checklist's fusion order is a guide's, so tick those by hand)`);
     return { label:`file ${idx+1} of your Minish Cap save`, trainer:name, summary, ids };
@@ -3806,7 +3806,7 @@ const SPRITES = (function(){
     return c.toDataURL("image/png");
   }
   const rgb555 = v => [(v&31)*255/31|0, ((v>>5)&31)*255/31|0, ((v>>10)&31)*255/31|0];
-  const WHITE = [255,255,255], BLACK = [16,16,16];
+  const BLACK = [16,16,16];
 
   function find(rom, sig, from, to){
     to = Math.min(to || rom.length, rom.length) - sig.length;
@@ -6101,28 +6101,7 @@ const OOTMESH = (function(){
   }
 
   // The spot in Hyrule Field that Lon Lon Ranch occupies: a mask (in the field's own units) of the ranch's footprint, so the field's ground
-  // can be left out underneath it. Returns a function (x, z) -> true when that point is under the ranch.
-  function ranchCut(){
-    const f = data[81], r = data[99], T = LAYOUT[99]; if(!f || !r) return null;
-    const { V, T: Tr, N } = r, nt = Tr.length / 3, X = x=> T[0] + T[3] * x, Z = z=> T[2] + T[3] * z;
-    let x0 = 1e9, x1 = -1e9, z0 = 1e9, z1 = -1e9;
-    for(let i = 0; i < nt; i++) if(N[i * 3 + 1] / 32767 > 0.5) for(let j = 0; j < 3; j++){ const vi = Tr[i * 3 + j] * 3; x0 = Math.min(x0, X(V[vi])); x1 = Math.max(x1, X(V[vi])); z0 = Math.min(z0, Z(V[vi + 2])); z1 = Math.max(z1, Z(V[vi + 2])); }
-    const G = 160, cw = (x1 - x0) / G, ch = (z1 - z0) / G, mask = new Uint8Array(G * G);
-    for(let i = 0; i < nt; i++){ if(N[i * 3 + 1] / 32767 <= 0.5) continue;
-      const a = [X(V[Tr[i * 3] * 3]), Z(V[Tr[i * 3] * 3 + 2])], b = [X(V[Tr[i * 3 + 1] * 3]), Z(V[Tr[i * 3 + 1] * 3 + 2])], c = [X(V[Tr[i * 3 + 2] * 3]), Z(V[Tr[i * 3 + 2] * 3 + 2])];
-      const d = (b[1] - c[1]) * (a[0] - c[0]) + (c[0] - b[0]) * (a[1] - c[1]); if(Math.abs(d) < 1e-9) continue;
-      const gx0 = Math.max(0, Math.floor((Math.min(a[0], b[0], c[0]) - x0) / cw) - 1), gx1 = Math.min(G - 1, Math.ceil((Math.max(a[0], b[0], c[0]) - x0) / cw) + 1);
-      const gz0 = Math.max(0, Math.floor((Math.min(a[1], b[1], c[1]) - z0) / ch) - 1), gz1 = Math.min(G - 1, Math.ceil((Math.max(a[1], b[1], c[1]) - z0) / ch) + 1);
-      for(let gz = gz0; gz <= gz1; gz++) for(let gx = gx0; gx <= gx1; gx++){
-        const px = x0 + (gx + 0.5) * cw, pz = z0 + (gz + 0.5) * ch;
-        const l1 = ((b[1] - c[1]) * (px - c[0]) + (c[0] - b[0]) * (pz - c[1])) / d, l2 = ((c[1] - a[1]) * (px - c[0]) + (a[0] - c[0]) * (pz - c[1])) / d, l3 = 1 - l1 - l2;
-        if(l1 > -0.3 && l2 > -0.3 && l3 > -0.3) mask[gz * G + gx] = 1; } }
-    // close small gaps so the cut is one solid piece
-    const fill = new Uint8Array(mask);
-    for(let gz = 1; gz < G - 1; gz++) for(let gx = 1; gx < G - 1; gx++) if(!mask[gz * G + gx]){ let n = 0; for(let dz = -1; dz <= 1; dz++) for(let dx = -1; dx <= 1; dx++) n += mask[(gz + dz) * G + gx + dx]; if(n >= 5) fill[gz * G + gx] = 1; }
-    const fn = (x, z)=>{ const gx = Math.floor((x - x0) / cw), gz = Math.floor((z - z0) / ch); return gx >= 0 && gz >= 0 && gx < G && gz < G && fill[gz * G + gx] === 1; };
-    fn.box = [x0, z0, x1, z1]; return fn;
-  }
+
 
   // The overworld as one model: every area's ground placed on the map grid (xform: area -> [x0, z0, scale]); heights are in map cells.
   function mesh(_unused, W, H){
@@ -6978,10 +6957,7 @@ const PKXFER = (()=>{
   }
 
   // ---- writing back ----
-  function setDex(S, dex){
-    const L = S.L, n = dex - 1; if(n < 0 || n >= L.dexBytes*8) return;
-    S.bytes[L.owned + (n>>3)] |= 1 << (n&7); S.bytes[L.seen + (n>>3)] |= 1 << (n&7);
-  }
+  
   function save(S){
     const b = S.bytes.slice(), L = S.L;
     if(S.touched.has("party")) writeList(b, L, L.party, 6, L.pmon, S.party);
@@ -10913,23 +10889,7 @@ function matches(i){
   if(query) return query.split(/\s+/).every(w=>i.hay.includes(w));
   return true;
 }
-function itemHtml(i){
-  const tags = [`<span class="pill">${esc(i.area)}</span>`];
-  const t = G.tags[i.tag];
-  if(t) tags.push(`<span class="pill ${t[1]}">${t[0]}</span>`);
-  else if(G.tagMode==="req" && i.tag) tags.push(`<span class="pill req">${/^(Level \d|Chapter \d)/.test(i.tag)?"":"Needs "}${esc(i.tag)}</span>`);
-  if(i.night) tags.push(`<span class="pill night">Night</span>`);
-  const cid = "c-"+i.id, on = G.checked.has(i.id);
-  let spr = "";
-  if(G.sprites && i.cat==="dex"){ const n = parseInt(i.name,10), src = G.sprites[n]; if(src) spr = `<img class="spr" src="${src}" alt="" width="44" height="44" loading="lazy">`; }
-  return `<li class="item${on?" got":""}" data-id="${i.id}">
-    <input type="checkbox" id="${cid}" ${on?"checked":""}>
-    <label class="box" for="${cid}"><svg viewBox="0 0 16 16" aria-hidden="true">${G.mark}</svg></label>
-    <div class="body">
-      <div class="title-row">${spr}<label class="name" for="${cid}">${esc(i.name)}</label><span class="tags">${tags.join("")}</span></div>
-      ${i.how?`<p class="how">${esc(i.how).replace(/(^|\s)(Clue:)(.*)$/, (m,s,c,r)=>`${s}<span class="clue"><strong>${c}</strong>${r}</span>`)}</p>`:""}
-    </div></li>`;
-}
+
 function renderList(){ renderTrayMain(); }
 listEl.addEventListener("change",e=>{
   const li = e.target.closest(".item"); if(!li || e.target.type!=="checkbox") return;
