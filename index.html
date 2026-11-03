@@ -595,6 +595,15 @@ html.lore-mode .wrap,html.lore-mode.playing .wrap{max-width:none}
 .lore[hidden]{display:none}
 .lore iframe{display:block;width:100%;height:calc(100vh - 150px);min-height:560px;border:1px solid var(--line);border-radius:10px;background:#03070e}
 #gspwFrame,#emuFrame,#ffFrame{background:var(--ground);border-color:var(--line)}
+.hk-wrap{display:grid;gap:12px;max-width:900px;margin-inline:auto}
+.hk-card{background:var(--surface);border:1px solid var(--line);border-radius:10px;padding:14px 16px;display:grid;gap:8px}
+.hk-card h3{margin:0;font-size:17px}
+.hk-meta{color:var(--muted);font-size:13px}
+.hk-card p{margin:0;color:var(--ink);font-size:14px}
+.hk-links{display:flex;flex-wrap:wrap;gap:8px;margin-top:2px}
+.hk-links a{font-size:14px;color:var(--acc);text-decoration:none;border:1px solid var(--line);background:var(--surface-2);padding:6px 12px;border-radius:999px}
+.hk-links a:hover,.hk-links a:focus-visible{border-color:var(--acc)}
+
 .lore-bar{display:flex;gap:12px;align-items:center;justify-content:space-between;margin-bottom:8px;color:var(--muted);font-size:13px}
 .lore-bar a{color:var(--acc);text-decoration:none}
 .fr-tab.fr-box[aria-selected="true"]{border-style:solid}
@@ -1040,6 +1049,34 @@ h1{color:var(--ink);font-weight:650;letter-spacing:-.025em;line-height:1.1}
   <section class="lore" id="emu" hidden aria-label="Emulators">
     <div class="lore-bar"><span>Emulators — Genesis, Master System, Game Gear, NES, SNES, Game Boy, Game Boy Color and GBA, with save states and a save editor. Bring your own game files.</span><span></span></div>
     <iframe id="emuFrame" title="Emulators" allow="autoplay; gamepad; fullscreen" allowfullscreen loading="lazy"></iframe>
+  </section>
+  <section class="lore" id="hacks" hidden aria-label="ROM Hacks">
+    <div class="lore-bar"><span>ROM Hacks — my Genesis and NES hacks, made as RAMENPHOLIFE. Each one is an IPS patch: you need your own copy of the original game.</span></div>
+    <div class="hk-wrap">
+      <article class="hk-card">
+        <h3>Streets of Rage 2: CPU Partner</h3>
+        <div class="hk-meta">Sega Genesis · patch for the original USA ROM</div>
+        <p>A new CPU PARTNER mode: you play Player 1 and the computer fights beside you as Player 2, with a floating "2P" tag over it so you can always tell the two of you apart.</p>
+        <div class="hk-links"><a href="https://github.com/JulianSoriano/sor2-cpu-partner" target="_blank" rel="noopener">GitHub: patch and source ↗</a></div>
+      </article>
+      <article class="hk-card">
+        <h3>Zelda: Three Swords</h3>
+        <div class="hk-meta">NES · The Legend of Zelda</div>
+        <p>A CPU-partner hack of the first Zelda game.</p>
+        <div class="hk-links"><a href="https://github.com/JulianSoriano/Zelda-Three-Swords" target="_blank" rel="noopener">GitHub: patch and source ↗</a></div>
+      </article>
+      <article class="hk-card">
+        <h3>Castlevania: CPU Co-op</h3>
+        <div class="hk-meta">NES · Castlevania</div>
+        <p>A CPU partner added on top of MateriaShrine's co-op patch. The original co-op mod is by MateriaShrine, and all credit for it goes to them.</p>
+        <div class="hk-links"><a href="https://github.com/JulianSoriano/Castlevania-CPU-Coop" target="_blank" rel="noopener">GitHub: patch and source ↗</a></div>
+      </article>
+      <article class="hk-card">
+        <h3>On RomHacking.net</h3>
+        <div class="hk-meta">The ROM hacking community's hack database</div>
+        <div class="hk-links"><a href="https://www.romhacking.net/hacks/10132/" target="_blank" rel="noopener">My RomHacking.net listing ↗</a></div>
+      </article>
+    </div>
   </section>
   <section id="missionTree" class="mtree" aria-label="Story missions" hidden></section>
 
@@ -10458,12 +10495,13 @@ const LORE_FR = "Ace Combat";
 const GSPW_FR = "Golden Sun";
 const FF_TAB = "__ff";   // Final Fantasy XIV Job Ledger
 const EMU_TAB = "__emu";   // Emulators: the all-in-one retro player
+const HACKS_TAB = "__hacks";   // ROM Hacks: my hacks and their links
 const GSPW_TAB = "__gspw";   // Golden Sun Password Generator
 const LORE_TAB = "__lore";   // Ace Combat Lore: the Strangereal Map page
 const BOX_FR = "Pokémon";
 const BOX_TAB = "__box";   // the Pokémon Box tab: moving Pokémon between the Pokémon saves
 function renderGames(){
-  if(!frView || (frView !== BOX_TAB && frView !== LORE_TAB && frView !== GSPW_TAB && frView !== EMU_TAB && frView !== FF_TAB && frView !== HOME_TAB && !FRANCHISES.includes(frView))) frView = G.franchise;
+  if(!frView || (frView !== BOX_TAB && frView !== LORE_TAB && frView !== GSPW_TAB && frView !== EMU_TAB && frView !== HACKS_TAB && frView !== FF_TAB && frView !== HOME_TAB && !FRANCHISES.includes(frView))) frView = G.franchise;
   const groups = new Map();
   FRANCHISES.forEach(f=>groups.set(f,[]));
   GAMES.forEach(g=>groups.get(g.franchise).push(g));
@@ -10476,6 +10514,7 @@ function renderGames(){
   });
   tabs += `<button type="button" role="tab" class="fr-tab${frView===FF_TAB?" here":""}" data-fr="${FF_TAB}" aria-selected="${frView===FF_TAB}" aria-controls="fr-ff">Final Fantasy</button>`;
   tabs += `<button type="button" role="tab" class="fr-tab fr-emu${frView===EMU_TAB?" here":""}" data-fr="${EMU_TAB}" aria-selected="${frView===EMU_TAB}" aria-controls="emu">Emulators</button>`;
+  tabs += `<button type="button" role="tab" class="fr-tab${frView===HACKS_TAB?" here":""}" data-fr="${HACKS_TAB}" aria-selected="${frView===HACKS_TAB}" aria-controls="hacks">ROM Hacks</button>`;
   tabs += `</div>`;
   let html = "";
   groups.forEach((list,f)=>{
@@ -10501,11 +10540,12 @@ function showFranchise(f, focus){
   else if(fromHome && FRANCHISES.includes(f) && G.franchise !== f) root.classList.add("pick-mode");
   else if(FRANCHISES.includes(f) && G.franchise === f) root.classList.remove("pick-mode");
   document.documentElement.classList.toggle("box-mode", f === BOX_TAB);
-  document.documentElement.classList.toggle("lore-mode", f === LORE_TAB || f === GSPW_TAB || f === EMU_TAB || f === FF_TAB);
+  document.documentElement.classList.toggle("lore-mode", f === LORE_TAB || f === GSPW_TAB || f === EMU_TAB || f === HACKS_TAB || f === FF_TAB);
   const loreEl = document.getElementById("lore"); loreEl.hidden = f !== LORE_TAB;
   if(f === LORE_TAB){ const fr = document.getElementById("loreFrame"); if(!fr.getAttribute("srcdoc")) EMB.text("lore").then(t=>{ fr.srcdoc = t; }); }
   document.getElementById("ff").hidden = f !== FF_TAB;
   if(f === FF_TAB){ const fr = document.getElementById("ffFrame"); if(!fr.getAttribute("srcdoc")) EMB.text("ff").then(t=>{ fr.srcdoc = t; }); }
+  document.getElementById("hacks").hidden = f !== HACKS_TAB;
   document.getElementById("emu").hidden = f !== EMU_TAB;
   if(f === EMU_TAB){ const fr = document.getElementById("emuFrame"); if(!fr.getAttribute("srcdoc")) EMB.text("emu").then(t=>{ fr.srcdoc = t; }); }
   document.getElementById("gspw").hidden = f !== GSPW_TAB;
@@ -10532,7 +10572,7 @@ gamesEl.addEventListener("click",e=>{
 });
 gamesEl.addEventListener("keydown",e=>{
   const t = e.target.closest(".fr-tab"); if(!t || (e.key!=="ArrowRight" && e.key!=="ArrowLeft")) return;
-  e.preventDefault(); const tabsAll = [HOME_TAB, ...FRANCHISES, FF_TAB, EMU_TAB], i = tabsAll.indexOf(t.dataset.fr), n = tabsAll.length;
+  e.preventDefault(); const tabsAll = [HOME_TAB, ...FRANCHISES, FF_TAB, EMU_TAB, HACKS_TAB], i = tabsAll.indexOf(t.dataset.fr), n = tabsAll.length;
   showFranchise(tabsAll[(i + (e.key==="ArrowRight"?1:n-1)) % n], true);
 });
 
