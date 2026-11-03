@@ -49,3 +49,20 @@ node bin/retrolab.js check original.md v8.md --script projects/sor2-cpu-partner/
 3. **Donovan and Jack jump-kick too often.** Candidate distance checks against 70 (`cmpi.w #$46,d2`) at `$01741E`,
    `$018AFA`, `$01B4B0` and `$01FA8A`. Not yet tied to the enemies: `watch` an enemy's state word while it jump-kicks
    to find which routine sets it.
+
+## v9 (work in progress)
+
+`v9/make-v9.js` turns a v8 ROM into the v9 test ROM with four small patches (no compiler needed; each checks the old
+bytes first). `v9/idle-target.s` is the one piece of new code.
+
+| Patch | What it changes |
+|---|---|
+| `jk-cooldown` | The partner's jump-kick cooldown: 40 -> 180 frames (JK_CD) |
+| `jk-min`, `jk-max` | Jump-kick range 32..90 -> 48..80 pixels, so it closes a real gap instead of kicking up close |
+| `idle-target-*` | With nothing to fight, the partner heads for camera + 230 (not camera + 400, the far edge) and never gets more than 150 ahead of the human |
+
+Measured with `walk-stage1.txt` / `route-stage1.txt` (scripted human): jump kicks started 114 -> 50 over 31,000 frames;
+`check` shows no crashes and no extra slowdown (46 -> 28 slow frames, 64.6% -> 63.6% busy). The scripted human just
+holds a direction, so how the partner feels next to a real player still needs a playtest.
+The enemies' own jump kicks (Donovan, Jack) are separate and not touched yet: their routines run only after stage 1's
+first section, so the stage 1 route never reaches them.
