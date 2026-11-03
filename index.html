@@ -640,6 +640,24 @@ html.lore-mode.playing .wrap{max-width:var(--shell)}
 .xf-boxnav{display:flex;align-items:center;gap:6px;margin:12px 0 8px}
 .xf-boxnav select{flex:1;min-width:0;font:inherit;font-size:13px;padding:5px 6px}
 .xf-boxnav .btn{padding:4px 10px}
+.xf-views{display:flex;gap:6px;margin:6px 0 10px}
+.xf-view{flex:1;font:inherit;font-size:13px;padding:6px 10px;border:1px solid var(--faint);border-radius:6px;background:transparent;color:var(--muted);cursor:pointer}
+.xf-view.on{background:var(--surface-2);color:var(--ink);border-color:var(--gold)}
+.xf-ptabs{display:flex;flex-wrap:wrap;gap:6px;margin:0 0 6px}
+.xf-ptab{font:inherit;font-size:12px;padding:4px 9px;border:1px solid var(--faint);border-radius:999px;background:transparent;color:var(--muted);cursor:pointer}
+.xf-ptab small{color:var(--faint)}
+.xf-ptab.on{background:var(--surface-2);color:var(--ink);border-color:var(--gold)}
+.xf-ilist{list-style:none;margin:0 0 10px;padding:0;display:flex;flex-direction:column;gap:4px;max-height:360px;overflow:auto}
+.xf-irow{display:flex;align-items:center;gap:6px;padding:3px 6px;border:1px solid var(--faint);border-radius:6px;background:rgba(255,255,255,.04)}
+.xf-iname{flex:1;min-width:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;font-size:13px}
+.xf-iqty,.xf-inew{width:62px;font:inherit;font-size:13px;padding:3px 6px;text-align:right}
+.xf-ib{padding:2px 8px;font-size:12px;line-height:1.4}
+.xf-ib:disabled{opacity:.35;cursor:default}
+.xf-iadd{display:flex;gap:6px;align-items:center}
+.xf-isel{flex:1;min-width:0;font:inherit;font-size:13px;padding:5px 6px}
+.xf-isortrow{display:flex;align-items:center;gap:6px;margin-top:10px;font-size:12px;color:var(--muted)}
+.xf-isortrow .btn{padding:3px 10px;font-size:12px}
+.xf-inote{margin:8px 0 0;font-size:12px;color:var(--muted)}
 .xf-slot{position:relative;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:1px;min-height:84px;padding:4px 2px;font:inherit;font-size:10.5px;line-height:1.1;color:var(--ink);background:rgba(255,255,255,.03);border:1.5px dashed rgba(86,98,154,.6);border-radius:7px;cursor:default;touch-action:none;user-select:none;-webkit-user-select:none;overflow:hidden}
 .xf-slot.full{border-style:solid;border-color:var(--faint);background:rgba(255,255,255,.07);cursor:grab}
 .xf-slot.full:hover{border-color:var(--gold)}
@@ -944,7 +962,7 @@ h1{color:var(--ink);font-weight:650;letter-spacing:-.025em;line-height:1.1}
     <div class="xf-win">
       <div class="xf-head">
         <div><h2 id="xfTitle">Pokémon Box</h2>
-        <p class="xf-note">Drag Pokémon between the party and the PC boxes, in one game or across Red/Blue/Yellow, Gold/Silver/Crystal, Ruby/Sapphire/Emerald and FireRed/LeafGreen. Gen 1 ↔ Gen 2 follows the Time Capsule's rules; Gen 3 games trade with each other as a link cable would; Gen 1 and 2 Pokémon can be brought forward to Gen 3 (as Nintendo's later Poké Transporter did: same species, level, moves, names and shininess; nature from experience points; held items stay behind). It works on your last in-game save.</p></div>
+        <p class="xf-note">Drag Pokémon between the party and the PC boxes, in one game or across Red/Blue/Yellow, Gold/Silver/Crystal, Ruby/Sapphire/Emerald and FireRed/LeafGreen. Gen 1 ↔ Gen 2 follows the Time Capsule's rules; Gen 3 games trade with each other as a link cable would; Gen 1 and 2 Pokémon can be brought forward to Gen 3 (as Nintendo's later Poké Transporter did: same species, level, moves, names and shininess; nature from experience points; held items stay behind). The <b>Items</b> view next to each save's Pokémon lets you add, remove and reorder bag and PC items. It works on your last in-game save.</p></div>
       </div>
       <div class="xf-cols">
         <section class="xf-side" id="xfSide0" data-side="0" aria-label="First save"><select class="xf-src" aria-label="Save on the left"></select><div class="xf-body"></div></section>
@@ -969,6 +987,7 @@ h1{color:var(--ink);font-weight:650;letter-spacing:-.025em;line-height:1.1}
         <p>Load a Pokémon ROM once (with <b>Remember it on this device</b> ticked) and the game's own pictures appear on the Pokédex. For Ruby, Sapphire, Emerald, FireRed and LeafGreen, the 3D map and where each Pokémon lives are read from your ROM too.</p>
         <p><b>Pokémon Box</b> (in the Pokémon tab) moves Pokémon between your saves by dragging them:</p>
         <ul><li>Red/Blue/Yellow ↔ Gold/Silver/Crystal, with the Time Capsule's rules</li><li>Between Gen 3 games, like a link-cable trade</li><li>Gen 1 and 2 Pokémon brought forward to Gen 3 (they keep their species, level, moves, names and shininess; held items have to come off first)</li></ul>
+        <p>The <b>Items</b> button above each save's Pokémon switches to its bag and PC items, where you can add, remove, change amounts and reorder them, in every Pokémon game.</p>
         <p>Save in the game before you start, press <b>Save changes</b> when you're done, and <b>Undo</b> if you change your mind.</p>
       </div></details>
     </div>
@@ -6993,6 +7012,7 @@ const PKXFER = (()=>{
       } else writeList(b, L, L.boxAt(i), L.boxCap, L.mon, S.boxes[i]);
     });
     S.dexAdd.forEach(dex=>{ const n = dex - 1; b[L.owned + (n>>3)] |= 1 << (n&7); b[L.seen + (n>>3)] |= 1 << (n&7); });
+    if(S.invDirty && S.inv) invWrite(b, S);
     if(L.gen === 1){
       if(boxesInitialised(b, L)) [0, 6].forEach(first=>{
         const o = L.boxAt(first);
@@ -7006,6 +7026,59 @@ const PKXFER = (()=>{
     return b;
   }
 
+
+  // ---- items: the bag and the PC's item storage ----
+  // Each pocket: { key, name, cap (slots), max (most per slot; 1 = no quantity), kind:"pairs"|"singles"|"tm", at, list:[{id,qty}], choices:[{id,name}], nameOf(id) }
+  const G1_ITEMS = ["Master Ball","Ultra Ball","Great Ball","Poké Ball","Town Map","Bicycle",null,"Safari Ball","Pokédex","Moon Stone","Antidote","Burn Heal","Ice Heal","Awakening","Parlyz Heal","Full Restore","Max Potion","Hyper Potion","Super Potion","Potion","BoulderBadge","CascadeBadge","ThunderBadge","RainbowBadge","SoulBadge","MarshBadge","VolcanoBadge","EarthBadge","Escape Rope","Repel","Old Amber","Fire Stone","Thunder Stone","Water Stone","HP Up","Protein","Iron","Carbos","Calcium","Rare Candy","Dome Fossil","Helix Fossil","Secret Key",null,"Bike Voucher","X Accuracy","Leaf Stone","Card Key","Nugget","PP Up (spare)","Poké Doll","Full Heal","Revive","Max Revive","Guard Spec.","Super Repel","Max Repel","Dire Hit","Coin","Fresh Water","Soda Pop","Lemonade","S.S. Ticket","Gold Teeth","X Attack","X Defend","X Speed","X Special","Coin Case","Oak's Parcel","Itemfinder","Silph Scope","Poké Flute","Lift Key","Exp. All","Old Rod","Good Rod","Super Rod","PP Up","Ether","Max Ether","Elixir","Max Elixir"];
+  const g1Name = id=> id >= 196 && id <= 200 ? "HM0" + (id - 195) : id >= 201 && id <= 250 ? "TM" + String(id - 200).padStart(2, "0") : G1_ITEMS[id-1] || "";
+  const G2_FIX = { "Brightpowder":"BrightPowder", "Hp Up":"HP Up", "Pp Up":"PP Up", "Elixer":"Elixir", "Max Elixer":"Max Elixir", "S.s.ticket":"S.S. Ticket", "Secretpotion":"SecretPotion", "Tinymushroom":"TinyMushroom",
+    "Silverpowder":"SilverPowder", "Twistedspoon":"TwistedSpoon", "Blackbelt":"BlackBelt", "Blackglasses":"BlackGlasses", "Slowpoketail":"SlowpokeTail", "Nevermeltice":"NeverMeltIce", "Miracleberry":"MiracleBerry",
+    "Ragecandybar":"RageCandyBar", "Gs Ball":"GS Ball", "Energypowder":"EnergyPowder", "Mysteryberry":"MysteryBerry", "Psncureberry":"PsnCureBerry", "Przcureberry":"PrzCureBerry", "Squirtbottle":"SquirtBottle",
+    "Exp.share":"Exp. Share", "Thunderstone":"Thunder Stone", "Up-grade":"Up-Grade", "Litebluemail":"LiteBlueMail", "Portraitmail":"PortraitMail", "Bluesky Mail":"BlueSky Mail" };
+  const g2Name = id=>{ const n = D.items[id-1]; return !n || n === "Teru-sama" ? "" : (G2_FIX[n] || n); };
+  const G2_KEY = new Set([7,54,55,58,59,61,66,67,68,69,70,71,115,116,127,128,129,130,133,134,175,178]);
+  const G2_BALL = new Set([1,2,4,5,157,159,160,161,163,164,165,166,177]);
+  const g2Tm = n=> n < 50 ? "TM" + String(n + 1).padStart(2, "0") : "HM0" + (n - 49);
+  function g2Choices(kind){
+    const out = [];
+    for(let id = 1; id <= 255; id++){
+      if(id >= 191 && id <= 249) continue; const n = g2Name(id); if(!n) continue;
+      const key = G2_KEY.has(id), ball = G2_BALL.has(id);
+      if(kind === "key" ? key : kind === "ball" ? ball : kind === "item" ? !key && !ball : true) out.push({ id, name:n });
+    }
+    return out;
+  }
+  function invRead(S){
+    const b = S.bytes, L = S.L;
+    const pairs = (o, cap)=>{ const n = Math.min(b[o], cap), out = []; for(let i = 0; i < n; i++) out.push({ id:b[o+1+i*2], qty:Math.max(1, b[o+2+i*2]) }); return out; };
+    const singles = (o, cap)=>{ const n = Math.min(b[o], cap), out = []; for(let i = 0; i < n; i++) out.push({ id:b[o+1+i], qty:1 }); return out; };
+    const P = (key, name, cap, max, kind, at, list, choices, nameOf)=> ({ key, name, cap, max, kind, at, list, choices, nameOf });
+    if(L.gen === 1){
+      const all = []; for(let id = 1; id <= 250; id++) if(g1Name(id)) all.push({ id, name:g1Name(id) });
+      const nameOf = id=> g1Name(id) || "Item #" + id;
+      return { gen:1, pockets:[ P("bag", "Bag", 20, 99, "pairs", 0x25C9, pairs(0x25C9, 20), all, nameOf), P("pc", "PC", 50, 99, "pairs", 0x27E6, pairs(0x27E6, 50), all, nameOf) ] };
+    }
+    const A = L.ver === "crystal" ? { tm:0x23E7, item:0x2420, key:0x244A, ball:0x2465, pc:0x247F } : { tm:0x23E6, item:0x241F, key:0x2449, ball:0x2464, pc:0x247E };
+    const nameOf = id=> g2Name(id) || "Item #" + id;
+    const tmList = []; for(let i = 0; i < 57; i++) if(b[A.tm + i]) tmList.push({ id:i, qty:Math.min(99, b[A.tm + i]) });
+    const tmAll = []; for(let i = 0; i < 57; i++) tmAll.push({ id:i, name:g2Tm(i) });
+    return { gen:2, pockets:[
+      P("item", "Items", 20, 99, "pairs", A.item, pairs(A.item, 20), g2Choices("item"), nameOf),
+      P("key", "Key Items", 25, 1, "singles", A.key, singles(A.key, 25), g2Choices("key"), nameOf),
+      P("ball", "Balls", 12, 99, "pairs", A.ball, pairs(A.ball, 12), g2Choices("ball"), nameOf),
+      P("tm", "TMs & HMs", 57, 99, "tm", A.tm, tmList, tmAll, id=> g2Tm(id)),
+      P("pc", "PC", 50, 99, "pairs", A.pc, pairs(A.pc, 50), g2Choices("all"), nameOf) ] };
+  }
+  function invWrite(b, S){
+    S.inv.pockets.forEach(p=>{
+      const n = Math.min(p.list.length, p.cap);
+      if(p.kind === "tm"){ b.fill(0, p.at, p.at + 57); p.list.forEach(it=>{ b[p.at + it.id] = Math.max(1, Math.min(99, it.qty)); }); return; }
+      const two = p.kind === "pairs", len = 2 + (two ? p.cap * 2 : p.cap);
+      b.fill(0, p.at, p.at + len); b[p.at] = n;
+      for(let i = 0; i < n; i++){ const it = p.list[i]; if(two){ b[p.at + 1 + i*2] = it.id; b[p.at + 2 + i*2] = Math.max(1, Math.min(99, it.qty)); } else b[p.at + 1 + i] = it.id; }
+      b[p.at + 1 + (two ? n*2 : n)] = 0xFF;
+    });
+  }
 
   // ---- Shiny: in Gold, Silver and Crystal a Pokémon is shiny when its Defense, Speed and Special DVs are all 10 and its Attack DV is 2, 3, 6, 7, 10, 11, 14 or 15.
   // Red, Blue and Yellow keep the same DV bytes, so a Pokémon set up this way comes out shiny once it crosses the Time Capsule.
@@ -7053,7 +7126,7 @@ const PKXFER = (()=>{
     }
     return { ok:true, entry:{ ...e, data:d }, notes, who };
   }
-  return { load, info, convert, blocker, save, detect, speciesName, dexOf1, idxOf1, withdraw, deposit, to1, to2, text, isShiny, shiny:makeShiny, D:()=>D };
+  return { load, info, convert, blocker, save, detect, invRead, speciesName, dexOf1, idxOf1, withdraw, deposit, to1, to2, text, isShiny, shiny:makeShiny, D:()=>D };
 })();
 // Gen 3 Pokémon (Ruby, Sapphire, Emerald, FireRed, LeafGreen): everything the app needs, read from the player's own ROM.
 // Tables are found by their shape rather than fixed addresses, so any English revision works. Nothing from the game ships with the page.
@@ -7195,6 +7268,7 @@ const G3DATA = (function(){
     D.moveName = m=> T.moveNames >= 0 && m > 0 && m < 360 ? text(b, T.moveNames + m*13, 13) : "";
     D.movePP = m=> T.moves >= 0 && m > 0 && m < 360 ? b[T.moves + m*12 + 4] : 0;
     D.itemName = i=> T.items >= 0 && i > 0 && i < 400 ? text(b, T.items + i*44, 14) : "";
+    D.itemPocket = i=> T.items >= 0 && i > 0 && i < 400 ? b[T.items + i*44 + 26] : 0;
     D.baseOf = s=>{ if(T.base < 0) return null; const o = T.base + s*28; return { st:[b[o],b[o+1],b[o+2],b[o+3],b[o+4],b[o+5]], types:[b[o+6],b[o+7]], gender:b[o+16], friend:b[o+18], growth:b[o+19], abil:[b[o+22],b[o+23]] }; };
     D.expAt = (growth, level)=> T.exp >= 0 ? u32(T.exp + (growth*101 + Math.max(0, Math.min(100, level)))*4) : 0;
     D.levelFor = (growth, exp)=>{ let n = 1; while(n < 100 && exp >= D.expAt(growth, n+1)) n++; return n; };
@@ -7560,6 +7634,39 @@ const PKX3 = (function(){
     return { ok:true, entry:{ ...e, data:d }, notes:[], who };
   }
 
+  // ---------- items: the bag pockets and the PC's item storage ----------
+  // Each slot is a 16-bit item and a 16-bit quantity. Emerald and FireRed/LeafGreen scramble the quantity with a key kept in the trainer block.
+  const INV = {
+    rs:   { pc:[0x498, 50], item:[0x560, 20], key:[0x5B0, 20], ball:[0x600, 16], tm:[0x640, 64], berry:[0x740, 46], keyAt:-1 },
+    e:    { pc:[0x498, 50], item:[0x560, 30], key:[0x5D8, 30], ball:[0x650, 16], tm:[0x690, 64], berry:[0x790, 46], keyAt:0xAC },
+    frlg: { pc:[0x298, 30], item:[0x310, 42], key:[0x3B8, 30], ball:[0x430, 13], tm:[0x464, 58], berry:[0x54C, 43], keyAt:0xF20 }
+  };
+  const POCKETS = [["item", "Items", 1], ["key", "Key Items", 5], ["ball", "Poké Balls", 2], ["tm", "TMs & HMs", 3], ["berry", "Berries", 4], ["pc", "PC", 0]];
+  const invKey = S=> { const A = INV[S.version]; return A.keyAt < 0 ? 0 : u16(S.sb2, A.keyAt); };
+  const itemTitle = s=> titleCase(s).replace(/\bTm(\d+)/i, "TM$1").replace(/\bHm(\d+)/i, "HM$1").replace(/\bPp\b/g, "PP").replace(/\bHp\b/g, "HP");
+  function invRead(S){
+    const A = INV[S.version], key = invKey(S), sb1 = S.sb1;
+    const nameOf = id=> (D && D.itemName(id) && !/^[?\-]+$/.test(D.itemName(id))) ? itemTitle(D.itemName(id)) : "Item #" + id;
+    // does the ROM's own item table agree with what we expect? (Master Ball is in the ball pocket, Potion in the item pocket)
+    const known = D && D.itemPocket && D.itemPocket(1) === 2 && D.itemPocket(13) === 1;
+    const all = [];
+    if(D) for(let id = 1; id < 400; id++){ const n = D.itemName(id); if(n && !/^[?\-]+$/.test(n)) all.push({ id, name:itemTitle(n), pocket: known ? D.itemPocket(id) : 0 }); }
+    return { gen:3, pockets: POCKETS.map(([k, name, pk])=>{
+      const [at, cap] = A[k]; const list = [];
+      for(let i = 0; i < cap; i++){ const id = u16(sb1, at + i*4); if(id) list.push({ id, qty: k === "key" ? 1 : Math.max(1, u16(sb1, at + i*4 + 2) ^ (key & 0xFFFF)) }); }
+      const choices = all.filter(c=> k === "pc" || !known || c.pocket === pk).map(c=> ({ id:c.id, name:c.name }));
+      const max = k === "key" ? 1 : (k === "pc" || k === "berry") ? (S.version === "rs" ? 99 : 999) : 99;
+      return { key:k, name, cap, max, kind:"pairs", at, list, choices, nameOf };
+    }) };
+  }
+  function invWrite(sb1, S){
+    const key = invKey(S) & 0xFFFF;
+    S.inv.pockets.forEach(p=>{
+      sb1.fill(0, p.at, p.at + p.cap*4);
+      p.list.slice(0, p.cap).forEach((it, i)=>{ p16(sb1, p.at + i*4, it.id); p16(sb1, p.at + i*4 + 2, (p.key === "key" ? 1 : Math.max(1, Math.min(p.max, it.qty))) ^ key); });
+    });
+  }
+
   // ---------- whole saves ----------
   function load(bytes){
     const b = new Uint8Array(bytes), S0 = detect(b); if(!S0) return null;
@@ -7586,6 +7693,7 @@ const PKX3 = (function(){
     [...S.touched].filter(k=> k !== "party").map(Number).forEach(bx=>{
       for(let s = 0; s < 30; s++){ const o = 4 + (bx*30 + s)*80, e = S.boxes[bx][s]; if(e) pc.set(e.data.subarray(0, 80), o); else pc.fill(0, o, o + 80); }
     });
+    if(S.invDirty && S.inv) invWrite(sb1, S);
     S.dexAdd.forEach(dex=>{ const n = dex - 1, k = n >> 3, m = 1 << (n & 7);
       sb2[0x28 + k] |= m; sb2[0x5C + k] |= m; sb1[L.seen1 + k] |= m; sb1[L.seen2 + k] |= m; });
     const put = (id, src, from)=>{ const o = S.slot.at[id]; b.set(src.subarray(from, from + DATA), o); p16(b, o + 0xFF6, sumLen(b, o, S.slot.len[id])); };
@@ -7594,7 +7702,7 @@ const PKX3 = (function(){
     for(let id = 5; id <= 13; id++) put(id, pc, (id-5)*DATA);
     return b;
   }
-  return { detect, load, save, info, convert, isShiny, shiny:makeShiny, withdraw, deposit, setData(d){ D = d; }, hasData: ()=> !!D, LAY, open, close, from12 };
+  return { detect, load, save, invRead, info, convert, isShiny, shiny:makeShiny, withdraw, deposit, setData(d){ D = d; }, hasData: ()=> !!D, LAY, open, close, from12 };
 })();
 
 // Gen 3 saves join the Pokémon Box: the Gen 1/2 functions hand Gen 3 work to PKX3.
@@ -7607,6 +7715,7 @@ const PKX3 = (function(){
   PKXFER.isShiny = e=> !!e && (e.gen === 3 ? PKX3.isShiny(e) : o.isShiny(e));
   PKXFER.shiny = e=> e.gen === 3 ? PKX3.shiny(e) : o.shiny(e);
   PKXFER.save = S=> S.gen === 3 ? PKX3.save(S) : o.save(S);
+  PKXFER.invRead = S=> S.gen === 3 ? PKX3.invRead(S) : o.invRead(S);
 })();
 
 const PLAYER = (function(){
@@ -9064,6 +9173,78 @@ const PLAYER = (function(){
     return bits.join(" · ");
   }
   function xfList(S, where){ return where === "party" ? S.party : S.boxes[+where]; }
+  // ----- items: view and edit the bag and the PC's item storage -----
+  const xfDirty = S=> !!(S.touched.size || S.dexAdd.size || S.invDirty);
+  const xfCloneInv = inv=> ({ ...inv, pockets: inv.pockets.map(p=> ({ ...p, list: p.list.map(x=> ({ ...x })) })) });
+  const xfInv = S=> S.inv || (S.inv = PKXFER.invRead(S));
+  function xfInvHtml(S, k, side){
+    const inv = xfInv(S), pi = Math.max(0, Math.min(side.pocket | 0, inv.pockets.length - 1)), P = inv.pockets[pi];
+    const tabs = inv.pockets.map((p, i)=> `<button type="button" class="xf-ptab${i === pi ? " on" : ""}" data-side="${k}" data-pocket="${i}">${esc(p.name)} <small>${p.list.length}/${p.cap}</small></button>`).join("");
+    const rows = P.list.map((it, i)=> {
+      const nm = esc(P.nameOf(it.id));
+      return `<li class="xf-irow"><span class="xf-iname" title="${nm}">${nm}</span>`
+        + (P.max > 1 ? `<input class="xf-iqty" type="number" inputmode="numeric" min="1" max="${P.max}" value="${it.qty}" data-side="${k}" data-idx="${i}" aria-label="How many ${nm}">` : "")
+        + (P.kind !== "tm" ? `<button type="button" class="btn quiet xf-ib xf-iup" data-side="${k}" data-idx="${i}" aria-label="Move ${nm} up"${i === 0 ? " disabled" : ""}>▲</button><button type="button" class="btn quiet xf-ib xf-idn" data-side="${k}" data-idx="${i}" aria-label="Move ${nm} down"${i === P.list.length - 1 ? " disabled" : ""}>▼</button>` : "")
+        + `<button type="button" class="btn quiet xf-ib xf-irm" data-side="${k}" data-idx="${i}" aria-label="Remove ${nm}">✕</button></li>`;
+    }).join("");
+    const full = P.list.length >= P.cap;
+    return `<div class="xf-ptabs" role="group" aria-label="Pocket">${tabs}</div>`
+      + `<h4>${esc(P.name)} <small>${P.list.length}/${P.cap} slots</small></h4>`
+      + (rows ? `<ul class="xf-ilist">${rows}</ul>` : `<p class="xf-empty">Nothing in here.</p>`)
+      + `<div class="xf-iadd"><select class="xf-isel" data-side="${k}" aria-label="Item to add">${P.choices.map(c=> `<option value="${c.id}">${esc(c.name)}</option>`).join("")}</select>`
+      + (P.max > 1 ? `<input class="xf-inew" type="number" inputmode="numeric" min="1" max="${P.max}" value="1" aria-label="How many to add">` : "")
+      + `<button type="button" class="btn xf-iaddbtn" data-side="${k}">Add</button></div>`
+      + (full ? `<p class="xf-inote">This pocket is full. Remove something to make room, or add more of one you already have.</p>` : "")
+      + (P.kind !== "tm" ? `<div class="xf-isortrow"><span>Sort:</span><button type="button" class="btn quiet xf-isort" data-side="${k}" data-by="name">A–Z</button><button type="button" class="btn quiet xf-isort" data-side="${k}" data-by="id">Game order</button></div>` : "")
+      + (P.key === "key" || P.key === "item" && S.gen === 1 ? `<p class="xf-inote">Removing story items can stop the game from letting you progress.</p>` : "");
+  }
+  function xfInvEdit(k, msg, fn){
+    const side = XF.sides[k], S = XF.saves[side.key]; if(!S) return;
+    const P = xfInv(S).pockets[Math.max(0, Math.min(side.pocket | 0, xfInv(S).pockets.length - 1))];
+    XF.undo.push(xfSnapshot());
+    const r = fn(P, S); if(r === false){ XF.undo.pop(); return; }
+    S.invDirty = true; xfSay((typeof r === "string" ? r : msg) + " Save changes to keep it."); xfRender();
+  }
+  function xfInvSetup(){
+    const dlg = xfEl("xfer");
+    dlg.addEventListener("click", ev=>{
+      const t = ev.target.closest && ev.target.closest(".xf-view, .xf-ptab, .xf-iup, .xf-idn, .xf-irm, .xf-isort, .xf-iaddbtn"); if(!t) return;
+      const k = +t.dataset.side, side = XF.sides[k];
+      if(t.classList.contains("xf-view")){ side.view = t.dataset.view; XF.pick = null; xfSay(side.view === "items" ? "Add, remove and reorder the items in this save. Nothing is written until you press Save changes." : ""); xfRender(); return; }
+      if(t.classList.contains("xf-ptab")){ side.pocket = +t.dataset.pocket; xfRender(); return; }
+      const i = +t.dataset.idx;
+      if(t.classList.contains("xf-iup")) return xfInvEdit(k, "Moved up.", P=>{ if(i < 1) return false; const [x] = P.list.splice(i, 1); P.list.splice(i - 1, 0, x); });
+      if(t.classList.contains("xf-idn")) return xfInvEdit(k, "Moved down.", P=>{ if(i >= P.list.length - 1) return false; const [x] = P.list.splice(i, 1); P.list.splice(i + 1, 0, x); });
+      if(t.classList.contains("xf-irm")) return xfInvEdit(k, "Removed.", P=>{ const [x] = P.list.splice(i, 1); return "Removed " + P.nameOf(x.id) + "."; });
+      if(t.classList.contains("xf-isort")){
+        const by = t.dataset.by;
+        return xfInvEdit(k, "Sorted.", P=>{ P.list.sort(by === "name" ? (a, c)=> P.nameOf(a.id).localeCompare(P.nameOf(c.id)) : (a, c)=> a.id - c.id); });
+      }
+      if(t.classList.contains("xf-iaddbtn")){
+        const root = t.closest(".xf-iadd"), id = +root.querySelector(".xf-isel").value, qEl = root.querySelector(".xf-inew");
+        return xfInvEdit(k, "Added.", P=>{
+          const want = Math.max(1, Math.min(P.max, Math.floor(+(qEl && qEl.value) || 1)));
+          const have = P.list.find(x=> x.id === id), nm = P.nameOf(id);
+          if(have){
+            if(P.max === 1){ xfSay(nm + " is already in here.", true); return false; }
+            if(have.qty >= P.max){ xfSay("You already have the most of " + nm + " that fits in a slot (" + P.max + ").", true); return false; }
+            const n = Math.min(P.max, have.qty + want); have.qty = n; return "Now holding " + n + " " + nm + ".";
+          }
+          if(P.list.length >= P.cap){ xfSay("This pocket is full (" + P.cap + " slots).", true); return false; }
+          P.list.push({ id, qty: P.max === 1 ? 1 : want }); return "Added " + (P.max === 1 ? "" : want + " ") + nm + ".";
+        });
+      }
+    });
+    dlg.addEventListener("change", ev=>{
+      const t = ev.target; if(!t.classList || !t.classList.contains("xf-iqty")) return;
+      const k = +t.dataset.side, i = +t.dataset.idx;
+      xfInvEdit(k, "Quantity changed.", P=>{
+        const it = P.list[i]; if(!it) return false;
+        const v = Math.max(1, Math.min(P.max, Math.floor(+t.value) || 1)); if(v === it.qty){ t.value = v; return false; }
+        it.qty = v; return P.nameOf(it.id) + " × " + v + ".";
+      });
+    });
+  }
   function xfRender(){
     if(!XF.open) return;
     XF.sides.forEach((side, k)=>{
@@ -9089,8 +9270,12 @@ const PLAYER = (function(){
         + `<select class="xf-boxsel" data-side="${k}" aria-label="Box">${S.boxes.map((b, i)=> `<option value="${i}"${i === box ? " selected" : ""}>${esc(S.boxNames[i])} (${b.filter(Boolean).length}/${S.L.boxCap})${i === S.cur ? " — current box" : ""}</option>`).join("")}</select>`
         + `<button type="button" class="btn quiet xf-next" data-side="${k}" aria-label="Next box">▶</button></div>`
         + `<div class="xf-box${S.gen === 3 ? " xf-box3" : ""}">${Array.from({ length:S.L.boxCap }, (_, i)=> slot(String(box), i, list[i])).join("")}</div>`;
+      { const who = body.querySelector(".xf-who"), on = side.view === "items";
+        const bar = `<div class="xf-views" role="group" aria-label="What to show"><button type="button" class="xf-view${on ? "" : " on"}" data-side="${k}" data-view="mons" aria-pressed="${!on}">Pokémon</button><button type="button" class="xf-view${on ? " on" : ""}" data-side="${k}" data-view="items" aria-pressed="${on}">Items</button></div>`;
+        if(on) body.innerHTML = (who ? who.outerHTML : "") + bar + xfInvHtml(S, k, side);
+        else if(who) who.insertAdjacentHTML("afterend", bar); }
     });
-    const dirty = Object.values(XF.saves).filter(S=> S.touched.size || S.dexAdd.size);
+    const dirty = Object.values(XF.saves).filter(xfDirty);
     xfEl("xfSave").disabled = !dirty.length;
     xfEl("xfUndo").disabled = !XF.undo.length;
     xfEl("xfShiny").disabled = !XF.pick;
@@ -9098,7 +9283,7 @@ const PLAYER = (function(){
   }
   function xfSnapshot(){
     const snap = {};
-    Object.entries(XF.saves).forEach(([k, S])=>{ snap[k] = { party:S.party.slice(), boxes:S.boxes.map(b=> b.slice()), touched:new Set(S.touched), dexAdd:new Set(S.dexAdd) }; });
+    Object.entries(XF.saves).forEach(([k, S])=>{ snap[k] = { party:S.party.slice(), boxes:S.boxes.map(b=> b.slice()), touched:new Set(S.touched), dexAdd:new Set(S.dexAdd), inv: S.inv ? xfCloneInv(S.inv) : null, invDirty:!!S.invDirty }; });
     return snap;
   }
   // Work out what a drop would do. Returns { ok, why, run } without changing anything.
@@ -9206,7 +9391,7 @@ const PLAYER = (function(){
       if(ev.target.classList.contains("xf-src")){
         const k = +ev.target.closest(".xf-side").dataset.side, v = ev.target.value;
         if(v === "file:new"){ XF.fileFor = k; const f = xfEl("xfFile"); f.value = ""; f.click(); xfRender(); return; }
-        XF.sides[k] = { key:v, box:0 }; await xfLoadKey(v); const S = XF.saves[v]; if(S) XF.sides[k].box = S.cur; XF.pick = null; xfRender();
+        XF.sides[k] = { key:v, box:0, view:XF.sides[k].view, pocket:0 }; await xfLoadKey(v); const S = XF.saves[v]; if(S) XF.sides[k].box = S.cur; XF.pick = null; xfRender();
       }
     });
     dlg.addEventListener("click", ev=>{
@@ -9264,14 +9449,14 @@ const PLAYER = (function(){
   // leaving the Pokémon Box tab; returns false if the player wants to stay because of unsaved moves
   function xfClose(){
     if(!XF.open) return true;
-    const dirty = Object.values(XF.saves).some(S=> S.touched.size || S.dexAdd.size);
+    const dirty = Object.values(XF.saves).some(xfDirty);
     if(dirty && !confirm("Leave Pokémon Box without saving? The moves you made will be lost.")) return false;
     XF.open = false; xfEl("xfer").hidden = true;
     if(machine && !playing && XF_GIDS.includes(game.id)) play();
     return true;
   }
   async function xfSaveAll(){
-    const dirty = Object.values(XF.saves).filter(S=> S.touched.size || S.dexAdd.size);
+    const dirty = Object.values(XF.saves).filter(xfDirty);
     const notes = [];
     for(const S of dirty){
       let bytes;
@@ -9310,7 +9495,7 @@ const PLAYER = (function(){
     xfEl("xfSave").addEventListener("click", xfSaveAll);
     xfEl("xfUndo").addEventListener("click", ()=>{
       const snap = XF.undo.pop(); if(!snap) return;
-      Object.entries(snap).forEach(([k, v])=>{ const S = XF.saves[k]; if(S){ S.party = v.party; S.boxes = v.boxes; S.touched = v.touched; S.dexAdd = v.dexAdd; } });
+      Object.entries(snap).forEach(([k, v])=>{ const S = XF.saves[k]; if(S){ S.party = v.party; S.boxes = v.boxes; S.touched = v.touched; S.dexAdd = v.dexAdd; S.inv = v.inv; S.invDirty = v.invDirty; } });
       XF.pick = null; xfSay("Undone."); xfRender();
     });
     xfEl("xfDiscard").addEventListener("click", async ()=>{
@@ -9319,7 +9504,7 @@ const PLAYER = (function(){
       xfSay("Changes thrown away."); xfRender();
     });
     xfEl("xfCopy").addEventListener("change", ()=> xfSay(xfEl("xfCopy").checked ? "Copies stay in the original game too. The real games can't do this, so it isn't how a trade works." : "Pokémon move, like a trade: they leave the game they came from."));
-    xfPointer();
+    xfPointer(); xfInvSetup();
   }
 
   return { box:{ open:xfOpen, close:xfClose }, init, setGame, loadFile: loadRomFile, getRom, refreshTray(){ try{ renderFsStats(); }catch(e){} } };
