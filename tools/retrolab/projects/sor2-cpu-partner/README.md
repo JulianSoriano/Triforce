@@ -5,14 +5,13 @@ Working notes and test routes for the CPU Partner mod by RAMENPHOLIFE. The mod's
 
 ## ROMs
 
+There is one patch: `patch/Streets of Rage 2 - CPU Partner v9.ips` in the mod's repository. It applies to the original,
+unmodified ROM. No ROMs are kept here.
+
 | File | SHA-1 |
 |---|---|
-| Streets of Rage 2 (USA) — the ROM `v8.ips` applies to | `8b656eec9692d88bbbb84787142aa732b44ce0be` |
-| Streets of Rage 2 - CPU Partner v8.md | `c7d140896d1010ab4e52a0de081a59a9e81a111c` |
-| Streets of Rage 2 - CPU Partner v8.ips | `c03c779080c059d6c0359ff8ddc7a121712b7039` |
-
-No original ROM? `node rebuild-original.js "<v8>.md" <v8 source>/build.py original.md` undoes the mod using the
-original bytes recorded in `build.py`, and checks the result against the SHA-1 above.
+| Streets of Rage 2 (USA), the original | `8b656eec9692d88bbbb84787142aa732b44ce0be` |
+| The original with the v9 patch applied | `0049ae1c92829ba09fb49378028ec8451452a340` |
 
 ## Routes
 
@@ -21,8 +20,8 @@ original bytes recorded in `build.py`, and checks the result against the SHA-1 a
 
 ```sh
 cd tools/retrolab
-node bin/retrolab.js run v8.md --script projects/sor2-cpu-partner/start-stage1.txt --save stage1.state --shot stage1.png
-node bin/retrolab.js check original.md v8.md --script projects/sor2-cpu-partner/route-stage1.txt --skip 2058
+node bin/retrolab.js run patched.md --script projects/sor2-cpu-partner/start-stage1.txt --save stage1.state --shot stage1.png
+node bin/retrolab.js check original.md patched.md --script projects/sor2-cpu-partner/route-stage1.txt --skip 2058
 ```
 
 ## Memory and code (checked with RetroLab)
@@ -46,28 +45,15 @@ node bin/retrolab.js check original.md v8.md --script projects/sor2-cpu-partner/
    the menus): neither the original nor v8 dropped a frame on this route; the 68000 was busy 56.9% of the time in the
    original and 63.6% with the mod (the partner's AI costs about 7% of the CPU). The route needs more enemies on screen
    at once to show the reported slowdown.
-3. **Donovan and Jack jump-kick too often.** Candidate distance checks against 70 (`cmpi.w #$46,d2`) at `$01741E`,
-   `$018AFA`, `$01B4B0` and `$01FA8A`. Not yet tied to the enemies: `watch` an enemy's state word while it jump-kicks
-   to find which routine sets it.
 
-## v9 (work in progress)
+## v9
 
-`v9/make-v9.js` turns a v8 ROM into the v9 test ROM with small patches (no compiler needed; each checks the old bytes
-first). The `.s` files in `v9/` are the new code, placed in free ROM from `$1FAC00`.
-
-| Patch | What it changes |
-|---|---|
-| `jk-cooldown`, `jk-min`, `jk-max` | The partner's jump kick: cooldown 40 -> 180 frames; range 32..90 -> 48..80 px (it closes a real gap instead of kicking up close) |
-| `idle-target-*` (`idle-target.s`) | Nothing to fight: head for camera + 230 (not camera + 400, the far edge) and never get more than 150 px ahead of the human |
-| `sticky-side-*` (`sticky-side.s`) | Which side of an enemy she stands on only changes once she is 16 px past him (it flipped every frame when level with him) |
-| `pace-zone-*` (`pace-zone.s`) | The twitch: waiting for an off-screen enemy she walked to her spot, turned to face him (a 2 px step), which put her outside the 6 px zone, so she stepped back and turned away, every frame. Once she faces him the zone is 24 px. This is a v8 bug |
-
-| `box-reach-*` (`box-reach.s`) | Bar tables are wider than the partner's "spot" beside them, so she pressed into the table 8 px short and never swung. If she did not move last frame she now attacks from up to 24 px short. Table in the bar: broken after ~1160 frames in v8, ~240 in v9 |
-| `steady-pad-*` (`steady-pad.s`) | Last line of defence against twitching: a left/right or up/down reversal is only let through if the previous direction was held 8+ frames (not in menus). Up/down twitching, which v8 also had, is gone too |
-| `tag2p-*` (`tag2p.s`) | A floating "2P" tag over the CPU partner so she is easy to tell from the human whatever she looks like. Two extra sprites built from the HUD font tiles (`$792` "2", `$7B0` "P"; the character-select screen's 2P marker uses the same two tiles), appended to the sprite list after the game builds it (hook at `$001A1A`, code at `$1FAF00`). The tag is placed from her position only (X, and Y which already includes jumps), a fixed 92 px above her feet, so it does not move when her animation frame changes. Only in CPU PARTNER mode (`$FFFE10`), only while she is in a gameplay state (below `$34`, so not on the character select or other menus), only when she is on screen and the 80-sprite list has 2 free slots |
+What the v9 patches change, with the source for each, is in the mod's repository (`CHANGELOG.md` and `src/patches-v9/`).
+The measurements below were taken with this folder's routes.
 
 Measured on a 31,000-frame scripted route (the scripted human just holds a direction):
-jump kicks started 114 -> ~60; turn-around twitches 37 -> 0; left/right pad twitches 14 -> 0 and up/down 23 -> 0 (22,000 frames); `check` shows no crashes and no extra slowdown
-(46 -> 45 slow frames, 64.6% busy both). How the partner feels next to a real player still needs a playtest.
-Routes for later stages: save states are cheap to make with `run --save` and the `godrun`-style loop (keep both players'
-HP topped up, human holds RIGHT with a B now and then); stage 1's bar is about 28,000 frames in.
+jump kicks started 114 -> ~60; turn-around twitches 37 -> 0; left/right pad twitches 14 -> 0 and up/down 23 -> 0 (22,000 frames);
+the bar table breaks after ~240 frames instead of ~1160; `check` on `route-stage1.txt` shows no crashes and no extra slowdown
+(179 slow frames, 2.2%, before and after). How the partner feels next to a real player still needs a playtest.
+Routes for later stages: save states are cheap to make with `run --save` and a loop that keeps both players'
+HP topped up with the human holding RIGHT with a B now and then; stage 1's bar is about 28,000 frames in.
