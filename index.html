@@ -577,7 +577,10 @@ html.pick-mode .pick-note{display:block}
 .home-guide .g-body{padding:0 0 14px;color:var(--muted);font-size:14px;line-height:1.6}
 .home-guide .g-body p{margin:0 0 8px}
 .home-guide .g-body ul{margin:0 0 8px;padding-left:18px}
-.tab-guide{margin:0 0 14px}
+.tab-guide{margin:10px 0 0;max-width:78ch;color:var(--muted);font-size:14px;line-height:1.6}
+.tab-guide p{margin:0 0 8px}.tab-guide ul{margin:0 0 8px;padding-left:18px}.tab-guide b{color:var(--ink);font-weight:600}
+.tab-guide kbd{font:12px var(--mono);padding:1px 6px;border:1px solid var(--line);border-radius:5px;background:var(--surface-2);color:var(--ink)}
+#emuGuide{margin:0 0 12px}
 html.playing .tab-guide{display:none}
 .home-guide kbd{font:12px var(--mono);padding:1px 6px;border:1px solid var(--line);border-radius:5px;background:var(--surface-2);color:var(--ink)}
 .about-lede{margin:0 0 14px;max-width:70ch;color:var(--muted);line-height:1.55}
@@ -822,6 +825,7 @@ h1{color:var(--ink);font-weight:650;letter-spacing:-.025em;line-height:1.1}
   <header>
     <h1 id="gameTitle">Ocarina of Time</h1>
     <p class="sub" id="gameSub"></p>
+    <div class="tab-guide" id="tabGuide" hidden></div>
   </header>
 
   <section class="hud" aria-label="Progress">
@@ -988,7 +992,6 @@ h1{color:var(--ink);font-weight:650;letter-spacing:-.025em;line-height:1.1}
       </div></details>
     </div>
   </div>
-  <div class="home-guide tab-guide" id="tabGuide" hidden></div>
   <section class="home" id="home" hidden aria-label="Home">
     <div class="home-hero">
       <h1>Welcome to Triforce</h1>
@@ -1072,6 +1075,7 @@ h1{color:var(--ink);font-weight:650;letter-spacing:-.025em;line-height:1.1}
   </section>
   <section class="lore" id="emu" hidden aria-label="Emulators">
     <div class="lore-bar"><span>Emulators — Genesis, Master System, Game Gear, NES, SNES, Game Boy, Game Boy Color and GBA, with save states and a save editor. Bring your own game files.</span><span></span></div>
+    <div class="tab-guide" id="emuGuide" hidden></div>
     <iframe id="emuFrame" title="Emulators" allow="autoplay; gamepad; fullscreen" allowfullscreen loading="lazy"></iframe>
   </section>
   <section class="lore" id="hacks" hidden aria-label="ROM Hacks">
@@ -10540,9 +10544,10 @@ function showFranchise(f, focus){
   document.getElementById("ff").hidden = f !== FF_TAB;
   if(f === FF_TAB){ const fr = document.getElementById("ffFrame"); if(!fr.getAttribute("srcdoc")) EMB.text("ff").then(t=>{ fr.srcdoc = t; }); }
   document.getElementById("hacks").hidden = f !== HACKS_TAB;
-  { const gk = FRANCHISES.includes(f) ? f : f === BOX_TAB ? BOX_FR : f === EMU_TAB ? "emu" : "";
-    const tg = document.getElementById("tabGuide"), src = gk && document.querySelector('#guideBank [data-guide="'+gk+'"]');
-    tg.innerHTML = src ? src.innerHTML : ""; tg.hidden = !src; }
+  { const gk = FRANCHISES.includes(f) ? f : f === EMU_TAB ? "emu" : "";
+    const src = gk && document.querySelector('#guideBank [data-guide="'+gk+'"] .g-body');
+    for(const [id, on] of [["tabGuide", gk && gk !== "emu"], ["emuGuide", gk === "emu"]]){
+      const el = document.getElementById(id); el.innerHTML = src && on ? src.innerHTML : ""; el.hidden = !(src && on); } }
   document.getElementById("emu").hidden = f !== EMU_TAB;
   if(f === EMU_TAB){ const fr = document.getElementById("emuFrame"); if(!fr.getAttribute("srcdoc")) EMB.text("emu").then(t=>{ fr.srcdoc = t; }); }
   document.getElementById("gspw").hidden = f !== GSPW_TAB;
