@@ -62,8 +62,11 @@ first). The `.s` files in `v9/` are the new code, placed in free ROM from `$1FAC
 | `sticky-side-*` (`sticky-side.s`) | Which side of an enemy she stands on only changes once she is 16 px past him (it flipped every frame when level with him) |
 | `pace-zone-*` (`pace-zone.s`) | The twitch: waiting for an off-screen enemy she walked to her spot, turned to face him (a 2 px step), which put her outside the 6 px zone, so she stepped back and turned away, every frame. Once she faces him the zone is 24 px. This is a v8 bug |
 
+| `box-reach-*` (`box-reach.s`) | Bar tables are wider than the partner's "spot" beside them, so she pressed into the table 8 px short and never swung. If she did not move last frame she now attacks from up to 24 px short. Table in the bar: broken after ~1160 frames in v8, ~240 in v9 |
+| `steady-pad-*` (`steady-pad.s`) | Last line of defence against twitching: a left/right or up/down reversal is only let through if the previous direction was held 8+ frames (not in menus). Up/down twitching, which v8 also had, is gone too |
+
 Measured on a 31,000-frame scripted route (the scripted human just holds a direction):
-jump kicks started 114 -> ~60; turn-around twitches 37 -> 1; `check` shows no crashes and no extra slowdown
+jump kicks started 114 -> ~60; turn-around twitches 37 -> 0; left/right pad twitches 14 -> 0 and up/down 23 -> 0 (22,000 frames); `check` shows no crashes and no extra slowdown
 (46 -> 45 slow frames, 64.6% busy both). How the partner feels next to a real player still needs a playtest.
-The enemies' own jump kicks (Donovan, Jack) are separate and not touched yet: their routines run only after stage 1's
-first section, so the stage 1 route never reaches them.
+Routes for later stages: save states are cheap to make with `run --save` and the `godrun`-style loop (keep both players'
+HP topped up, human holds RIGHT with a B now and then); stage 1's bar is about 28,000 frames in.

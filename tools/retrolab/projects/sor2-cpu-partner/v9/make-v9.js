@@ -27,6 +27,16 @@ const PATCHES = [
   //    (pace-zone.s, in free ROM at $1FAC80; the zone test at $1F9264 becomes a jump to it)
   { name: 'pace-zone-code', at: 0x1FAC80, old: 'ff'.repeat(38), now: '7206082a0000000f67064a856f0860044a856e027218b2806d064ef9001f92864ef9001f926a' },
   { name: 'pace-zone-hook', at: 0x1F9264, old: '7206b2806c1c', now: '4ef9001fac80' },
+  // 6. Breaking bar tables and chairs: a table blocks her ~38 px away, 8 px short of her "spot", and she never swung.
+  //    If she did not move last frame she now attacks from up to 24 px short of her spot (box-reach.s, free ROM at
+  //    $1FACC0; the tolerance test at $1FA028 becomes a jump to it).
+  { name: 'box-reach-code', at: 0x1FACC0, old: 'ff'.repeat(30), now: '7205b2806c0c7218b2806d0cb878fe3866064ef9001fa02e4ef9001fa062' },
+  { name: 'box-reach-hook', at: 0x1FA028, old: '7205b2806d34', now: '4ef9001facc0' },
+  // 7. Anti-twitch filter on everything the brain presses (steady-pad.s, free ROM at $1FAD00): a left<->right or
+  //    up<->down reversal is only let through if the previous direction was held for 8+ frames. The jump stub for
+  //    ai_think at $1F9002 now points at the filter, which calls the real brain at $1FA8A0.
+  { name: 'steady-pad-code', at: 0x1FAD00, old: 'ff'.repeat(96), now: '4eb9001fa8a00c780034f000642412000201000c41f8fea2611a020000f3800112000201000341f8fea46108020000fc80014e750c2800ff00016704522800014a016716b21067124a1067080c280008000165081081422800014e7512104e75' },
+  { name: 'steady-pad-hook', at: 0x1F9002, old: '001fa8a0', now: '001fad00' },
 ];
 const [romFile, out, ...rest] = process.argv.slice(2);
 if (!out) { console.error('usage: make-v9.js <v8 rom> <out rom> [--only a,b]'); process.exit(1); }
