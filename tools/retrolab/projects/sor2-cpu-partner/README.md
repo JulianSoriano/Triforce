@@ -64,6 +64,7 @@ first). The `.s` files in `v9/` are the new code, placed in free ROM from `$1FAC
 
 | `box-reach-*` (`box-reach.s`) | Bar tables are wider than the partner's "spot" beside them, so she pressed into the table 8 px short and never swung. If she did not move last frame she now attacks from up to 24 px short. Table in the bar: broken after ~1160 frames in v8, ~240 in v9 |
 | `steady-pad-*` (`steady-pad.s`) | Last line of defence against twitching: a left/right or up/down reversal is only let through if the previous direction was held 8+ frames (not in menus). Up/down twitching, which v8 also had, is gone too |
+| `skin2p-*` (`skin2p.s`) | Duel mode gives player 2 the alternate outfit (tile word `$21D0`, palette line 1) when both pick the same character; the co-op/CPU start-up never did, so two Blazes looked identical. Same test, same value, at `$007E24` |
 
 Measured on a 31,000-frame scripted route (the scripted human just holds a direction):
 jump kicks started 114 -> ~60; turn-around twitches 37 -> 0; left/right pad twitches 14 -> 0 and up/down 23 -> 0 (22,000 frames); `check` shows no crashes and no extra slowdown

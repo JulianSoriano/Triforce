@@ -37,6 +37,10 @@ const PATCHES = [
   //    ai_think at $1F9002 now points at the filter, which calls the real brain at $1FA8A0.
   { name: 'steady-pad-code', at: 0x1FAD00, old: 'ff'.repeat(96), now: '4eb9001fa8a00c780034f000642412000201000c41f8fea2611a020000f3800112000201000341f8fea46108020000fc80014e750c2800ff00016704522800014a016716b21067124a1067080c280008000165081081422800014e7512104e75' },
   { name: 'steady-pad-hook', at: 0x1F9002, old: '001fa8a0', now: '001fad00' },
+  // 8. Versus-mode 2P skin in CPU PARTNER mode when both pick the same character (skin2p.s, free ROM at $1FAE00).
+  //    Duel mode does this at $0108C6 (tile word $21D0 = palette line 1); the co-op / CPU start-up at $007E24 never did.
+  { name: 'skin2p-code', at: 0x1FAE00, old: 'ff'.repeat(28), now: '4eb900007e9c302a000cb06aff0c6606357c21d0000a41f8f1004e75' },
+  { name: 'skin2p-hook', at: 0x7E24, old: '6100007641f8f100', now: '4eb9001fae004e71' },
 ];
 const [romFile, out, ...rest] = process.argv.slice(2);
 if (!out) { console.error('usage: make-v9.js <v8 rom> <out rom> [--only a,b]'); process.exit(1); }
