@@ -570,6 +570,14 @@ html.pick-mode .pick-note{display:block}
 .home-guide .g-body p{margin:0 0 8px}
 .home-guide .g-body ul{margin:0 0 8px;padding-left:18px}
 .home-guide kbd{font:12px var(--mono);padding:1px 6px;border:1px solid var(--line);border-radius:5px;background:var(--surface-2);color:var(--ink)}
+.about-lede{margin:0 0 14px;max-width:70ch;color:var(--muted);line-height:1.55}
+.about-grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(min(100%,280px),1fr));gap:14px}
+.about-grid section{border:1px solid var(--line);border-radius:12px;padding:16px 18px;background:var(--surface);min-width:0}
+.about-grid h3{margin:0 0 8px;font-size:12px;letter-spacing:.12em;text-transform:uppercase;color:var(--muted);font-weight:600}
+.about-grid ul+h3{margin-top:16px}
+.about-grid ul{margin:0;padding-left:18px;display:flex;flex-direction:column;gap:6px;line-height:1.45;font-size:14px}
+.about-grid a{color:var(--ink);text-decoration-color:var(--line);text-underline-offset:3px}
+.about-grid a:hover{text-decoration-color:currentColor}
 .home-foot{margin:28px 0 8px;color:var(--muted);font-size:13px;line-height:1.55}
 @media (max-width:640px){ .home-hero{padding:24px 18px} .home-guide{grid-template-columns:1fr} }
 
@@ -976,6 +984,36 @@ h1{color:var(--ink);font-weight:650;letter-spacing:-.025em;line-height:1.1}
         <p class="home-when-local"><b>Back up my progress</b>, at the bottom of a game's page, saves your progress and saves to a file. <b>Restore a backup</b> brings them back, or moves them to another computer or browser.</p>
         <p><b>Reset this game's progress</b> clears one game's checklist.</p>
       </div></details>
+    </div>
+    <h2 id="about">About</h2>
+    <p class="about-lede">Triforce is one HTML file, written in plain HTML, CSS and JavaScript with no framework, and built with Claude. Everything else it does stands on these projects:</p>
+    <div class="about-grid">
+      <section><h3>Playing the games</h3><ul>
+        <li><a href="https://github.com/bfirsh/jsnes" target="_blank" rel="noopener">JSNES</a> — NES</li>
+        <li><a href="https://github.com/taisel/GameBoy-Online" target="_blank" rel="noopener">GameBoy-Online</a> — Game Boy and Game Boy Color</li>
+        <li><a href="https://github.com/angelo-wf/LakeSnes" target="_blank" rel="noopener">LakeSnes</a> — Super Nintendo, compiled to WebAssembly</li>
+        <li><a href="https://github.com/taisel/IodineGBA" target="_blank" rel="noopener">IodineGBA</a> with the <a href="https://github.com/Cult-of-GBA/BIOS" target="_blank" rel="noopener">Cult-of-GBA BIOS</a> — Game Boy Advance</li>
+        <li><a href="https://github.com/HarbourMasters/Shipwright" target="_blank" rel="noopener">Ship of Harkinian</a> — Ocarina of Time, compiled to WebAssembly</li>
+        <li>Gen1Recomp — Pokémon Red, Blue and Yellow, run through love.js</li>
+        <li><a href="https://github.com/sal063/Ace-Combat-3-static-recompilation" target="_blank" rel="noopener">Ace Combat 3 static recompilation</a> — rebuilt for the browser, with Team NEMO's English patch</li>
+      </ul></section>
+      <section><h3>Emulators tab</h3><ul>
+        <li>libretro cores compiled to WebAssembly: <a href="https://github.com/libretro/Genesis-Plus-GX" target="_blank" rel="noopener">Genesis Plus GX</a> (Genesis, Master System, Game Gear), <a href="https://github.com/libretro/libretro-fceumm" target="_blank" rel="noopener">FCEUmm</a> (NES), <a href="https://github.com/libretro/snes9x2010" target="_blank" rel="noopener">Snes9x 2010</a> (SNES) and <a href="https://github.com/libretro/mgba" target="_blank" rel="noopener">mGBA</a> (Game Boy family)</li>
+      </ul>
+      <h3>Maps, lore and tools</h3><ul>
+        <li><a href="https://threejs.org" target="_blank" rel="noopener">three.js</a> — the 3D maps and the Strangereal Map</li>
+        <li>Golden Sun Password Generator, from <a href="https://github.com/Dyrati" target="_blank" rel="noopener">Dyrati</a>'s password research</li>
+      </ul></section>
+      <section><h3>Saving and sharing</h3><ul>
+        <li>IndexedDB and localStorage — progress, saves and ROMs stay in your browser</li>
+        <li>Cloud sync when Triforce is opened as a Claude artifact</li>
+        <li><a href="https://github.com/JulianSoriano/Triforce" target="_blank" rel="noopener">GitHub</a> and GitHub Pages — the code and the public site</li>
+      </ul>
+      <h3>Building and modding</h3><ul>
+        <li><a href="https://emscripten.org" target="_blank" rel="noopener">Emscripten</a> and Binaryen — turning C and C++ into WebAssembly</li>
+        <li>RetroLab — the project's own Node.js toolkit for studying and modding games (in the repository)</li>
+        <li><a href="https://github.com/vercel/geist-font" target="_blank" rel="noopener">Geist and Geist Mono</a> — the type</li>
+      </ul></section>
     </div>
     <p class="home-foot">Pokémon, The Legend of Zelda, Golden Sun and Ace Combat are trademarks of their owners. Triforce is a fan project.</p>
   </section>
