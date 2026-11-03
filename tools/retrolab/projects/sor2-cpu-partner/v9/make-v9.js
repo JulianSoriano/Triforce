@@ -41,6 +41,12 @@ const PATCHES = [
   //    Duel mode does this at $0108C6 (tile word $21D0 = palette line 1); the co-op / CPU start-up at $007E24 never did.
   { name: 'skin2p-code', at: 0x1FAE00, old: 'ff'.repeat(28), now: '4eb900007e9c302a000cb06aff0c6606357c21d0000a41f8f1004e75' },
   { name: 'skin2p-hook', at: 0x7E24, old: '6100007641f8f100', now: '4eb9001fae004e71' },
+  // 9. A floating "2P" tag over the CPU partner so she can be told apart from the human whatever she looks like
+  //    (tag2p.s, free ROM at $1FAF00). Two extra sprites using the HUD font tiles ($792 "2", $7B0 "P"), added to
+  //    the sprite list after the game builds it; only in CPU PARTNER mode ($FFFE10) and only when there is room.
+  //    The call that builds the sprite list at $001A1A becomes a call to this code, which makes that call first.
+  { name: 'tag2p-code', at: 0x1FAF00, old: 'ff'.repeat(140), now: '4eb900020bdc4a38fe10677e4a78f000677848e7f8103038fc140c40004e64663238f006064100809278fc649278fc269278f070044100280c41008865480c41016064423438f00206420080d478fc220c42008865300c4201b0642a47f8ec803600e74bd6c33800524436c136c436fc879236c2524436c136c436fc87b0504236c25478fc144cdf081f4e75' },
+  { name: 'tag2p-hook', at: 0x1A1A, old: '4eb900020bdc', now: '4eb9001faf00' },
 ];
 const [romFile, out, ...rest] = process.argv.slice(2);
 if (!out) { console.error('usage: make-v9.js <v8 rom> <out rom> [--only a,b]'); process.exit(1); }
