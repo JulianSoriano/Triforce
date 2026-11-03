@@ -990,7 +990,7 @@ h1{color:var(--ink);font-weight:650;letter-spacing:-.025em;line-height:1.1}
         <p>Load a Pokémon ROM once (with <b>Remember it on this device</b> ticked) and the game's own pictures appear on the Pokédex. For Ruby, Sapphire, Emerald, FireRed and LeafGreen, the 3D map and where each Pokémon lives are read from your ROM too.</p>
         <p><b>Pokémon Box</b> (in the Pokémon tab) moves Pokémon between your saves by dragging them:</p>
         <ul><li>Red/Blue/Yellow ↔ Gold/Silver/Crystal, with the Time Capsule's rules</li><li>Between Gen 3 games, like a link-cable trade</li><li>Gen 1 and 2 Pokémon brought forward to Gen 3 (they keep their species, level, moves, names and shininess; held items have to come off first)</li></ul>
-        <p>Above each save's Pokémon, <b>Items</b> switches to its bag and PC items (add, remove, change amounts, reorder) in every Pokémon game. For Red/Blue/Yellow and Gold/Silver/Crystal, <b>Edit</b> changes money, badges, your Pokémon's levels and moves, and the Pokédex. <b>Edit save</b> on those games' pages opens it here.</p>
+        <p>Above each save's Pokémon, <b>Items</b> switches to its bag and PC items (add, remove, change amounts, reorder) in every Pokémon game. For Red/Blue/Yellow and Gold/Silver/Crystal, <b>Edit</b> changes money, badges, your Pokémon's levels and moves, and the Pokédex.</p>
         <p>Save in the game before you start, press <b>Save changes</b> when you're done, and <b>Undo</b> if you change your mind.</p>
       </div></details>
     </div>
@@ -8951,7 +8951,6 @@ const PLAYER = (function(){
       edit:$("playerEdit"), editor:$("saveEditor"), edForm:$("edForm"), edMsg:$("edMsg"), edSlot:$("edSlot"), edSlotWrap:$("edSlotWrap"),
       match:$("playerMatch"), edApply:$("edApply"), edUndo:$("edUndo"), edCancel:$("edCancel"), edTick:$("edTick"), edTitle:$("edTitle"), v3d:$("player3dBtn") };
     el.edit.addEventListener("click", ()=>{
-      if(game && XF_GIDS.includes(game.id)){ XF.startView = "edit"; xfToBox(); return; }       // Pokémon saves are edited in the Pokémon Box
       el.editor.hidden ? openEditor() : closeEditor(true);
     });
     el.edCancel.addEventListener("click", ()=> closeEditor(true));
@@ -9111,7 +9110,7 @@ const PLAYER = (function(){
     { const cb = document.getElementById("ac3CtlBtn"); if(cb) cb.hidden = g.emu !== "ac3"; const sh = document.getElementById("ac3Share"); if(sh) sh.hidden = g.emu !== "ac3"; const pn = document.getElementById("ac3Controls"); if(pn && g.emu !== "ac3") pn.hidden = true; }
     el.keys.textContent = g.emu==="ac3" ? AC3CTL.help() : g.emu==="g1r" ? "Click the game screen first · Arrow keys or W A S D move · Z, Enter or Space = A · X or Backspace = B · Esc = Start · Tab = Select · Controllers work too" : g.emu==="n64" ? "Click the game screen first · X = A · C = B · Z = Z · Space = Start · W A S D = stick · Arrow keys = C buttons · E and R = L and R · Esc = menu · Controllers work straight away (right stick = C buttons, Back = menu)" : "Arrow keys move · X = A · Z = B · "+(g.emu==="gba" ? "A and S keys = L and R · " : g.emu==="snes" ? "S = X · A = Y · Q and W = L and R · " : "")+"Enter = Start · Shift = Select · Controllers work too";
     el.slot.hidden = true; el.slot.dataset.labels = "";
-    el.edit.hidden = !(typeof SAVE_EDITORS !== "undefined" && SAVE_EDITORS[g.id]);
+    el.edit.hidden = !(typeof SAVE_EDITORS !== "undefined" && SAVE_EDITORS[g.id]) || XF_GIDS.includes(g.id);   // Pokémon saves are edited in the Pokémon Box
     { const xf = g.id === "pkmn" || g.id === "pkgsc"; ["playerXfer", "playerXfer2"].forEach(id=>{ const b = document.getElementById(id); if(b) b.hidden = !xf; }); }
     el.match.hidden = !g.importer; matchUndo = null;
     if(el.v3d){ set3d(false, true); el.v3d.hidden = !(g.emu === "nes" && typeof VOXEL3D !== "undefined" && VOXEL3D.supported()); }
@@ -9516,7 +9515,6 @@ const PLAYER = (function(){
     const order = prefer.filter(k=> have.includes(k));
     XF.sides = [{ key: order[0] || prefer[0], box:0 }, { key: order[1] || prefer[1], box:0 }];
     XF.sides.forEach(s=>{ const S = XF.saves[s.key]; if(S) s.box = S.cur; });
-    if(XF.startView){ XF.sides[0].view = XF.startView; XF.startView = null; }
     xfSay(have.length ? "Drag a Pokémon onto any space. Dropping it on another Pokémon swaps them. You can also click one, then click where it should go." : "Neither Pokémon game has a save in this app yet. Play one and save in the game, or open .sav files with the menus above.");
     xfRender();
     XF_GIDS.forEach(id=>{ const g = GBY[id]; if(g && !g.sprites && typeof loadSprites === "function") loadSprites(g).then(()=>{ if(G3.isGen3(id) && G3.data(id) && !PKX3.hasData()) PKX3.setData(G3.data(id)); if(XF.open) xfRender(); }).catch(()=>{}); });
