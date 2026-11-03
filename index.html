@@ -501,7 +501,7 @@ html .playarea.mapfs>.fs-stats{grid-template-columns:minmax(0,3.3fr) minmax(210p
 .ed-slot[hidden]{display:none}
 .ed-msg{margin:0;font-size:14px;color:var(--muted)}
 .ed-msg.err{color:#C0392B}
-#edForm{display:grid;grid-template-columns:repeat(auto-fit,minmax(260px,1fr));gap:12px}
+#edForm,.xf-edform{display:grid;grid-template-columns:repeat(auto-fit,minmax(260px,1fr));gap:12px}
 .ed-group{margin:0;border:1px solid var(--line);border-radius:8px;padding:10px 12px 12px;min-width:0}
 .ed-group legend{padding:0 4px;font-size:12px;font-weight:700;letter-spacing:.08em;text-transform:uppercase;color:var(--acc)}
 .ed-grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(110px,1fr));gap:10px}
@@ -640,6 +640,9 @@ html.lore-mode.playing .wrap{max-width:var(--shell)}
 .xf-boxnav{display:flex;align-items:center;gap:6px;margin:12px 0 8px}
 .xf-boxnav select{flex:1;min-width:0;font:inherit;font-size:13px;padding:5px 6px}
 .xf-boxnav .btn{padding:4px 10px}
+.xf-edform{grid-template-columns:1fr;max-height:520px;overflow:auto;padding-right:4px}
+.xf-edfoot{display:flex;flex-wrap:wrap;align-items:center;gap:8px 12px;margin-top:10px}
+.xf-edfoot .toggle{flex:1;min-width:200px}
 .xf-views{display:flex;gap:6px;margin:6px 0 10px}
 .xf-view{flex:1;font:inherit;font-size:13px;padding:6px 10px;border:1px solid var(--faint);border-radius:6px;background:transparent;color:var(--muted);cursor:pointer}
 .xf-view.on{background:var(--surface-2);color:var(--ink);border-color:var(--gold)}
@@ -987,7 +990,7 @@ h1{color:var(--ink);font-weight:650;letter-spacing:-.025em;line-height:1.1}
         <p>Load a Pokémon ROM once (with <b>Remember it on this device</b> ticked) and the game's own pictures appear on the Pokédex. For Ruby, Sapphire, Emerald, FireRed and LeafGreen, the 3D map and where each Pokémon lives are read from your ROM too.</p>
         <p><b>Pokémon Box</b> (in the Pokémon tab) moves Pokémon between your saves by dragging them:</p>
         <ul><li>Red/Blue/Yellow ↔ Gold/Silver/Crystal, with the Time Capsule's rules</li><li>Between Gen 3 games, like a link-cable trade</li><li>Gen 1 and 2 Pokémon brought forward to Gen 3 (they keep their species, level, moves, names and shininess; held items have to come off first)</li></ul>
-        <p>The <b>Items</b> button above each save's Pokémon switches to its bag and PC items, where you can add, remove, change amounts and reorder them, in every Pokémon game.</p>
+        <p>Above each save's Pokémon, <b>Items</b> switches to its bag and PC items (add, remove, change amounts, reorder) in every Pokémon game. For Red/Blue/Yellow and Gold/Silver/Crystal, <b>Edit</b> changes money, badges, your Pokémon's levels and moves, and the Pokédex. <b>Edit save</b> on those games' pages opens it here.</p>
         <p>Save in the game before you start, press <b>Save changes</b> when you're done, and <b>Undo</b> if you change your mind.</p>
       </div></details>
     </div>
@@ -8372,7 +8375,7 @@ const PLAYER = (function(){
     try{ const mb = document.getElementById("mapBox"); if(mb && !mb.hidden && !mb.open) mb.open = true; }catch(e){}
     try{ const r = (t.requestFullscreen || t.webkitRequestFullscreen).call(t); if(r && r.then) r.then(()=>{ fullPending = false; }, ()=>{}); else fullPending = false; }catch(e){}
   }
-  async function bootWith(rom, saveRec){
+  async function bootWith(rom, saveRec, quiet){
     stop(false);
     const chk = sys.check(rom);
     if(!chk.ok){ status(chk.msg); showLoader(true); return; }
@@ -8388,7 +8391,7 @@ const PLAYER = (function(){
     romBytes = rom; lastSram = saveRec && saveRec.sram ? new Uint8Array(saveRec.sram) : null;
     showLoader(false); renderFsStats();
     if(el.v3d && !el.v3d.hidden){ const p = pref3d(); set3d(!!(p && p.on), true); }
-    play(); autoFull();
+    if(!quiet){ play(); autoFull(); }
     status(warn || (saveRec ? "Loaded your save from this device." : "New game. Your in-game saves are kept on this device."));
     if(saveRec && saveRec.sram) liveSync(saveRec.sram);
     clearInterval(saveTimer); saveTimer = setInterval(()=>persist(false), 2000);
@@ -8764,25 +8767,25 @@ const PLAYER = (function(){
   function addEditIgnore(id, ids){ const s = editIgnore(id); ids.forEach(x=>s.add(x)); try{ localStorage.setItem("gl-edit-ignore-"+id, JSON.stringify([...s])); }catch(e){} }
   let ed = null;   // { E, base, rec, list, slot }
   function edMsg(html, err){ el.edMsg.innerHTML = html; el.edMsg.classList.toggle("err", !!err); }
-  function importIds(u8, label){
-    const g = game; if(!g.importer || typeof SAVE_IMPORTERS === "undefined") return new Set();
+  function importIds(u8, label, forGame){
+    const g = forGame || game; if(!g.importer || typeof SAVE_IMPORTERS === "undefined") return new Set();
     try{
       let r = SAVE_IMPORTERS[g.importer](u8.buffer.slice(u8.byteOffset, u8.byteOffset+u8.length), g);
       if(r.choices){ const c = r.choices.find(c=>c.label===label); if(!c) return new Set(); r = c.run(); }
       return r.ids;
     }catch(e){ return new Set(); }
   }
-  function fieldHtml(f, st){
-    const [k, label, type, x] = f, id = "ed-"+k, val = st[k];
+  function fieldHtml(f, st, idp){
+    const [k, label, type, x] = f, id = (idp || "") + "ed-" + k, val = st[k];
     if(type==="chk") return `<label class="ed-chk"><input type="checkbox" data-k="${k}"${val?" checked":""}> ${esc(label)}</label>`;
     const note = x && x.note ? `<span class="ed-note">${esc(x.note)}</span>` : "";
     if(type==="num") return `<label class="ed-field" for="${id}"><span>${esc(label)}</span><input id="${id}" type="number" inputmode="numeric" data-k="${k}" min="${x.min}" max="${x.max}" value="${val}">${note}</label>`;
     return `<label class="ed-field" for="${id}"><span>${esc(label)}</span><select id="${id}" data-k="${k}">${x.opts.map(([v,l])=>`<option value="${v}"${+v===+val?" selected":""}>${esc(l)}</option>`).join("")}</select>${note}</label>`;
   }
-  function renderEditor(){
-    const { E, base, slot } = ed, st = E.read(base, slot);
-    const form = typeof E.form === "function" ? E.form(st) : E.form;
-    el.edForm.innerHTML = form.map(([head, fields, special, o])=>{
+  function editorFormHtml(E, st, opts){
+    opts = opts || {}; const idp = opts.idp || "";
+    const form = (typeof E.form === "function" ? E.form(st) : E.form).filter(f=> !(opts.skip && opts.skip(f)));
+    return form.map(([head, fields, special, o])=>{
       o = o || {}; let body;
       if(special==="table"){
         const T = fields, cell = (r,[c,cl,t,x])=>{ const k = `${T.prefix}${r}${c}`, lab = esc(T.rows[r]+" "+cl);
@@ -8802,20 +8805,22 @@ const PLAYER = (function(){
         }).join("") + `</div><p class="ed-note">Up to ${L.cap} ${L.noQty ? "items" : "kinds of item"}. Pick "(empty)" to remove one.</p>`;
       } else {
         const chk = fields.filter(f=>f[2]==="chk"), other = fields.filter(f=>f[2]!=="chk");
-        body = (other.length ? `<div class="ed-grid">${other.map(f=>fieldHtml(f,st)).join("")}</div>` : "")
+        body = (other.length ? `<div class="ed-grid">${other.map(f=>fieldHtml(f,st,idp)).join("")}</div>` : "")
           + (o.bulk ? `<div class="ed-bulk"><button type="button" class="btn quiet" data-bulk="1">Tick all</button><button type="button" class="btn quiet" data-bulk="0">Clear all</button></div>` : "")
-          + (chk.length ? `<div class="ed-chks">${chk.map(f=>fieldHtml(f,st)).join("")}</div>` : "");
+          + (chk.length ? `<div class="ed-chks">${chk.map(f=>fieldHtml(f,st,idp)).join("")}</div>` : "");
       }
       const cls = "ed-group" + (o.wide ? " wide" : "");
       if(o.collapsed) return `<details class="${cls} ed-fold"><summary>${esc(head)}${o.summary ? ` <span class="ed-note">${esc(o.summary)}</span>` : ""}</summary>${body}</details>`;
       return `<fieldset class="${cls}"><legend>${esc(head)}</legend>${body}</fieldset>`;
     }).join("");
   }
-  function collectEditor(){
+  function renderEditor(){ const { E, base, slot } = ed; el.edForm.innerHTML = editorFormHtml(E, E.read(base, slot)); }
+  function collectFrom(root){
     const s = {};
-    el.edForm.querySelectorAll("[data-k]").forEach(i=>{ s[i.dataset.k] = i.type==="checkbox" ? i.checked : +i.value; });
+    root.querySelectorAll("[data-k]").forEach(i=>{ s[i.dataset.k] = i.type==="checkbox" ? i.checked : +i.value; });
     return s;
   }
+  function collectEditor(){ return collectFrom(el.edForm); }
   // Full screen: a strip under the game with the stats in the last in-game save and the checklist's progress.
   let lastSram = null;
   function renderFsStats(){
@@ -8945,7 +8950,10 @@ const PLAYER = (function(){
       pick:$("playerPick"), toggle:$("playerToggle"), toggleText:$("playerToggleText"),
       edit:$("playerEdit"), editor:$("saveEditor"), edForm:$("edForm"), edMsg:$("edMsg"), edSlot:$("edSlot"), edSlotWrap:$("edSlotWrap"),
       match:$("playerMatch"), edApply:$("edApply"), edUndo:$("edUndo"), edCancel:$("edCancel"), edTick:$("edTick"), edTitle:$("edTitle"), v3d:$("player3dBtn") };
-    el.edit.addEventListener("click", ()=> el.editor.hidden ? openEditor() : closeEditor(true));
+    el.edit.addEventListener("click", ()=>{
+      if(game && XF_GIDS.includes(game.id)){ XF.startView = "edit"; xfToBox(); return; }       // Pokémon saves are edited in the Pokémon Box
+      el.editor.hidden ? openEditor() : closeEditor(true);
+    });
     el.edCancel.addEventListener("click", ()=> closeEditor(true));
     el.match.addEventListener("click", matchPreview);
     el.edApply.addEventListener("click", applyEditor);
@@ -9146,6 +9154,7 @@ const PLAYER = (function(){
     if(PKX3.detect(bytes)) await xfG3Data(key === "app:pkfrlg" ? "pkfrlg" : "pkrse");
     const S = PKXFER.load(bytes); if(!S) return null;
     S.key = key; S.fileName = label;
+    if(key.startsWith("app:")){ try{ S.bak = !!(await KV.get("savebak:" + key.slice(4))); }catch(e){} }
     XF.saves[key] = S; return S;
   }
   function xfSprite(S, dex, shiny){
@@ -9173,8 +9182,69 @@ const PLAYER = (function(){
     return bits.join(" · ");
   }
   function xfList(S, where){ return where === "party" ? S.party : S.boxes[+where]; }
+  // ----- trainer, badges, party and Pokédex edits (the save editor, for Red/Blue/Yellow and Gold/Silver/Crystal) -----
+  const xfCanEdit = S=> (S.gen === 1 || S.gen === 2) && typeof SAVE_EDITORS !== "undefined" && !!SAVE_EDITORS[xfGid(S)];
+  // the save as it would be written right now, with the Pokémon and item changes already in it
+  const xfWorking = S=> xfDirty(S) ? PKXFER.save(S) : S.bytes;
+  const xfNoItems = f=> f[2] === "list" || f[2] === "table";     // bag, PC items and TMs live in the Items view
+  function xfEditHtml(S, k, side){
+    const E = SAVE_EDITORS[xfGid(S)], cur = xfWorking(S), sl = E.slots(cur)[0];
+    if(!sl) return `<p class="xf-empty">This save can't be edited here.</p>`;
+    const st = E.read(cur, sl.slot); if(side.draft) Object.keys(side.draft).forEach(key=>{ if(key in st) st[key] = side.draft[key]; });
+    return `<div class="xf-edform" data-side="${k}">${editorFormHtml(E, st, { idp:"s" + k + "-", skip:xfNoItems })}</div>`
+      + `<div class="xf-edfoot"><label class="toggle"><input type="checkbox" class="xf-edtick"${side.tick ? " checked" : ""}> Also tick the checklist for anything I add</label>`
+      + `<button type="button" class="btn xf-edapply" data-side="${k}">Apply edits</button>`
+      + (S.bak ? `<button type="button" class="btn quiet xf-edrestore" data-side="${k}" title="Put back the save from before your last Save changes">Restore previous save</button>` : "") + `</div>`
+      + `<p class="xf-inote">${esc(E.note.replace("Changes apply when the game restarts. ", ""))} Bag and PC items are in the Items view. Nothing is written until you press Save changes.</p>`;
+  }
+  function xfEditApply(k){
+    const side = XF.sides[k], S = XF.saves[side.key]; if(!S) return;
+    const E = SAVE_EDITORS[xfGid(S)], root = xfEl("xfSide" + k).querySelector(".xf-edform"); if(!root) return;
+    let cur, sl, nb;
+    try{
+      cur = xfWorking(S); sl = E.slots(cur)[0]; if(!sl) throw new Error("This save can't be edited here.");
+      nb = E.write(cur, sl.slot, { ...E.read(cur, sl.slot), ...collectFrom(root) });
+    }catch(err){ xfSay(err.message || String(err), true); return; }
+    let same = nb.length === cur.length; for(let i = 0; same && i < nb.length; i++) if(nb[i] !== cur[i]) same = false;
+    if(same){ xfSay("Nothing changed."); return; }
+    if(!side.tick){
+      const g = GBY[xfGid(S)];
+      try{ const before = importIds(cur, sl.label, g), after = importIds(nb, sl.label, g); addEditIgnore(g.id, [...after].filter(id=> !before.has(id))); }catch(e){}
+    }
+    const T = PKXFER.load(nb); if(!T){ xfSay("The edited save didn't pass the game's own checks, so nothing was changed.", true); return; }
+    XF.undo.push(xfSnapshot());
+    Object.assign(S, { bytes:T.bytes, party:T.party, boxes:T.boxes, cur:T.cur, boxNames:T.boxNames, trainer:T.trainer, id:T.id, touched:new Set(), dexAdd:new Set(), inv:null, invDirty:false, edited:true });
+    side.draft = null; XF.pick = null; xfSay("Edits applied. Save changes to keep them."); xfRender();
+  }
+  async function xfEditRestore(k){
+    const S = XF.saves[XF.sides[k].key]; if(!S || !S.key.startsWith("app:")) return;
+    const id = S.key.slice(4), bak = await KV.get("savebak:" + id); if(!bak || !bak.sram){ xfSay("There's no earlier save to put back.", true); return; }
+    if(xfDirty(S) && !confirm("Put the previous save back? Your unsaved changes to this save will be lost.")) return;
+    const rec = { sram:new Uint8Array(bak.sram), rtc:bak.rtc || null, t:Date.now() };
+    await KV.set("save:" + id, rec, true); await KV.del("savebak:" + id);
+    if(machine && game && game.id === id && romBytes){ await bootWith(romBytes, rec, true); pause(); }
+    if(game && game.id === id) liveSync(rec.sram);
+    const keys = XF.sides.map(sd=> sd.key); XF.saves = {}; XF.undo = [];
+    for(const key of keys) if(key) await xfLoadKey(key);
+    xfSay("The previous save is back."); xfRender();
+  }
+  function xfEditSetup(){
+    const dlg = xfEl("xfer");
+    dlg.addEventListener("click", ev=>{
+      const a = ev.target.closest && ev.target.closest(".xf-edapply, .xf-edrestore, [data-bulk]"); if(!a || !dlg.contains(a)) return;
+      if(a.hasAttribute("data-bulk")){ const g = a.closest(".ed-group"); if(g && a.closest(".xf-edform")) g.querySelectorAll(".ed-chks input[type=checkbox]").forEach(i=>{ i.checked = a.dataset.bulk === "1"; }); return; }
+      if(a.classList.contains("xf-edapply")) xfEditApply(+a.dataset.side); else xfEditRestore(+a.dataset.side);
+    });
+    dlg.addEventListener("change", ev=>{
+      const t = ev.target, form = t.closest && t.closest(".xf-edform");
+      if(t.classList && t.classList.contains("xf-edtick")){ XF.sides[+t.closest(".xf-side").dataset.side].tick = t.checked; return; }
+      if(!form) return;
+      const row = t.closest(".ed-row"); if(row && t.matches("select") && +t.value !== 0){ const next = row.nextElementSibling; if(next && next.hidden) next.hidden = false; }
+      XF.sides[+form.dataset.side].draft = collectFrom(form);      // keep typed values if the screen redraws
+    });
+  }
   // ----- items: view and edit the bag and the PC's item storage -----
-  const xfDirty = S=> !!(S.touched.size || S.dexAdd.size || S.invDirty);
+  const xfDirty = S=> !!(S.touched.size || S.dexAdd.size || S.invDirty || S.edited);
   const xfCloneInv = inv=> ({ ...inv, pockets: inv.pockets.map(p=> ({ ...p, list: p.list.map(x=> ({ ...x })) })) });
   const xfInv = S=> S.inv || (S.inv = PKXFER.invRead(S));
   function xfInvHtml(S, k, side){
@@ -9210,7 +9280,7 @@ const PLAYER = (function(){
     dlg.addEventListener("click", ev=>{
       const t = ev.target.closest && ev.target.closest(".xf-view, .xf-ptab, .xf-iup, .xf-idn, .xf-irm, .xf-isort, .xf-iaddbtn"); if(!t) return;
       const k = +t.dataset.side, side = XF.sides[k];
-      if(t.classList.contains("xf-view")){ side.view = t.dataset.view; XF.pick = null; xfSay(side.view === "items" ? "Add, remove and reorder the items in this save. Nothing is written until you press Save changes." : ""); xfRender(); return; }
+      if(t.classList.contains("xf-view")){ side.view = t.dataset.view; XF.pick = null; xfSay(side.view === "items" ? "Add, remove and reorder the items in this save. Nothing is written until you press Save changes." : side.view === "edit" ? "Change money, badges, your Pokémon's levels and moves, and the Pokédex. Press Apply edits, then Save changes." : ""); xfRender(); return; }
       if(t.classList.contains("xf-ptab")){ side.pocket = +t.dataset.pocket; xfRender(); return; }
       const i = +t.dataset.idx;
       if(t.classList.contains("xf-iup")) return xfInvEdit(k, "Moved up.", P=>{ if(i < 1) return false; const [x] = P.list.splice(i, 1); P.list.splice(i - 1, 0, x); });
@@ -9270,9 +9340,11 @@ const PLAYER = (function(){
         + `<select class="xf-boxsel" data-side="${k}" aria-label="Box">${S.boxes.map((b, i)=> `<option value="${i}"${i === box ? " selected" : ""}>${esc(S.boxNames[i])} (${b.filter(Boolean).length}/${S.L.boxCap})${i === S.cur ? " — current box" : ""}</option>`).join("")}</select>`
         + `<button type="button" class="btn quiet xf-next" data-side="${k}" aria-label="Next box">▶</button></div>`
         + `<div class="xf-box${S.gen === 3 ? " xf-box3" : ""}">${Array.from({ length:S.L.boxCap }, (_, i)=> slot(String(box), i, list[i])).join("")}</div>`;
-      { const who = body.querySelector(".xf-who"), on = side.view === "items";
-        const bar = `<div class="xf-views" role="group" aria-label="What to show"><button type="button" class="xf-view${on ? "" : " on"}" data-side="${k}" data-view="mons" aria-pressed="${!on}">Pokémon</button><button type="button" class="xf-view${on ? " on" : ""}" data-side="${k}" data-view="items" aria-pressed="${on}">Items</button></div>`;
-        if(on) body.innerHTML = (who ? who.outerHTML : "") + bar + xfInvHtml(S, k, side);
+      { const who = body.querySelector(".xf-who"), canEdit = xfCanEdit(S), v = side.view === "edit" && !canEdit ? "mons" : (side.view || "mons");
+        const vb = (id, label)=> `<button type="button" class="xf-view${v === id ? " on" : ""}" data-side="${k}" data-view="${id}" aria-pressed="${v === id}">${label}</button>`;
+        const bar = `<div class="xf-views" role="group" aria-label="What to show">${vb("mons", "Pokémon")}${vb("items", "Items")}${canEdit ? vb("edit", "Edit") : ""}</div>`;
+        if(v === "items") body.innerHTML = (who ? who.outerHTML : "") + bar + xfInvHtml(S, k, side);
+        else if(v === "edit") body.innerHTML = (who ? who.outerHTML : "") + bar + xfEditHtml(S, k, side);
         else if(who) who.insertAdjacentHTML("afterend", bar); }
     });
     const dirty = Object.values(XF.saves).filter(xfDirty);
@@ -9282,8 +9354,9 @@ const PLAYER = (function(){
     xfEl("xfCount").textContent = dirty.length ? `Unsaved changes in ${dirty.map(xfVersionName).join(" and ")}` : "";
   }
   function xfSnapshot(){
+    XF.sides.forEach(sd=>{ sd.draft = null; });
     const snap = {};
-    Object.entries(XF.saves).forEach(([k, S])=>{ snap[k] = { party:S.party.slice(), boxes:S.boxes.map(b=> b.slice()), touched:new Set(S.touched), dexAdd:new Set(S.dexAdd), inv: S.inv ? xfCloneInv(S.inv) : null, invDirty:!!S.invDirty }; });
+    Object.entries(XF.saves).forEach(([k, S])=>{ snap[k] = { party:S.party.slice(), boxes:S.boxes.map(b=> b.slice()), touched:new Set(S.touched), dexAdd:new Set(S.dexAdd), inv: S.inv ? xfCloneInv(S.inv) : null, invDirty:!!S.invDirty, bytes:S.bytes, edited:!!S.edited }; });
     return snap;
   }
   // Work out what a drop would do. Returns { ok, why, run } without changing anything.
@@ -9391,7 +9464,7 @@ const PLAYER = (function(){
       if(ev.target.classList.contains("xf-src")){
         const k = +ev.target.closest(".xf-side").dataset.side, v = ev.target.value;
         if(v === "file:new"){ XF.fileFor = k; const f = xfEl("xfFile"); f.value = ""; f.click(); xfRender(); return; }
-        XF.sides[k] = { key:v, box:0, view:XF.sides[k].view, pocket:0 }; await xfLoadKey(v); const S = XF.saves[v]; if(S) XF.sides[k].box = S.cur; XF.pick = null; xfRender();
+        XF.sides[k] = { key:v, box:0, view:XF.sides[k].view, pocket:0, tick:XF.sides[k].tick }; await xfLoadKey(v); const S = XF.saves[v]; if(S) XF.sides[k].box = S.cur; XF.pick = null; xfRender();
       }
     });
     dlg.addEventListener("click", ev=>{
@@ -9431,6 +9504,7 @@ const PLAYER = (function(){
     });
   }
   async function xfOpen(){
+    XF.resume = !!(machine && playing && XF_GIDS.includes(game.id));
     if(machine && XF_GIDS.includes(game.id)){ pause(); await persist(true); }
     XF.saves = {}; XF.undo = []; XF.pick = null; XF.open = true;
     { const dlg = xfEl("xfer"), nav = document.getElementById("games");
@@ -9442,6 +9516,7 @@ const PLAYER = (function(){
     const order = prefer.filter(k=> have.includes(k));
     XF.sides = [{ key: order[0] || prefer[0], box:0 }, { key: order[1] || prefer[1], box:0 }];
     XF.sides.forEach(s=>{ const S = XF.saves[s.key]; if(S) s.box = S.cur; });
+    if(XF.startView){ XF.sides[0].view = XF.startView; XF.startView = null; }
     xfSay(have.length ? "Drag a Pokémon onto any space. Dropping it on another Pokémon swaps them. You can also click one, then click where it should go." : "Neither Pokémon game has a save in this app yet. Play one and save in the game, or open .sav files with the menus above.");
     xfRender();
     XF_GIDS.forEach(id=>{ const g = GBY[id]; if(g && !g.sprites && typeof loadSprites === "function") loadSprites(g).then(()=>{ if(G3.isGen3(id) && G3.data(id) && !PKX3.hasData()) PKX3.setData(G3.data(id)); if(XF.open) xfRender(); }).catch(()=>{}); });
@@ -9452,7 +9527,7 @@ const PLAYER = (function(){
     const dirty = Object.values(XF.saves).some(xfDirty);
     if(dirty && !confirm("Leave Pokémon Box without saving? The moves you made will be lost.")) return false;
     XF.open = false; xfEl("xfer").hidden = true;
-    if(machine && !playing && XF_GIDS.includes(game.id)) play();
+    if(machine && !playing && XF.resume && XF_GIDS.includes(game.id)) play();
     return true;
   }
   async function xfSaveAll(){
@@ -9468,7 +9543,7 @@ const PLAYER = (function(){
         const rec = { ...old, sram:bytes, t:Date.now() };
         const ok = await KV.set("save:"+id, rec, true);
         if(!ok){ xfSay("This browser wouldn't store the changed save.", true); return; }
-        if(machine && game && game.id === id && romBytes){ await bootWith(romBytes, rec); notes.push(`${xfVersionName(S)} restarted with the new save`); }
+        if(machine && game && game.id === id && romBytes){ await bootWith(romBytes, rec, true); pause(); notes.push(`${xfVersionName(S)} saved, and the game will use it next time you play`); }
         else notes.push(`${xfVersionName(S)} saved`);
         if(game && game.id === id) liveSync(bytes);
       } else {
@@ -9482,20 +9557,21 @@ const PLAYER = (function(){
     // start fresh from what was written
     const keys = XF.sides.map(s=> s.key); XF.saves = {}; XF.undo = [];
     for(const k of keys) if(k) await xfLoadKey(k);
-    xfSay((notes.join("; ") || "Saved") + ". Undo in Edit save puts a save back the way it was.");
+    xfSay((notes.join("; ") || "Saved") + ". Restore previous save, in the Edit view, puts the old one back.");
     xfRender();
+  }
+  function xfToBox(){
+    if(document.fullscreenElement || document.webkitFullscreenElement){ try{ (document.exitFullscreen || document.webkitExitFullscreen).call(document); }catch(e){} }
+    if(typeof showFranchise === "function") showFranchise(BOX_TAB); window.scrollTo({ top:0, behavior:"smooth" });
   }
   function xfSetup(){
     const open = xfEl("playerXfer"), open2 = xfEl("playerXfer2");
-    const toBox = ()=>{
-      if(document.fullscreenElement || document.webkitFullscreenElement){ try{ (document.exitFullscreen || document.webkitExitFullscreen).call(document); }catch(e){} }
-      if(typeof showFranchise === "function") showFranchise(BOX_TAB); window.scrollTo({ top:0, behavior:"smooth" });
-    };
+    const toBox = xfToBox;
     [open, open2].forEach(b=> b && b.addEventListener("click", toBox));
     xfEl("xfSave").addEventListener("click", xfSaveAll);
     xfEl("xfUndo").addEventListener("click", ()=>{
       const snap = XF.undo.pop(); if(!snap) return;
-      Object.entries(snap).forEach(([k, v])=>{ const S = XF.saves[k]; if(S){ S.party = v.party; S.boxes = v.boxes; S.touched = v.touched; S.dexAdd = v.dexAdd; S.inv = v.inv; S.invDirty = v.invDirty; } });
+      Object.entries(snap).forEach(([k, v])=>{ const S = XF.saves[k]; if(S){ S.party = v.party; S.boxes = v.boxes; S.touched = v.touched; S.dexAdd = v.dexAdd; S.inv = v.inv; S.invDirty = v.invDirty; S.bytes = v.bytes; S.edited = v.edited; } });
       XF.pick = null; xfSay("Undone."); xfRender();
     });
     xfEl("xfDiscard").addEventListener("click", async ()=>{
@@ -9504,7 +9580,7 @@ const PLAYER = (function(){
       xfSay("Changes thrown away."); xfRender();
     });
     xfEl("xfCopy").addEventListener("change", ()=> xfSay(xfEl("xfCopy").checked ? "Copies stay in the original game too. The real games can't do this, so it isn't how a trade works." : "Pokémon move, like a trade: they leave the game they came from."));
-    xfPointer(); xfInvSetup();
+    xfPointer(); xfInvSetup(); xfEditSetup();
   }
 
   return { box:{ open:xfOpen, close:xfClose }, init, setGame, loadFile: loadRomFile, getRom, refreshTray(){ try{ renderFsStats(); }catch(e){} } };
