@@ -1,0 +1,53 @@
+/* Ace Combat 3 runtime worker. The game's code is never part of this file or ac3.wasm:
+   it is read from the player's own disc when the game starts. */
+if(!self.AC3) importScripts("ac3.js");   // already inlined when the page starts the worker from a blob
+const EXE_SHA256 = "2c3f2ce41268176128973ea0cd9b28784a26c0061bff5550c99599388f13ebe9";   // ACE3.BIN, Japanese Rev 1
+let M = null, log = [], outN = 0;
+const say = (t, extra)=> postMessage(Object.assign({ t }, extra || {}));
+const hex = buf=> Array.from(new Uint8Array(buf)).map(b=> b.toString(16).padStart(2, "0")).join("");
+onmessage = async (e)=>{
+  const m = e.data;
+  try{
+    if(m.t === "start"){
+      M = await AC3({
+        locateFile: p=> (self.AC3_BASE || "") + p,
+        print: s=>{ log.push(s); if(log.length > 400) log.shift(); if(outN++ < 300) say("log", { line:s }); },
+        printErr: s=>{ log.push("! " + s); if(log.length > 400) log.shift(); say("log", { line:s }); }
+      });
+      const FS = M.FS;
+      FS.mkdir("/saves"); FS.mkdir("/cache"); FS.mkdir("/patch");
+      (m.caches || []).forEach(c=> FS.writeFile("/cache/" + c.name, new Uint8Array(c.data)));
+      (m.patches || []).forEach(p=> FS.writeFile("/patch/" + p.name, new Uint8Array(p.data)));
+      (m.cards || []).forEach((c, i)=>{ if(c) FS.writeFile("/saves/card" + (i+1) + ".mcd", new Uint8Array(c)); });
+      let disc1 = "", disc2 = "";
+      if(m.discs && m.discs.length){
+        FS.mkdir("/disc");
+        FS.mount(M.WORKERFS ? M.WORKERFS : FS.filesystems.WORKERFS, { files: m.discs }, "/disc");
+        disc1 = "/disc/" + m.discs[0].name; if(m.discs[1]) disc2 = "/disc/" + m.discs[1].name;
+      }
+      let exe = "/ACE3.BIN";
+      if(m.exe){ FS.writeFile(exe, new Uint8Array(m.exe)); }
+      else {
+        const n = M.ccall("web_extract_exe", "number", ["string", "string"], [disc1, exe]);
+        if(!n) return say("error", { msg:"Couldn't find ACE3.BIN on disc 1. Pick the Ace Combat 3 disc 1 image (.bin)." });
+        const sum = hex(await crypto.subtle.digest("SHA-256", FS.readFile(exe)));
+        if(sum !== EXE_SHA256 && !m.anyExe) return say("error", { msg:"This disc isn't the version the recomp was written for. It needs Ace Combat 3: Electrosphere (Japan) Rev 1, SLPS-02020/02021.", code:"rev" });
+      }
+      // The disc check above must see the untouched game program; the translation is switched on only now.
+      if(m.english && (m.patches || []).length) M._web_set_english(1);
+      M._web_audio_enable(m.audio ? 1 : 0);
+      say("started");
+      // English: building the translated disc takes a while the first time; the result is kept by the page
+      const known = new Set((m.caches || []).map(c=> c.name));
+      setTimeout(function postCaches(){
+        try{ FS.readdir("/cache").filter(n=> n.endsWith(".en.cache") && !known.has(n)).forEach(n=>{ known.add(n); const d = FS.readFile("/cache/" + n); say("cache", { name:n, data:d.buffer }); }); }catch(e){}
+      }, 3000);
+      const rc = await M.ccall("web_boot", "number", ["string", "string", "string"], [exe, disc1, disc2], { async:true });
+      say("stopped", { rc, log: log.slice(-40) });
+    } else if(m.t === "pad" && M){ M._web_set_pad(m.b|0, m.lx ?? 128, m.ly ?? 128, m.rx ?? 128, m.ry ?? 128, m.analog ? 1 : 0); }
+    else if(m.t === "audioq" && M){ M._web_audio_report(m.n|0); }
+    else if(m.t === "pause" && M){ M._web_set_paused(m.on ? 1 : 0); }
+    else if(m.t === "audio-on" && M){ M._web_audio_enable(m.on ? 1 : 0); }
+    else if(m.t === "log"){ say("log-dump", { log }); }
+  }catch(err){ say("error", { msg: String(err && err.message || err), log: log.slice(-40) }); }
+};
