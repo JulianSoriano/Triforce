@@ -885,6 +885,12 @@ body.zmt-on #list,body.zmt-on .filters,body.zmt-on #fsStats,body.zmt-on #mapBox{
 .zmt-blk{display:flex;flex-direction:column;align-items:center;gap:3px;font-family:var(--mono);font-size:12px;color:var(--muted)}
 .zmt-blk canvas{image-rendering:pixelated;border:1px solid var(--line);border-radius:4px}
 .zmt-grp button{min-width:34px;font-family:var(--mono)}
+.zmt-guide{margin:12px 0 16px;border:1px solid var(--line);border-radius:10px;background:var(--surface)}
+.zmt-guide summary{cursor:pointer;padding:10px 14px;font-weight:600}
+.zmt-gbody{padding:0 16px 12px;max-width:80ch;font-size:14px}
+.zmt-gbody h4{margin:14px 0 4px;font-size:13px;letter-spacing:.06em;text-transform:uppercase;color:var(--muted)}
+.zmt-gbody p{margin:6px 0}.zmt-gbody ul{margin:6px 0;padding-left:20px}.zmt-gbody li{margin:3px 0}
+.zmt-gbody code{font-family:var(--mono);font-size:12.5px;background:var(--surface-2);padding:1px 5px;border-radius:4px}
 </style>
 
 <div class="wrap">
@@ -1019,6 +1025,41 @@ body.zmt-on #list,body.zmt-on .filters,body.zmt-on #fsStats,body.zmt-on #mapBox{
       <div class="zmt-src"><button type="button" class="btn" id="zmtOpen">Choose a ROM (.nes)</button><button type="button" class="btn quiet" id="zmtUse">Use my remembered ROM</button><span id="zmtSrc" class="zmt-srcname"></span><input type="file" id="zmtFile" accept=".nes,.NES" hidden></div>
       <p class="zmt-msg" id="zmtMsg" role="status" aria-live="polite"></p>
     </div>
+    <details class="zmt-guide" id="zmtGuide">
+      <summary>How the map is stored (a short guide)</summary>
+      <div class="zmt-gbody">
+        <p class="zmt-note">A summary of <i>Understanding Zelda 1 Screens, Columns, and Tiles</i>. It explains what you are looking at in the tabs below, and what to change if you hack the game.</p>
+        <h4>The building blocks</h4>
+        <ul>
+          <li><b>Tile:</b> the basic picture on the NES, 8 by 8 pixels.</li>
+          <li><b>Block:</b> four tiles in a 2 by 2 square, 16 by 16 pixels (like the question-mark block in Super Mario Bros.).</li>
+          <li><b>Column:</b> 11 blocks stacked top to bottom.</li>
+          <li><b>Screen:</b> 16 columns side by side. The overworld is 128 screens, but only 121 different layouts are stored, so 7 screens are shared.</li>
+        </ul>
+        <h4>Blocks (overworld)</h4>
+        <ul>
+          <li><b>Blocks 00 to 0F</b> are free-form: each one lists its own four tiles. Block 05 is plain water, for example. The first four are used by dungeon passage and item screens, and block 04 is unused.</li>
+          <li><b>Blocks 10 to 37</b> are stored as a single number. The game takes that tile and the next three in the tile sheet, so a block like that needs four tiles that sit next to each other.</li>
+          <li><b>Special blocks 26 to 2B</b> are the ones you interact with: pushable rock, bombable wall, burnable tree, pushable tomb and the two armos. Their real picture comes from a short replacement table.</li>
+        </ul>
+        <h4>Columns and how they are squeezed</h4>
+        <p>A column is stored as bytes, and each byte carries three things: bit 7 means <i>a column starts here</i>, bit 6 means <i>draw this block twice</i>, and the other six bits are the block number (00 to 3F). So <code>DB 4E 4E 4E 0E 1A 1B</code> is only 7 bytes, yet it expands to the full 11 blocks: two rocks, seven ground blocks and two rocks. A column can also start in the middle of another one, so columns overlap and share bytes. Three columns that look almost the same can fit in 9 bytes instead of 33.</p>
+        <p>The 16 column <b>groups</b> each hold up to 16 columns (the game ships with 9 or 10 in each). A column's name is two digits: the first is the group, the second is its place in that group. For example C1 is the waterfall column, the second one in group C.</p>
+        <h4>Screens</h4>
+        <p>A screen is just 16 column names, one per column, with no compression. A table of 128 numbers then says which stored layout each spot on the world map uses. The start screen, for example, begins 01, A7, 84, 90, 10, 02, A5 and so on.</p>
+        <h4>Dungeons</h4>
+        <p>Dungeons work the same way with fewer parts. There are only 8 floor blocks (a block, floor, two monster statues, stairs, sand, water, black). Dungeon columns have 1 to 7 bytes and a repeat count of up to 7, rooms are 12 bytes each, and there are 10 column groups. Walls and doors are added separately, so a room's layout does not include them.</p>
+        <h4>Where it lives in the ROM (file positions, with the 16-byte header)</h4>
+        <ul class="zmt-addr">
+          <li>Overworld screens: starts at <code>$15428</code>, 16 bytes each</li>
+          <li>Which layout each map square uses: <code>$18590</code> (128 bytes, lowest 7 bits)</li>
+          <li>Pointers to the 16 column groups: <code>$19D1F</code> (the groups themselves start at about <code>$15BE8</code>)</li>
+          <li>Dungeon rooms: <code>$160EE</code>, 12 bytes each; their column group pointers are at <code>$16714</code></li>
+        </ul>
+        <h4>Tools and hacks mentioned</h4>
+        <p><b>Zelda Map Generator</b> is a graphical viewer for these tables, and this tab does the same job for the overworld. There is no graphical tool that can edit columns yet, so edits are made on the bytes directly. The <b>Zelda Expansion Hack</b> raises the limits: it frees up tiles, doubles the block numbers (up to 7F) by dropping the compression bit, adds 96 more columns and 4 more screens, and doubles the dungeon blocks to 16. When a ROM has it, this tab says so above.</p>
+      </div>
+    </details>
     <div id="zmtBody" hidden>
       <p class="zmt-info" id="zmtInfo"></p>
       <div class="seg" id="zmtMode" role="group" aria-label="What to look at"><button type="button" data-m="world" aria-pressed="true">World map</button><button type="button" data-m="screen" aria-pressed="false">One screen</button><button type="button" data-m="cols" aria-pressed="false">Columns</button><button type="button" data-m="blocks" aria-pressed="false">Blocks</button></div>
