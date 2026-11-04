@@ -856,6 +856,35 @@ h1{color:var(--ink);font-weight:650;letter-spacing:-.025em;line-height:1.1}
 .dr-facts{display:grid;grid-template-columns:auto 1fr;gap:1px 12px;color:var(--muted)}
 .dr-facts b{font-weight:400;color:var(--ink);font-family:var(--mono);font-size:12.5px;overflow-wrap:anywhere}
 .dr-ok{color:var(--green)} .dr-bad{color:var(--heart)} .dr-warn{color:var(--gold)}
+.tab-tool{border-style:dashed}
+body.zmt-on #list,body.zmt-on .filters,body.zmt-on #fsStats,body.zmt-on #mapBox{display:none!important}
+.zmt{margin:14px 0 40px;grid-column:1/-1;min-width:0}
+.zmt-note{color:var(--muted);font-size:14px;margin:6px 0}
+.zmt-msg{color:var(--gold);font-size:14px;margin:6px 0;min-height:0}
+.zmt-msg:empty{display:none}
+.zmt-src{display:flex;flex-wrap:wrap;gap:8px;align-items:center;margin:10px 0}
+.zmt-srcname{color:var(--muted);font-size:13px}
+.zmt-info{font-size:14px;margin:10px 0;color:var(--ink);max-width:80ch}
+.zmt .seg{display:inline-flex;margin:6px 0 10px}
+.zmt-bar{display:flex;flex-wrap:wrap;gap:10px;align-items:center;margin:8px 0}
+.zmt-hover{color:var(--muted);font-size:13px;font-family:var(--mono)}
+.zmt-scroll{overflow:auto;border:1px solid var(--line);border-radius:10px;background:#000}
+#zmtWorldCv{display:block;width:100%;min-width:900px;height:auto;cursor:pointer}
+.zmt-screen{display:block;width:min(100%,768px);height:auto;image-rendering:pixelated;border:1px solid var(--line);border-radius:6px;background:#000}
+.zmt-num{display:flex;align-items:center;gap:4px;font-family:var(--mono);font-size:14px}
+.zmt-num input{width:3.2em;font:inherit;text-transform:uppercase;text-align:center;padding:6px;border-radius:8px;border:1px solid var(--line);background:var(--surface);color:var(--ink)}
+.zmt-cols,.zmt-colgrid,.zmt-blkgrid{display:flex;flex-wrap:wrap;gap:8px}
+.zmt-chip,.zmt-col{font:inherit;font-family:var(--mono);font-size:12.5px;padding:3px 8px;border-radius:999px;border:1px solid var(--line);background:var(--surface);color:var(--ink);cursor:pointer}
+.zmt-chip:hover,.zmt-col:hover{border-color:var(--acc-fill);color:var(--acc)}
+.zmt-colcard{display:flex;flex-direction:column;align-items:center;gap:4px;font:inherit;padding:6px;border-radius:10px;border:1px solid var(--line);background:var(--surface);color:var(--ink);cursor:pointer}
+.zmt-colcard span{display:flex;flex-direction:column;align-items:center;font-size:11.5px;color:var(--muted);line-height:1.25}
+.zmt-colcard span b{font-family:var(--mono);color:var(--ink);font-size:13px}
+.zmt-colcard.free{opacity:.55}
+.zmt-colcard.sel{border-color:var(--acc-fill);box-shadow:0 0 0 1px var(--acc-fill)}
+.zmt-colimg{image-rendering:pixelated;display:block;border-radius:3px}
+.zmt-blk{display:flex;flex-direction:column;align-items:center;gap:3px;font-family:var(--mono);font-size:12px;color:var(--muted)}
+.zmt-blk canvas{image-rendering:pixelated;border:1px solid var(--line);border-radius:4px}
+.zmt-grp button{min-width:34px;font-family:var(--mono)}
 </style>
 
 <div class="wrap">
@@ -984,6 +1013,39 @@ h1{color:var(--ink);font-weight:650;letter-spacing:-.025em;line-height:1.1}
     </div>
   </div>
   <section class="fs-stats" id="fsStats" aria-label="Checklist and progress"></section>
+  <section class="zmt" id="zmt" hidden aria-label="Zelda map tool">
+    <div class="zmt-top">
+      <p class="zmt-note">Reads the world map straight out of your own Legend of Zelda ROM, or a hack of it such as Zelda Three Swords or one using the Zelda Expansion. Nothing is uploaded.</p>
+      <div class="zmt-src"><button type="button" class="btn" id="zmtOpen">Choose a ROM (.nes)</button><button type="button" class="btn quiet" id="zmtUse">Use my remembered ROM</button><span id="zmtSrc" class="zmt-srcname"></span><input type="file" id="zmtFile" accept=".nes,.NES" hidden></div>
+      <p class="zmt-msg" id="zmtMsg" role="status" aria-live="polite"></p>
+    </div>
+    <div id="zmtBody" hidden>
+      <p class="zmt-info" id="zmtInfo"></p>
+      <div class="seg" id="zmtMode" role="group" aria-label="What to look at"><button type="button" data-m="world" aria-pressed="true">World map</button><button type="button" data-m="screen" aria-pressed="false">One screen</button><button type="button" data-m="cols" aria-pressed="false">Columns</button><button type="button" data-m="blocks" aria-pressed="false">Blocks</button></div>
+      <div class="zmt-bar" id="zmtPalBar" hidden><span class="zmt-note">Colours:</span><div class="seg" id="zmtPal" role="group" aria-label="Colour set"><button type="button" data-p="0">1</button><button type="button" data-p="1">2</button><button type="button" data-p="2">3</button><button type="button" data-p="3">4</button></div></div>
+      <div id="zmt-world">
+        <div class="zmt-bar"><label class="toggle"><input type="checkbox" id="zmtGridT" checked> Show screen numbers</label><button type="button" class="btn quiet" id="zmtWorldPng">Save as picture</button><span class="zmt-hover" id="zmtHover">Point at a screen to see its number.</span></div>
+        <div class="zmt-scroll"><canvas id="zmtWorldCv" width="4096" height="1408" aria-label="The whole overworld, 16 screens across and 8 down"></canvas></div>
+      </div>
+      <div id="zmt-screen" hidden>
+        <div class="zmt-bar"><button type="button" class="btn" id="zmtPrev" aria-label="Previous screen">‹</button><label class="zmt-num">Screen $<input id="zmtScrNum" maxlength="2" value="77" inputmode="text" aria-label="Screen number in hex"></label><button type="button" class="btn" id="zmtNext" aria-label="Next screen">›</button><button type="button" class="btn quiet" id="zmtScrPng">Save as picture</button></div>
+        <canvas id="zmtScreenCv" class="zmt-screen" width="256" height="176" aria-label="One overworld screen"></canvas>
+        <p class="zmt-info" id="zmtScrInfo"></p>
+        <p class="zmt-note">The 16 columns this screen is built from, left to right (click one to look at it):</p>
+        <div class="zmt-cols" id="zmtScrCols"></div>
+      </div>
+      <div id="zmt-cols" hidden>
+        <p class="zmt-note">Every screen is 16 columns picked from these 16 groups. Choose a group:</p>
+        <div class="seg zmt-grp" id="zmtGrp" role="group" aria-label="Column group"></div>
+        <div class="zmt-colgrid" id="zmtColGrid"></div>
+        <p class="zmt-info" id="zmtColSel"></p>
+      </div>
+      <div id="zmt-blocks" hidden>
+        <p class="zmt-note">Every block (a 16 by 16 square made of four tiles) the map can use. Point at one to see its tile numbers.</p>
+        <div class="zmt-blkgrid" id="zmtBlkGrid"></div>
+      </div>
+    </div>
+  </section>
   </div>
 
   <section class="xf" id="xfer" hidden role="tabpanel" aria-labelledby="xfTitle">
@@ -11293,6 +11355,246 @@ function renderHearts(){
   el.setAttribute("aria-label", `${whole} of ${maxH} hearts${hp%4?`, plus ${hp%4} of 4 pieces`:""}`);
 }
 
+
+// ---------- Zelda 1 map reader (screens -> columns -> blocks -> tiles), for the Map tool tab ----------
+const ZMT_PAL = [[116,116,116],[36,24,140],[0,0,168],[68,0,156],[140,0,116],[168,0,16],[164,0,0],[124,8,0],[64,44,0],[0,68,0],[0,80,0],[0,60,20],[24,60,92],[0,0,0],[0,0,0],[0,0,0],[188,188,188],[0,112,236],[32,56,236],[128,0,240],[188,0,188],[228,0,88],[216,40,0],[200,76,12],[136,112,0],[0,148,0],[0,168,0],[0,144,56],[0,128,136],[0,0,0],[0,0,0],[0,0,0],[252,252,252],[60,188,252],[92,148,252],[204,136,252],[244,120,252],[252,116,180],[252,116,96],[252,152,56],[240,188,60],[128,208,16],[76,220,72],[88,248,152],[0,232,216],[120,120,120],[0,0,0],[0,0,0],[252,252,252],[168,228,252],[196,212,252],[212,200,252],[252,196,252],[252,196,216],[252,188,176],[252,216,168],[252,228,160],[224,252,160],[168,240,188],[176,252,204],[156,252,240],[196,196,196],[0,0,0],[0,0,0]];
+class Zelda1Map {
+  constructor(rom){
+    const d = this.d = rom;
+    if(d.length < 0x20010 || d[0] !== 0x4E || d[1] !== 0x45 || d[2] !== 0x53 || d[3] !== 0x1A) throw new Error("That isn't an NES ROM (.nes).");
+    if(d.length < 0x20000 + 16) throw new Error("This is too small to be The Legend of Zelda.");
+    // the game's data lives at fixed spots; a different NES game would draw nonsense, so check the title screen text and the start screen byte
+    this.start = d[0x1933F];
+    this.ptr = (a, bank)=> (d[a] | d[a + 1] << 8) + (bank !== undefined ? (bank - 2) * 0x4000 + 0x10 : 0);
+    this.be = a=> d[a] << 8 | d[a + 1];
+    this.tileExp = d[0x16C3A] === 0x8A && d[0x16C3B] === 0xE9;
+    this.expBlocks = d[0x15398] === 0x86 && d[0x15399] === 0x0D;
+    this.expRepl = d[0x17B70] === 0xA6 && d[0x17B71] === 0x0D;
+    this.worldPal = [0, 1, 2, 3].map(i=> [0, 1, 2, 3].map(k=> ZMT_PAL[d[0x19313 + i * 4 + k] & 63]));
+    this.tiles = this._tiles();
+    const sp = this.screensPtr = this.ptr(0x15FAC, 5);
+    this.screens = [];
+    for(let i = 0; i < 124; i++) this.screens.push(Array.from(d.subarray(sp + i * 16, sp + i * 16 + 16)));
+    this.extraScreens = 0;
+    if(d[0x16A04] === 0x20){          // the Zelda Expansion hack adds 4 screens through a JSR hijack here
+      const hj = (d[0x16A05] | d[0x16A06] << 8) + 0xC010;
+      const alt = this.ptr(this.ptr(hj + 21, 5), 5);
+      for(let i = 0; i < 4; i++) this.screens.push(Array.from(d.subarray(alt + i * 16, alt + i * 16 + 16)));
+      this.extraScreens = 4;
+    }
+    this.screenCode = Array.from({ length: 128 }, (_, i)=> d[0x18590 + i] & 0x7F);
+    this.palOuter = Array.from({ length: 128 }, (_, i)=> d[0x18410 + i] & 3);
+    this.palInner = Array.from({ length: 128 }, (_, i)=> d[0x18490 + i] & 3);
+    this.groupPtr = Array.from({ length: 16 }, (_, i)=> this.ptr(0x19D1F + 2 * i, 5));
+    this.groups = this.groupPtr.map((_, i)=> this._group(i));
+    const tp = this.ptr(0x16A73, 5);
+    this.blockTbl = Array.from(d.subarray(tp, 0x16A04));
+    this.block4 = Array.from({ length: 16 }, (_, i)=> Array.from(d.subarray(0x169C4 + i * 4, 0x169C4 + i * 4 + 4)));
+    const rp = this.expBlocks ? this.ptr(0x153B7, 5) : 0x16986;
+    this.repl = Array.from(d.subarray(rp, rp + 6));
+    this.tileExpIndex = this.tileExp ? d[0x16C66] : 0xFF;
+    this.tileExpData = [];
+    if(this.tileExp){ const p = this.ptr(0x16C41, 5); for(let i = 0; i < 36; i++) this.tileExpData.push(Array.from(d.subarray(p + i * 4, p + i * 4 + 4))); }
+    this.replMap = {};
+    if(this.expRepl){ const k = d[0x17B7B], p = this.ptr(0x17B7D, 5); for(let i = 0; i < k; i++) this.replMap[d[p + i]] = d[p + k + i]; }
+    // a quick sanity check: the start screen must exist and the world must have columns
+    if(this.groups.every(g=> !g.length)) throw new Error("This doesn't look like The Legend of Zelda (US).");
+  }
+  _chr(off, len){
+    const out = [], d = this.d;
+    for(let t = 0; t < (len >> 4); t++){
+      const px = new Uint8Array(64);
+      for(let y = 0; y < 8; y++){ const lo = d[off + t * 16 + y], hi = d[off + t * 16 + y + 8]; for(let x = 0; x < 8; x++) px[y * 8 + x] = ((lo >> (7 - x)) & 1) | (((hi >> (7 - x)) & 1) << 1); }
+      out.push(px);
+    }
+    return out;
+  }
+  _tiles(){
+    const p3src = this.ptr(0xC0A7, 3), p3len = this.ptr(0xC0AC, 3);
+    const t = this._chr(this.ptr(0x8012, 2), this.be(0x8018)).concat(this._chr(this.ptr(p3src, 3), this.be(p3len)), this._chr(this.ptr(0x8014, 2), this.be(0x801A)));
+    if(this.tileExp){ const ex = this._chr(this.ptr(p3src + 4, 3), this.be(p3len + 4)); ex.forEach((tile, i)=>{ t[0x30 + i] = tile; }); }
+    return t;
+  }
+  _group(gi){
+    const d = this.d, start = this.groupPtr[gi];
+    const rep = (gi < 10 || !this.tileExp) ? 0x40 : 0;
+    const limit = gi < 15 ? this.groupPtr[gi + 1] : 0x15FAD;
+    const cols = []; let h = start, col = [], nxt = null, cstart = 0;
+    while(h < start + 11 * 16 + 16 && h < d.length){
+      let v = d[h];
+      if(v & 0x80){ v &= 0x7F; if(!col.length) cstart = h; else if(nxt === null) nxt = h; }
+      else if(!col.length){ h++; continue; }
+      if(v & rep){ v &= ~rep; col.push(v); }
+      col.push(v);
+      if(col.length >= 11){
+        if((cstart >= limit && gi < 15) || cols.length >= 16) break;
+        cols.push({ ids: col.slice(0, 11), at: cstart }); col = [];
+        if(nxt !== null){ h = nxt - 1; nxt = null; }
+      }
+      h++;
+    }
+    return cols;
+  }
+  column(cid){ const g = this.groups[cid >> 4]; return g ? g[cid & 15] || null : null; }
+  blockTiles(bid){
+    const d = this.d; let index = bid, dec = index < this.blockTbl.length ? this.blockTbl[index] : 0;
+    const top = d[0x16AD0], lo = top - d[0x16AD4];
+    if(dec >= lo && dec <= top){ dec = this.repl[dec - lo]; if(this.expBlocks){ if(dec >= this.tileExpIndex) index = dec; else dec = this.blockTbl[dec]; } }
+    if(this.replMap[index] !== undefined) index = this.replMap[index];
+    let tbl = null;
+    if(index < 0x10) tbl = this.block4; else if(index >= this.tileExpIndex){ index -= this.tileExpIndex; tbl = this.tileExpData; }
+    if(tbl) return tbl[index] || [0x24, 0x24, 0x24, 0x24];
+    return [dec, dec + 1, dec + 2, dec + 3];
+  }
+  /** colour of a block as 16x16 RGBA drawn into img (width W) at (x0,y0) */
+  _block(img, W, x0, y0, bid, ip, op, innerTest){
+    const t = this.blockTiles(bid);
+    for(let k = 0; k < 4; k++){
+      const tile = this.tiles[t[k]] || null, tx = x0 + (k >> 1) * 8, ty = y0 + (k & 1) * 8;
+      for(let y = 0; y < 8; y++) for(let x = 0; x < 8; x++){
+        const X = tx + x, Y = ty + y, pal = (innerTest ? (X > 31 && Y > 31 && X < 224 && Y < 144) : true) ? ip : op;
+        const c = pal[tile ? tile[y * 8 + x] : 0], o = (Y * W + X) * 4; img[o] = c[0]; img[o + 1] = c[1]; img[o + 2] = c[2]; img[o + 3] = 255;
+      }
+    }
+  }
+  layoutOf(n){ const c = this.screenCode[n]; return c < this.screens.length ? c : 0; }
+  /** RGBA pixels of overworld screen n (0-127), 256 x 176 */
+  screenPixels(n){
+    const cols = this.screens[this.layoutOf(n)], ip = this.worldPal[this.palInner[n]], op = this.worldPal[this.palOuter[n]];
+    const img = new Uint8ClampedArray(256 * 176 * 4);
+    cols.forEach((cid, cx)=>{ const c = this.column(cid); if(!c) return; c.ids.forEach((bid, by)=> this._block(img, 256, cx * 16, by * 16, bid, ip, op, true)); });
+    return img;
+  }
+  /** one column on its own, 16 x 176 */
+  columnPixels(cid, palN){
+    const c = this.column(cid), img = new Uint8ClampedArray(16 * 176 * 4), ip = this.worldPal[palN || 0];
+    if(c) c.ids.forEach((bid, by)=> this._block(img, 16, 0, by * 16, bid, ip, ip, false));
+    return img;
+  }
+  blockPixels(bid, palN){ const img = new Uint8ClampedArray(16 * 16 * 4), ip = this.worldPal[palN || 0]; this._block(img, 16, 0, 0, bid, ip, ip, false); return img; }
+  usedColumns(){ const u = {}; this.screens.forEach(sc=> sc.forEach(cid=>{ u[cid] = (u[cid] || 0) + 1; })); return u; }
+  blockCount(){ return this.tileExp ? 0x80 : 0x38; }
+}
+// ---------- Zelda 1 Map tool (its own tab on The Legend of Zelda's page) ----------
+const ZMT = (function(){
+  const $ = id=> document.getElementById(id);
+  let on = false, palN = -1, Z = null, mode = "world", screenN = 0x77, grid = true, grp = 0, colSel = null, srcName = "", loading = false, bound = false;
+  const hex2 = n=> n.toString(16).toUpperCase().padStart(2, "0");
+  function canvasOf(px, w, h){ const c = document.createElement("canvas"); c.width = w; c.height = h; c.getContext("2d").putImageData(new ImageData(px, w, h), 0, 0); return c; }
+  function save(c, name){ c.toBlob(b=>{ const a = document.createElement("a"); a.href = URL.createObjectURL(b); a.download = name; document.body.appendChild(a); a.click(); a.remove(); setTimeout(()=> URL.revokeObjectURL(a.href), 4000); }); }
+  let worldCv = null;
+  function worldCanvas(){
+    if(worldCv) return worldCv;
+    const c = document.createElement("canvas"); c.width = 4096; c.height = 1408; const x = c.getContext("2d");
+    for(let n = 0; n < 128; n++) x.putImageData(new ImageData(Z.screenPixels(n), 256, 176), (n % 16) * 256, Math.floor(n / 16) * 176);
+    return worldCv = c;
+  }
+  function info(){
+    const ex = Z.tileExp;
+    const used = Z.usedColumns();
+    let free = 0; Z.groups.forEach((g, gi)=> g.forEach((c, i)=>{ if(!used[gi << 4 | i]) free++; }));
+    const shared = new Set(), seen = {}; for(let n = 0; n < 128; n++){ const l = Z.layoutOf(n); if(seen[l] !== undefined) shared.add(n); seen[l] = n; }
+    return (ex ? `<b>Zelda Expansion hack found.</b> Room for ${Z.blockCount()} block types, 96 extra columns and ${Z.extraScreens} extra screen layouts. ` : `<b>Original game layout.</b> `) +
+      `${Z.screens.length} screen layouts for the 128 map squares (${shared.size} squares share a layout with another). ${free} columns are not used by any screen, so they are free to reuse. The start screen is $${hex2(Z.start)}.`;
+  }
+  function chips(items){ return items.map(s=> `<button type="button" class="zmt-chip" data-go="${s}">$${hex2(s)}</button>`).join(""); }
+  function screensUsing(cid){ const r = []; for(let n = 0; n < 128; n++) if(Z.screens[Z.layoutOf(n)].includes(cid)) r.push(n); return r; }
+
+  function draw(){
+    if(!Z){ return; }
+    $("zmtInfo").innerHTML = info();
+    [...$("zmtMode").children].forEach(b=> b.setAttribute("aria-pressed", String(b.dataset.m === mode)));
+    ["world", "screen", "cols", "blocks"].forEach(m=>{ $("zmt-" + m).hidden = m !== mode; });
+    if(palN < 0) palN = Z.palInner[Z.start];
+    $("zmtPalBar").hidden = !(mode === "cols" || mode === "blocks");
+    [...$("zmtPal").children].forEach(b=> b.setAttribute("aria-pressed", String(+b.dataset.p === palN)));
+    if(mode === "world") drawWorld(); else if(mode === "screen") drawScreen(); else if(mode === "cols") drawCols(); else drawBlocks();
+  }
+  function drawWorld(){
+    const cv = $("zmtWorldCv"), wc = worldCanvas();
+    cv.width = 4096; cv.height = 1408; const x = cv.getContext("2d"); x.drawImage(wc, 0, 0);
+    if(grid){
+      x.strokeStyle = "rgba(255,255,255,.35)"; x.lineWidth = 2; x.font = "bold 26px ui-monospace,monospace"; x.textBaseline = "top";
+      for(let n = 0; n < 128; n++){ const X = (n % 16) * 256, Y = Math.floor(n / 16) * 176; x.strokeRect(X + 1, Y + 1, 254, 174); x.fillStyle = "rgba(0,0,0,.6)"; x.fillRect(X + 4, Y + 4, 62, 30); x.fillStyle = n === Z.start ? "#f2c14e" : "#fff"; x.fillText(hex2(n), X + 8, Y + 6); }
+    }
+  }
+  function drawScreen(){
+    const n = screenN, cv = $("zmtScreenCv"); cv.width = 256; cv.height = 176;
+    cv.getContext("2d").putImageData(new ImageData(Z.screenPixels(n), 256, 176), 0, 0);
+    $("zmtScrNum").value = hex2(n);
+    const l = Z.layoutOf(n), cols = Z.screens[l], twins = []; for(let k = 0; k < 128; k++) if(k !== n && Z.layoutOf(k) === l) twins.push(k);
+    $("zmtScrInfo").innerHTML = `Screen <b>$${hex2(n)}</b> (row ${Math.floor(n / 16) + 1}, column ${n % 16 + 1}${n === Z.start ? ", the start screen" : ""}). It uses layout <b>#${l}</b>` + (twins.length ? `, which is shared with ${chips(twins)}` : ", which is its own") +
+      `. Palettes: border ${Z.palOuter[n]}, inside ${Z.palInner[n]}.`;
+    $("zmtScrCols").innerHTML = cols.map((cid, i)=> `<button type="button" class="zmt-col" data-col="${cid}" title="Column ${hex2(cid)}: group ${(cid >> 4).toString(16).toUpperCase()}, number ${(cid & 15) + 1} in that group. Click to see it.">${hex2(cid)}</button>`).join("");
+  }
+  function colImg(cid, scale){ const c = canvasOf(Z.columnPixels(cid, palN), 16, 176); c.className = "zmt-colimg"; c.style.width = 16 * scale + "px"; c.style.height = 176 * scale + "px"; return c; }
+  function drawCols(){
+    $("zmtGrp").innerHTML = Array.from({ length: 16 }, (_, g)=> `<button type="button" aria-pressed="${g === grp}" data-g="${g}">${g.toString(16).toUpperCase()}</button>`).join("");
+    const used = Z.usedColumns(), box = $("zmtColGrid"); box.innerHTML = "";
+    const list = Z.groups[grp];
+    list.forEach((c, i)=>{
+      const cid = grp << 4 | i, u = used[cid] || 0, d = document.createElement("button"); d.type = "button"; d.className = "zmt-colcard" + (u ? "" : " free") + (colSel === cid ? " sel" : ""); d.dataset.col = cid;
+      d.appendChild(colImg(cid, 2)); const s = document.createElement("span"); s.innerHTML = `<b>${hex2(cid)}</b>${u ? `used ${u}×` : "free"}`; d.appendChild(s); box.appendChild(d);
+    });
+    if(!list.length) box.innerHTML = `<p class="zmt-note">Nothing stored in this group.</p>`;
+    const sel = $("zmtColSel");
+    if(colSel !== null && Z.column(colSel)){ const sc = screensUsing(colSel); sel.innerHTML = `Column <b>${hex2(colSel)}</b> is stored at file position $${Z.column(colSel).at.toString(16).toUpperCase()}. Blocks, top to bottom: ${Z.column(colSel).ids.map(hex2).join(" ")}. ` + (sc.length ? `Used on ${sc.length} screen${sc.length > 1 ? "s" : ""}: ${chips(sc)}` : "No screen uses it, so you can reuse it.") ; }
+    else sel.textContent = "Click a column to see where it is used. Faded columns are not used by any screen.";
+  }
+  function drawBlocks(){
+    const box = $("zmtBlkGrid"); box.innerHTML = "";
+    for(let b = 0; b < Z.blockCount(); b++){
+      const t = Z.blockTiles(b), c = canvasOf(Z.blockPixels(b, palN), 16, 16), d = document.createElement("div"); d.className = "zmt-blk"; d.title = `Block ${hex2(b)} is made of tiles ${t.map(hex2).join(", ")} (top-left, bottom-left, top-right, bottom-right).`;
+      c.style.width = c.style.height = "48px"; d.appendChild(c); const s = document.createElement("span"); s.textContent = hex2(b); d.appendChild(s); box.appendChild(d);
+    }
+  }
+  function setZ(rom, name){
+    try{ Z = new Zelda1Map(rom); }catch(e){ Z = null; $("zmtBody").hidden = true; $("zmtMsg").textContent = e.message || "Couldn't read that file."; return false; }
+    worldCv = null; srcName = name || ""; $("zmtBody").hidden = false; $("zmtMsg").textContent = ""; $("zmtSrc").textContent = srcName ? "Reading: " + srcName : "";
+    draw(); return true;
+  }
+  async function useRemembered(quiet){
+    if(loading) return; loading = true;
+    try{
+      const r = typeof PLAYER !== "undefined" ? await PLAYER.getRom("loz") : null;
+      if(r){ setZ(new Uint8Array(r), "your remembered Zelda ROM"); }
+      else if(!quiet) $("zmtMsg").textContent = "No remembered Zelda ROM yet. Choose a file instead, or load your ROM in Play in browser with “Remember it on this device” ticked.";
+      else if(!Z) $("zmtMsg").textContent = "Choose your Legend of Zelda ROM (.nes) to start. It can be the original or a hack such as Zelda Three Swords. The file stays on your device.";
+    }catch(e){ if(!Z) $("zmtMsg").textContent = "Choose your Legend of Zelda ROM (.nes) to start."; }
+    loading = false;
+  }
+  function bind(){
+    if(bound) return; bound = true;
+    $("zmtOpen").addEventListener("click", ()=> $("zmtFile").click());
+    $("zmtUse").addEventListener("click", ()=> useRemembered(false));
+    $("zmtFile").addEventListener("change", async e=>{ const f = e.target.files && e.target.files[0]; e.target.value = ""; if(!f) return; setZ(new Uint8Array(await f.arrayBuffer()), f.name); });
+    $("zmtMode").addEventListener("click", e=>{ const b = e.target.closest("button"); if(!b) return; mode = b.dataset.m; draw(); });
+    $("zmtPal").addEventListener("click", e=>{ const b = e.target.closest("button"); if(!b) return; palN = +b.dataset.p; draw(); });
+    $("zmtGridT").addEventListener("change", e=>{ grid = e.target.checked; drawWorld(); });
+    $("zmtWorldCv").addEventListener("mousemove", e=>{ const r = e.target.getBoundingClientRect(), x = Math.floor((e.clientX - r.left) / r.width * 16), y = Math.floor((e.clientY - r.top) / r.height * 8), n = y * 16 + x; $("zmtHover").textContent = `Screen $${hex2(n)} (layout #${Z.layoutOf(n)}). Click to open it.`; });
+    $("zmtWorldCv").addEventListener("click", e=>{ const r = e.target.getBoundingClientRect(), x = Math.floor((e.clientX - r.left) / r.width * 16), y = Math.floor((e.clientY - r.top) / r.height * 8); screenN = Math.max(0, Math.min(127, y * 16 + x)); mode = "screen"; draw(); });
+    $("zmtWorldPng").addEventListener("click", ()=> Z && save(worldCanvas(), "zelda-overworld.png"));
+    $("zmtScrPng").addEventListener("click", ()=> Z && save($("zmtScreenCv"), "zelda-screen-" + hex2(screenN) + ".png"));
+    $("zmtPrev").addEventListener("click", ()=>{ screenN = (screenN + 127) % 128; drawScreen(); });
+    $("zmtNext").addEventListener("click", ()=>{ screenN = (screenN + 1) % 128; drawScreen(); });
+    $("zmtScrNum").addEventListener("change", e=>{ const v = parseInt(e.target.value, 16); if(v >= 0 && v < 128) screenN = v; drawScreen(); });
+    $("zmt").addEventListener("click", e=>{
+      const go = e.target.closest("[data-go]"); if(go){ screenN = +go.dataset.go; mode = "screen"; draw(); window.scrollTo({ top: $("zmt").offsetTop - 60 }); return; }
+      const g = e.target.closest("[data-g]"); if(g){ grp = +g.dataset.g; drawCols(); return; }
+      const c = e.target.closest("[data-col]"); if(c){ colSel = +c.dataset.col; grp = colSel >> 4; mode = "cols"; draw(); }
+    });
+  }
+  function isOn(){ return on && typeof G !== "undefined" && G && G.id === "loz"; }
+  function sync(){
+    const show = isOn(); $("zmt").hidden = !show; document.body.classList.toggle("zmt-on", show);
+  }
+  function toggle(v){
+    on = !!v; sync(); if(on){ bind(); if(!Z) useRemembered(true); else draw(); try{ tabsEl.scrollIntoView({ block: "nearest" }); }catch(e){} }
+    try{ renderTabs(); }catch(e){}
+  }
+  return { isOn, toggle, sync };
+})();
+
 // ---------- tabs ----------
 const tabsEl = document.getElementById("tabs");
 function renderTabs(){
@@ -11300,11 +11602,13 @@ function renderTabs(){
   if(!list.some(c=>c.id===G.view.cat)) G.view.cat = "all";
   tabsEl.innerHTML = list.map(c=>{
     const got = c.items.filter(i=>G.checked.has(i.id)).length;
-    return `<button type="button" class="tab${got===c.items.length?" done":""}" data-cat="${c.id}" aria-pressed="${G.view.cat===c.id}">${c.name}<span class="num">${got}/${c.items.length}</span></button>`;
-  }).join("");
+    return `<button type="button" class="tab${got===c.items.length?" done":""}" data-cat="${c.id}" aria-pressed="${!ZMT.isOn() && G.view.cat===c.id}">${c.name}<span class="num">${got}/${c.items.length}</span></button>`;
+  }).join("") + (G.id === "loz" ? `<button type="button" class="tab tab-tool" id="zmtTab" aria-pressed="${ZMT.isOn()}" title="Look at the world map and how it is built, from your own ROM">Map tool</button>` : "");
 }
 tabsEl.addEventListener("click",e=>{
   const b = e.target.closest(".tab"); if(!b) return;
+  if(b.id === "zmtTab"){ ZMT.toggle(true); return; }
+  ZMT.toggle(false);
   G.view.cat = b.dataset.cat; saveView(G); renderTabs(); renderList();
   const tb = document.querySelector(".toolbar");
   if(window.scrollY > tb.offsetTop) window.scrollTo({top:tb.offsetTop-4});
@@ -11710,7 +12014,8 @@ if(treeEl){
   });
 }
 function render(){
-  document.body.className = "g-"+G.id + (G.playOnly ? " play-only" : "");
+  document.body.className = "g-"+G.id + (G.playOnly ? " play-only" : "") + (ZMT.isOn() ? " zmt-on" : "");
+  ZMT.sync();
   document.getElementById("gameTitle").textContent = G.name;
   document.getElementById("gameSub").textContent = G.sub;
   renderGames(); renderHud(); renderTabs(); renderFilter(); renderList(); renderImport(); showSync(); renderMissionTree();
