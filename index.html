@@ -949,6 +949,10 @@ body.zmt-on #list,body.zmt-on .filters,body.zmt-on #fsStats,body.zmt-on #mapBox{
 .games-row .game[data-g^="pk"] .save-ico{color:#1c8a4a}.games-row .game[data-g^="pk"] .play-ico{color:#4a4fa8}
 @media (max-width:520px){ .games-row .game{padding:40px 16px 24px;min-height:120px} }
 @media (prefers-reduced-motion:reduce){ .games-row .game{transition:none} }
+
+.dbg-state{display:grid;gap:2px;margin:8px 0}.dbg-row{display:flex;justify-content:space-between;gap:14px;padding:4px 0;border-bottom:1px solid var(--line);font-size:13px}.dbg-row span{color:var(--muted)}.dbg-row b{font-weight:500;text-align:right}
+.dbg-acts{display:flex;flex-wrap:wrap;gap:6px;margin:8px 0}.dbg-log{max-height:260px;overflow:auto;margin:8px 0;padding:8px;border:1px solid var(--line);border-radius:8px;background:var(--surface-2);font:11px/1.4 var(--mono,monospace);white-space:pre-wrap;word-break:break-word}
+#dbgNote{width:100%;box-sizing:border-box;padding:8px;border:1px solid var(--line);border-radius:8px;background:var(--surface-2);color:var(--ink);font:inherit}
 </style>
 
 <div class="wrap">
@@ -1014,6 +1018,16 @@ body.zmt-on #list,body.zmt-on .filters,body.zmt-on #fsStats,body.zmt-on #mapBox{
       <div id="optColors" hidden></div>
       <div class="pad-foot"><button type="button" class="btn" id="optRestart" hidden>Restart to apply</button> <button type="button" class="btn" id="optClose">Done</button></div>
     </div>
+    <div class="pad-panel opt-panel" id="dbgPanel" hidden>
+      <div class="opt-tabs" role="tablist"><button type="button" class="btn opt-tab" data-t="state" aria-pressed="true">Game state</button><button type="button" class="btn opt-tab" data-t="log" aria-pressed="false">Log</button><button type="button" class="btn opt-tab" data-t="report" aria-pressed="false">Bug report</button></div>
+      <div data-p="state"><div id="dbgState" class="dbg-state"></div>
+        <div class="dbg-acts"><button type="button" class="btn" data-a="fullhp">Refill hearts</button><button type="button" class="btn" data-a="heart">+1 heart container</button><button type="button" class="btn" data-a="rup">500 rupees</button><button type="button" class="btn" data-a="mp">Fill magic</button><button type="button" class="btn" data-a="items">Give most items</button><button type="button" class="btn" data-a="gs">100 Skulltulas</button></div>
+        <p class="pad-note">These change your running game's save data straight away, so they're for testing. Save normally in the game if you want to keep a change.</p></div>
+      <div data-p="log" hidden><pre id="dbgLog" class="dbg-log"></pre><div class="dbg-acts"><button type="button" class="btn" data-a="copylog">Copy log</button></div></div>
+      <div data-p="report" hidden><p class="pad-note">Saves one file with what the game was doing: its state, your settings, the recent log, your last key presses and a screenshot. Send it to Claude to find out what went wrong. It contains no ROM.</p>
+        <textarea id="dbgNote" rows="3" placeholder="What did you expect, and what happened instead?" aria-label="What went wrong"></textarea><div class="dbg-acts"><button type="button" class="btn" data-a="report">Save bug report</button></div></div>
+      <div class="pad-foot"><span id="dbgSay" class="pad-note"></span> <button type="button" class="btn" id="dbgClose">Done</button></div>
+    </div>
     <button type="button" class="btn fs-opt" id="fsOptBtn" aria-expanded="false" aria-controls="optPanel" title="Game options">Game options</button>
     <button type="button" class="btn fs-opt" id="fsColBtn" aria-expanded="false" aria-controls="optPanel" title="Change colours">Colours</button>
     <div class="player-bar" id="playerBar" hidden>
@@ -1022,6 +1036,7 @@ body.zmt-on #list,body.zmt-on .filters,body.zmt-on #fsStats,body.zmt-on #mapBox{
       <button type="button" class="btn" id="playerFull">Full screen</button>
       <button type="button" class="btn" id="playerPadBtn" hidden aria-expanded="false" aria-controls="padPanel" title="Choose which controller button does what">Controller</button>
       <button type="button" class="btn" id="playerOptBtn" hidden aria-expanded="false" aria-controls="optPanel" title="Turn game options on or off">Game options</button>
+      <button type="button" class="btn" id="playerDbgBtn" hidden aria-expanded="false" aria-controls="dbgPanel" title="Test tools: see the game's state, change it, and save a bug report">Debug</button>
       <button type="button" class="btn" id="playerColBtn" hidden aria-expanded="false" aria-controls="optPanel" title="Change Link's and the screen's colours">Colours</button>
       <button type="button" class="btn" id="player3dBtn" aria-pressed="false" hidden>3D shading</button>
       <button type="button" class="btn" id="playerLoadSave">Use a save file</button>
@@ -11878,6 +11893,86 @@ const LOZ3D = {
     try{ const r = typeof PLAYER !== "undefined" ? await PLAYER.getRom("loz") : null; if(r){ const Z = new Zelda1Map(new Uint8Array(r)); this.apply(Z); } }catch(e){}
   }
 };
+
+// ---------- Ocarina of Time: test and bug-hunting tools ----------
+// Reads (and, if you ask, changes) the running game's save data, keeps a log and your recent key presses, and packs a bug report.
+const OOTDBG = (function(){
+  const OFF = { entrance:0, age:4, cutscene:8, dayTime:12, hpMax:0x2E, hp:0x30, magicLevel:0x32, magic:0x33, rupees:0x34, items:0x8C, ammo:0xA4, equip:0xB4, upgrades:0xB8, quest:0xBC, keys:0xD4, gs:0xE8, sceneFlags:0xEC };
+  const SLOTS = ["Deku Stick","Deku Nut","Bomb","Bow","Fire Arrow","Din's Fire","Slingshot","Ocarina","Bombchu","Hookshot","Ice Arrow","Farore's Wind","Boomerang","Lens of Truth","Magic Bean","Megaton Hammer","Light Arrow","Nayru's Love","Bottle 1","Bottle 2","Bottle 3","Bottle 4","Adult trade item","Child trade item"];
+  const ALL_ITEMS = [0,1,2,3,4,5,6,8,9,10,12,13,14,15,16,17,18,19,20,20,20,20];   // item numbers for "give everything" (slots 0-21; Longshot and the trade items left out)
+  const logs = [], inputs = []; let t0 = performance.now(), hooked = false;
+  function hook(){
+    if(hooked) return; hooked = true;
+    for(const k of ["log", "warn", "error"]){ const o = console[k].bind(console); console[k] = (...a)=>{ try{ const s = a.map(x=> typeof x === "string" ? x : (x && x.message) || String(x)).join(" "); if(k !== "log" || s.startsWith("[SOH]")){ logs.push((performance.now() / 1000).toFixed(1) + "s " + (k === "log" ? "" : k + ": ") + s.slice(0, 400)); if(logs.length > 600) logs.shift(); } }catch(e){} return o(...a); }; }
+    for(const t of ["keydown", "keyup"]) window.addEventListener(t, e=>{ if(!e.repeat){ inputs.push([Math.round(performance.now() - t0), t === "keydown" ? "down" : "up", e.key]); if(inputs.length > 800) inputs.shift(); } }, true);
+  }
+  function mem(){ try{ const M = SOHRT.module(); if(!M || !M._web_track_layout) return null; const lay = new Int32Array(M.HEAPU8.buffer, M._web_track_layout(), 24); if(lay[0] !== 0x544B5231) return null; return { M, base: lay[1], size: lay[2], lay }; }catch(e){ return null; } }
+  const dv = m=> new DataView(m.M.HEAPU8.buffer, m.base, m.size);
+  function state(){
+    const m = mem(); if(!m) return { ok:false };
+    const d = dv(m), pos = SOHRT.position ? SOHRT.position() : { ok:false }, items = [];
+    for(let i = 0; i < 24; i++){ const v = d.getUint8(OFF.items + i); items.push(v === 0xFF ? null : v); }
+    return { ok:true, playing: !!pos.ok, scene: pos.scene, room: pos.room, x: pos.x, y: pos.y, z: pos.z, file: pos.file, age: d.getInt32(OFF.age, true) === 0 ? "adult" : "child",
+      entrance: d.getInt32(OFF.entrance, true), hearts: d.getInt16(OFF.hp, true) / 16, heartCapacity: d.getInt16(OFF.hpMax, true) / 16, magic: d.getUint8(OFF.magic), magicLevel: d.getUint8(OFF.magicLevel), rupees: d.getInt16(OFF.rupees, true),
+      equipment: d.getUint16(OFF.equip, true), upgrades: d.getUint32(OFF.upgrades, true), quest: d.getUint32(OFF.quest, true), skulltulas: d.getInt16(OFF.gs, true), items };
+  }
+  /** change one thing in the running game's save data; name is one of the keys below */
+  function poke(what, v){
+    const m = mem(); if(!m) return false; const d = dv(m);
+    switch(what){
+      case "hearts": d.setInt16(OFF.hp, Math.round(v * 16), true); break;
+      case "heartCapacity": d.setInt16(OFF.hpMax, Math.max(16, Math.min(20 * 16, Math.round(v * 16))), true); break;
+      case "magic": d.setUint8(OFF.magicLevel, v > 0 ? 1 : 0); d.setUint8(OFF.magic, v); break;
+      case "rupees": d.setInt16(OFF.rupees, v, true); break;
+      case "allItems": ALL_ITEMS.forEach((id, i)=> d.setUint8(OFF.items + i, id)); for(let i = 0; i < 16; i++) d.setUint8(OFF.ammo + i, 30); break;
+      case "item": d.setUint8(OFF.items + v[0], v[1]); break;
+      case "quest": d.setUint32(OFF.quest, v >>> 0, true); break;
+      case "skulltulas": d.setInt16(OFF.gs, v, true); break;
+      default: return false;
+    }
+    return true;
+  }
+  function peek(at, n){ const m = mem(); if(!m) return null; return Array.from(m.M.HEAPU8.subarray(m.base + at, m.base + at + (n || 16))); }
+  function shot(){ try{ const c = SOHRT.canvas(); return c ? c.toDataURL("image/png") : ""; }catch(e){ return ""; } }
+  function report(note){
+    const m = mem(), save = m ? Array.from(m.M.HEAPU8.subarray(m.base, m.base + Math.min(m.size, 0x400))) : [];
+    let cfg = null; try{ const fs = SOHRT.options.fs(); if(fs) cfg = new TextDecoder().decode(fs.readFile("/shipofharkinian.json")); }catch(e){}
+    let opts = null; try{ opts = SOHRT.options.list.map(o=>[o.k, SOHRT.options.get(o)]).filter(x=> x[1] !== undefined && x[1] !== null); }catch(e){}
+    return { what: "Triforce Ocarina of Time bug report", when: new Date().toISOString(), note: note || "", page: location.href.split("#")[0], browser: navigator.userAgent, state: state(), saveDataStart: save, options: opts, engineConfig: cfg, log: logs.slice(-300), inputs: inputs.slice(-300), screenshot: shot() };
+  }
+  function download(note){
+    const blob = new Blob([JSON.stringify(report(note), null, 1)], { type:"application/json" }), a = document.createElement("a");
+    a.href = URL.createObjectURL(blob); a.download = "triforce-oot-bugreport-" + new Date().toISOString().replace(/[:.]/g, "-").slice(0, 19) + ".json"; document.body.appendChild(a); a.click(); setTimeout(()=>{ a.remove(); URL.revokeObjectURL(a.href); }, 500);
+  }
+  function ui(){
+    const btn = document.getElementById("playerDbgBtn"), panel = document.getElementById("dbgPanel"); if(!btn || !panel || btn._on) return; btn._on = true;
+    const $q = s=> panel.querySelector(s); let timer = 0, tab = "state";
+    const show = on=>{ panel.hidden = !on; btn.setAttribute("aria-expanded", String(on)); clearInterval(timer); if(on){ draw(); timer = setInterval(draw, 400); } };
+    const fmt = n=> typeof n === "number" ? (Number.isInteger(n) ? n : n.toFixed(1)) : n;
+    function draw(){
+      for(const b of panel.querySelectorAll("[data-t]")) b.setAttribute("aria-pressed", String(b.dataset.t === tab));
+      for(const p of panel.querySelectorAll("[data-p]")) p.hidden = p.dataset.p !== tab;
+      if(tab === "state"){
+        const s = state(); if(!s.ok){ $q("#dbgState").textContent = "The game isn't running yet."; return; }
+        const rows = [["Playing", s.playing ? "yes (file " + (s.file + 1) + ")" : "no (title or menu)"], ["Scene / room", s.playing ? s.scene + " / " + s.room : "-"], ["Link at", s.playing ? [s.x, s.y, s.z].map(fmt).join(", ") : "-"], ["Age", s.age], ["Hearts", fmt(s.hearts) + " of " + fmt(s.heartCapacity)], ["Magic", s.magic + (s.magicLevel ? "" : " (not yet unlocked)")], ["Rupees", s.rupees], ["Gold Skulltulas", s.skulltulas],
+          ["Items", s.items.map((v, i)=> v === null ? null : SLOTS[i]).filter(Boolean).join(", ") || "none"]];
+        $q("#dbgState").innerHTML = rows.map(([k, v])=> `<div class="dbg-row"><span>${k}</span><b>${String(v).replace(/</g, "&lt;")}</b></div>`).join("");
+      } else if(tab === "log"){ const el = $q("#dbgLog"), atEnd = el.scrollTop + el.clientHeight >= el.scrollHeight - 8; el.textContent = logs.slice(-200).join("\n") || "Nothing logged yet."; if(atEnd) el.scrollTop = el.scrollHeight; }
+    }
+    btn.addEventListener("click", ()=> show(panel.hidden));
+    $q("#dbgClose").addEventListener("click", ()=> show(false));
+    panel.addEventListener("click", e=>{
+      const t = e.target.closest("[data-t]"); if(t){ tab = t.dataset.t; draw(); return; }
+      const a = e.target.closest("[data-a]"); if(!a) return; const s = state(), say = $q("#dbgSay");
+      const act = { fullhp: ()=> poke("hearts", s.heartCapacity), heart: ()=> poke("heartCapacity", s.heartCapacity + 1) && poke("hearts", s.heartCapacity + 1), rup: ()=> poke("rupees", 500), mp: ()=> poke("magic", 96), items: ()=> poke("allItems"), gs: ()=> poke("skulltulas", 100),
+        report: ()=>{ download($q("#dbgNote").value); return true; }, copylog: ()=>{ navigator.clipboard && navigator.clipboard.writeText(logs.join("\n")); return true; } }[a.dataset.a];
+      say.textContent = !act ? "" : (s.ok && act() ? "Done." : (a.dataset.a === "report" ? "Saved." : "Start a game first.")); draw();
+    });
+    setInterval(()=>{ try{ btn.hidden = !(SOHRT.alive && SOHRT.alive()); }catch(e){} }, 1500);
+  }
+  hook(); if(document.readyState === "loading") document.addEventListener("DOMContentLoaded", ui); else ui();
+  return { state, poke, peek, report, download, shot, logs, inputs, OFF, SLOTS };
+})();
 
 // ---------- tabs ----------
 const tabsEl = document.getElementById("tabs");
