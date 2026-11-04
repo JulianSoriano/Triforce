@@ -327,9 +327,6 @@ html .player[data-sys="n64"] .player-screen.fs .soh-canvas,html .playarea:fullsc
 .playarea:fullscreen>.player{margin:0;padding:0;border:0;background:none;display:grid;height:100%;min-height:0}
 .playarea:fullscreen>.player>:not(.player-screen){display:none}
 .fs-opt{display:none}
-.playarea:fullscreen>.player>.fs-opt.on{display:block;position:fixed;top:14px;left:14px;z-index:40;opacity:.5;transition:opacity .15s}
-.playarea:fullscreen>.player>#fsColBtn.on{left:148px}
-.playarea:fullscreen>.player>.fs-opt.on:hover,.playarea:fullscreen>.player>.fs-opt.on:focus-visible{opacity:1}
 .playarea:fullscreen>.player>#optPanel:not([hidden]){display:block;position:fixed;top:58px;left:14px;z-index:40;width:min(560px,calc(100vw - 28px));max-height:calc(100vh - 80px);overflow:auto;margin:0;box-shadow:0 12px 40px rgba(0,0,0,.5)}
 .playarea:fullscreen .player-screen{max-width:none;width:100%;height:100%;aspect-ratio:auto;border:0;border-radius:0;display:grid;place-items:center;background:transparent}
 .playarea:fullscreen>.mapbox{margin:0;height:100%;overflow:auto;display:flex;flex-direction:column;justify-content:center}
@@ -11598,7 +11595,7 @@ function fsTrayHtml(g, o){
   const cats = g.cats.map(c=>{ const n = c.items.filter(i=>g.checked.has(i.id)).length, t = c.items.length;
     return `<div class="fs-cat${n===t?" done":""}" data-fold="${esc(c.id)}" role="button" tabindex="0" title="Show or hide this list"><span>${esc(c.name)}</span><span>${n}/${t}</span><i><b style="width:${t ? n/t*100 : 0}%"></b></i></div>`; }).join("");
   const head = regionName ? `<h3>${esc(regionName)}<small>${shownGot}/${shown} here</small></h3>` : `<h3>Checklist<small>tap an item to tick it, hover it for details; it also fills in from your saves</small></h3>`;
-  const btns = (regionName ? `<button type="button" class="btn quiet fs-exit" data-fsall="1">Show everything</button>` : "") + (o.exit ? `<button type="button" class="btn quiet fs-exit" data-fsexit="1">Exit full screen</button>` : "");
+  const btns = (regionName ? `<button type="button" class="btn quiet fs-exit" data-fsall="1">Show everything</button>` : "") + (o.exit && g.id === "oot" ? `<button type="button" class="btn quiet fs-exit" data-fsopt="opts">Game options</button><button type="button" class="btn quiet fs-exit" data-fsopt="col">Colours</button>` : "") + (o.exit ? `<button type="button" class="btn quiet fs-exit" data-fsexit="1">Exit full screen</button>` : "");
   return `<div class="fs-check"><div class="fs-checkhead">${head}<span>${btns}</span></div><div class="fs-grps">${groups || `<p class="fs-empty">Nothing is listed for this place.</p>`}</div></div>`
     + `<div class="fs-side"><div><h3>Collectibles</h3><div class="fs-total"><span>${got}/${total}</span><div class="bar"><span style="width:${pct}%"></span></div><span>${pct}%</span></div><div class="fs-cats">${cats}</div></div>${o.stats || ""}</div>`;
 }
@@ -11607,6 +11604,7 @@ function fsWire(box){
   if(!box.dataset.wired){ box.dataset.wired = "1";
     box.addEventListener("keydown", e=>{ if((e.key === "Enter" || e.key === " ") && e.target.matches && e.target.matches(".fs-cat[data-fold]")){ e.preventDefault(); e.target.click(); } });
     box.addEventListener("click", e=>{
+      { const ob = e.target.closest("[data-fsopt]"); if(ob){ const t = document.getElementById(ob.dataset.fsopt === "col" ? "fsColBtn" : "fsOptBtn"); if(t) t.click(); return; } }
       if(e.target.closest("[data-fsexit]")){
         const mb = document.querySelector(".playarea.mapfs .m3d-fs");
         if(mb) mb.click(); else { try{ (document.exitFullscreen || document.webkitExitFullscreen).call(document); }catch(err){} }
