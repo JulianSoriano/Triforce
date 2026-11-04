@@ -897,7 +897,7 @@ h1{color:var(--ink);font-weight:650;letter-spacing:-.025em;line-height:1.1}
       <div class="pad-foot"><button type="button" class="btn" id="padReset">Back to the usual layout</button> <button type="button" class="btn" id="padClose">Done</button></div>
     </div>
     <div class="pad-panel opt-panel" id="optPanel" hidden>
-      <p class="pad-note">Ship of Harkinian has its own menu with every setting, and it changes things while you play. <b>Open the game's menu</b> to use it (the F1 key does the same). The list below sets how the game starts: your picks are remembered and applied the next time it starts.</p>
+      <p class="pad-note">Ship of Harkinian has its own menu with every setting, and it changes things while you play. <b>Open the game's menu</b> to use it (the Esc key does the same, but a full-screen browser takes Esc for itself, so use the button there). The list below sets how the game starts: your picks are remembered and applied the next time it starts.</p>
       <div class="opt-tools"><button type="button" class="btn" id="optMenu">Open the game's menu</button><input type="search" id="optFind" placeholder="Find an option" aria-label="Find an option"></div>
       <div id="optRows"></div>
       <div class="pad-foot"><button type="button" class="btn" id="optRestart" hidden>Restart to apply</button> <button type="button" class="btn" id="optClose">Done</button></div>
@@ -6694,7 +6694,7 @@ const SOHRT = (function(){
     resume(){ wantPause = false; if(M && rtReady && !running && M._web_get_otr_status && M._web_get_otr_status()){ try{ M.resumeMainLoop(); }catch(e){} running = true; } resumeAudio(); try{ canvas && canvas.focus({ preventScroll:true }); }catch(e){} },
     alive(){ return !!M && !!booting; },
     module(){ return M; },
-    menu(){ try{ if(!canvas) return false; canvas.focus({ preventScroll:true }); const mk = t=> new KeyboardEvent(t, { key:"F1", code:"F1", keyCode:112, which:112, bubbles:true, cancelable:true });
+    menu(){ try{ if(!canvas) return false; canvas.focus({ preventScroll:true }); const mk = t=> new KeyboardEvent(t, { key:"Escape", code:"Escape", keyCode:27, which:27, bubbles:true, cancelable:true });
       canvas.dispatchEvent(mk("keydown")); setTimeout(()=>{ try{ canvas.dispatchEvent(mk("keyup")); }catch(e){} }, 80); return true; }catch(e){ return false; } },
     options:{ list: OPTS, on: optOn, set: optSet, needsRestart: ()=> optsAtBoot !== null && optsAtBoot !== optSig(), fs: ()=> FSx },
     pad:{ actions: ACTIONS, binding: act=> bindName(CUST[act]), set(act, c){ if(c) CUST[act] = c; else delete CUST[act]; saveCust(); }, reset(){ CUST = {}; saveCust(); }, listen: listenPad, connected: ()=>{ const p = padSnapshot(); return p ? (p.id || "controller").replace(/\s*\(.*$/, "").trim() : ""; } }
