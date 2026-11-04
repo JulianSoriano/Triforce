@@ -5473,6 +5473,26 @@ const MAP3D = (function(){
   precision highp float; in vec3 vC; in float vD; in vec3 vW; uniform float uFar; uniform float uA; uniform float uMode; uniform sampler2D uTex; uniform vec2 uSize; uniform float uT; uniform float uWater; out vec4 o;
   float n2(vec2 p){ return fract(sin(dot(p, vec2(12.9898, 78.233))) * 43758.5453); }
   bool isW(vec3 t){ return t.b > 0.5 && t.b > t.r * 1.7 && t.b > t.g * 1.25; }
+  float vn(vec2 p){ vec2 i = floor(p), f = fract(p); f = f * f * (3.0 - 2.0 * f); return mix(mix(n2(i), n2(i + vec2(1, 0)), f.x), mix(n2(i + vec2(0, 1)), n2(i + vec2(1, 1)), f.x), f.y); }
+  bool isTree(vec3 t){ return t.g > t.r * 1.3 && t.g > t.b * 1.3; }
+  bool isRock(vec3 t){ return t.r > t.g * 1.35 && t.g > t.b * 1.2 && t.r < 0.92; }
+  // trees: gusts of wind roll across the canopy, and every tree sways a little on its own, catching the light
+  // mountains: drifting cloud shadows, rough rock faces with cracks, and warm light on the high ground
+  vec3 land(vec2 p, vec3 c){
+    if(isTree(c)){
+      float gust = sin(p.x * 0.32 - uT * 1.5 + sin(p.y * 0.45 + uT * 0.3) * 1.3) * 0.5 + 0.5;
+      float ph = n2(floor(p * 0.5)) * 6.283, sw = sin(uT * 2.1 + ph + p.x * 0.7);
+      c *= 0.84 + 0.24 * gust + 0.07 * sw + 0.06 * (vn(p * 3.0 + uT * 0.5) - 0.5);
+      c += vec3(0.05, 0.11, 0.0) * smoothstep(0.72, 1.0, gust * (0.65 + 0.35 * sw));
+    } else if(isRock(c)){
+      float facet = vn(p * 1.8) * 0.18 + vn(p * 5.0) * 0.08;
+      float crack = smoothstep(0.07, 0.0, abs(sin(p.x * 1.1 + p.y * 2.3 + vn(p * 0.7) * 5.0)) - 0.0);
+      float cloud = 0.88 + 0.12 * smoothstep(-0.3, 0.6, sin(p.x * 0.1 + uT * 0.18) * sin(p.y * 0.13 - uT * 0.11 + 1.3) + vn(p * 0.35) * 0.5);
+      c = c * (0.86 + facet) * (1.0 - 0.28 * crack) * cloud;
+      c += vec3(0.1, 0.06, 0.01) * smoothstep(0.78, 1.0, vn(p * 0.9 + vec2(uT * 0.25, 0.0)));
+    }
+    return c;
+  }
   // moving water: two crossing wave patterns, little glints of light, and foam along the shore
   vec3 water(vec2 p, vec3 t, bool tex){
     float a = sin(p.x * 2.6 + uT * 1.1 + sin(p.y * 2.1 + uT * 0.8) * 1.7) * 0.5 + 0.5;
@@ -5491,8 +5511,9 @@ const MAP3D = (function(){
   void main(){
     vec3 c = vC;
     if(uMode > 1.5) c = vec3(0.22, 0.34, 0.2) * vC;                 // the picture is still loading
-    else if(uMode > 0.5){ vec3 t = texture(uTex, vW.xz / uSize).rgb; c = (uWater > 0.5 && isW(t)) ? water(vW.xz, t, true) * vC : t * vC; }   // the game's own picture, lit by the baked shadows
+    else if(uMode > 0.5){ vec3 t = texture(uTex, vW.xz / uSize).rgb; c = (uWater > 0.5) ? (isW(t) ? water(vW.xz, t, true) * vC : land(vW.xz, t) * vC) : t * vC; }   // the game's own picture, lit by the baked shadows
     else if(uWater > 0.5 && isW(c)) c = water(vW.xz, c, false) * (0.9 + 0.1 * vC.b);
+    else if(uWater > 0.5 && (isTree(c) || isRock(c))) c = land(vW.xz, c);
     else {
     // surface texture: a fine speckle on everything, ripples on water, leaf clumps on greens
     c *= 0.93 + 0.1 * n2(floor(vW.xz * 4.0) + floor(vW.y * 4.0));
