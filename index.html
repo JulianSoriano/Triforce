@@ -894,6 +894,49 @@ body.zmt-on #list,body.zmt-on .filters,body.zmt-on #fsStats,body.zmt-on #mapBox{
 .zmt-gbody h4{margin:14px 0 4px;font-size:13px;letter-spacing:.06em;text-transform:uppercase;color:var(--muted)}
 .zmt-gbody p{margin:6px 0}.zmt-gbody ul{margin:6px 0;padding-left:20px}.zmt-gbody li{margin:3px 0}
 .zmt-gbody code{font-family:var(--mono);font-size:12.5px;background:var(--surface-2);padding:1px 5px;border-radius:4px}
+
+/* ---- the game tabs, drawn as cartridges ---- */
+.games-row .game{--cart:#8e8e94;--cartd:#6a6a71;--lab:#1b1c21;--stripe:#c8a24a;--pins:#d8b04a;position:relative;overflow:hidden;border:0;border-radius:6px 6px 3px 3px;padding:42px 22px 26px;min-height:132px;align-content:start;gap:7px;color:#f1f1f4;
+  clip-path:polygon(0 14px,14px 0,calc(100% - 14px) 0,100% 14px,100% 100%,0 100%);
+  background:linear-gradient(var(--stripe),var(--stripe)) 12px 34px/calc(100% - 24px) 5px no-repeat,linear-gradient(var(--lab),var(--lab)) 12px 34px/calc(100% - 24px) calc(100% - 56px) no-repeat,linear-gradient(180deg,rgba(255,255,255,.22),rgba(255,255,255,0) 34%,rgba(0,0,0,.22)),var(--cart);
+  transition:transform .18s,filter .18s}
+.games-row .game::before{content:"";position:absolute;left:16px;right:16px;top:9px;height:14px;border-radius:2px;background:repeating-linear-gradient(90deg,var(--cartd) 0 3px,transparent 3px 8px);box-shadow:inset 0 1px 0 rgba(0,0,0,.25)}
+.games-row .game::after{content:"";position:absolute;left:20px;right:20px;bottom:0;height:9px;background:repeating-linear-gradient(90deg,var(--pins) 0 4px,#26262b 4px 7px);border-radius:2px 2px 0 0}
+.games-row .game .gname{color:#f6f6f8;min-height:2.4em}
+.games-row .game .gmeta{color:#a9abb4}
+.games-row .game .gbar{background:rgba(255,255,255,.14)}
+.games-row .game:hover{background:linear-gradient(var(--stripe),var(--stripe)) 12px 34px/calc(100% - 24px) 5px no-repeat,linear-gradient(#24252c,#24252c) 12px 34px/calc(100% - 24px) calc(100% - 56px) no-repeat,linear-gradient(180deg,rgba(255,255,255,.3),rgba(255,255,255,0) 34%,rgba(0,0,0,.22)),var(--cart);transform:translateY(-2px);border:0}
+.games-row .game[aria-pressed="true"]{transform:translateY(-5px);filter:brightness(1.1);border:0;box-shadow:none;
+  background:linear-gradient(var(--stripe),var(--stripe)) 12px 34px/calc(100% - 24px) 7px no-repeat,linear-gradient(#101116,#101116) 12px 34px/calc(100% - 24px) calc(100% - 56px) no-repeat,linear-gradient(180deg,rgba(255,255,255,.3),rgba(255,255,255,0) 34%,rgba(0,0,0,.2)),var(--cart)}
+.games-row .game[aria-pressed="true"] .gname{color:#fff}
+.games-row .game[aria-pressed="false"]{opacity:1;filter:saturate(.88) brightness(.94)}
+.games-row .game:focus-visible{outline:2px solid var(--acc-fill,#c8a24a);outline-offset:-3px}
+/* NES: a grey cart with cut top corners. Zelda's were gold */
+.games-row .game[data-plat="nes"]{--cart:#9b9ba0;--cartd:#74747a}
+.games-row .game[data-g="loz"],.games-row .game[data-g="z2"]{--cart:#d2ad4c;--cartd:#a9852c;--pins:#e8e2c8}
+/* SNES: lighter grey, a notch in the bottom edge */
+.games-row .game[data-plat="snes"]{--cart:#b3b3b8;--cartd:#8b8b92;clip-path:polygon(0 8px,8px 0,calc(100% - 8px) 0,100% 8px,100% 100%,66% 100%,66% calc(100% - 9px),34% calc(100% - 9px),34% 100%,0 100%);padding-bottom:30px}
+.games-row .game[data-plat="snes"]::after{display:none}
+/* N64: charcoal, with a lip at the bottom */
+.games-row .game[data-plat="n64"]{--cart:#55555d;--cartd:#3a3a41;clip-path:polygon(0 10px,10px 0,calc(100% - 10px) 0,100% 10px,100% 100%,70% 100%,70% calc(100% - 8px),30% calc(100% - 8px),30% 100%,0 100%);padding-bottom:30px}
+.games-row .game[data-plat="n64"]::after{display:none}
+.games-row .game[data-g="oot"]{--cart:#c9a640;--cartd:#9b7c22}
+/* Game Boy: a cart with its top-right corner cut off */
+.games-row .game[data-plat="gb"]{--cart:#b8b8bd;--cartd:#8f8f96;clip-path:polygon(0 0,calc(100% - 26px) 0,100% 26px,100% 100%,0 100%)}
+.games-row .game[data-plat="gb"]::before{right:34px}
+.games-row .game[data-plat="gbc"]{--cart:#2f7f8c;--cartd:#1f5964;clip-path:polygon(0 0,calc(100% - 26px) 0,100% 26px,100% 100%,0 100%)}
+.games-row .game[data-plat="gbc"]::before{right:34px}
+.games-row .game[data-plat="gba"]{--cart:#a9a9b1;--cartd:#80808a;clip-path:polygon(0 12px,12px 0,calc(100% - 4px) 0,100% 4px,100% 100%,0 100%)}
+/* PlayStation: a black disc case */
+.games-row .game[data-plat="ps"]{--cart:#17171c;--cartd:#2b2b33;--lab:#26272e;clip-path:none;border-radius:5px;padding:42px 22px 26px}
+.games-row .game[data-plat="ps"]::after{display:none}
+/* each game's own label colour */
+.games-row .game[data-g="loz"]{--stripe:#e8b923}.games-row .game[data-g="z2"]{--stripe:#d8502a}.games-row .game[data-g="alttp"]{--stripe:#3aa55d}
+.games-row .game[data-g="oot"]{--stripe:#2fa86a}.games-row .game[data-g="ladx"]{--stripe:#e0b040}.games-row .game[data-g="tmc"]{--stripe:#3aa84a}
+.games-row .game[data-g="pkmn"]{--stripe:#d83a3a}.games-row .game[data-g="pkgsc"]{--stripe:#d8c34a}.games-row .game[data-g="pkrse"]{--stripe:#c83a3a}
+.games-row .game[data-g="pkfrlg"]{--stripe:#e0562c}.games-row .game[data-g="gs"]{--stripe:#e0a030}.games-row .game[data-g="gstla"]{--stripe:#d06a28}.games-row .game[data-g="ac3"]{--stripe:#3a7bd5}
+@media (max-width:520px){ .games-row .game{padding:40px 16px 24px;min-height:120px} }
+@media (prefers-reduced-motion:reduce){ .games-row .game{transition:none} }
 </style>
 
 <div class="wrap">
@@ -11173,7 +11216,7 @@ function renderGames(){
   groups.forEach((list,f)=>{
     html += `<div class="games-row" role="tabpanel" id="fr-${list[0].id}" aria-label="${esc(f)}"${(f===frView || (frView===LORE_TAB && f===LORE_FR) || (frView===GSPW_TAB && f===GSPW_FR) || (frView===BOX_TAB && f===BOX_FR))?"":" hidden"}>` + list.map(g=>{
       const pct = g.all.length ? Math.round(g.checked.size/g.all.length*100) : 0;
-      return `<button type="button" class="game${g.playOnly ? " play-only-card" : ""}" data-g="${g.id}" aria-pressed="${g===G}">
+      return `<button type="button" class="game${g.playOnly ? " play-only-card" : ""}" data-g="${g.id}" data-plat="${({"NES":"nes","Super Nintendo":"snes","Nintendo 64":"n64","Game Boy":"gb","Game Boy Color":"gbc","Game Boy Advance":"gba","PlayStation":"ps"})[g.console] || "gen"}" aria-pressed="${g===G}">
       <span class="gname">${g.name}</span>
       <span class="gmeta"><span class="gdate">${g.year} · ${g.console}${g.importer?`<span class="save-ico" title="Save file import available" aria-label="Save file import available" role="img"><svg viewBox="0 0 16 16" aria-hidden="true"><path d="M2.5 2.5h9l2 2v9h-11z" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linejoin="round"/><path d="M5 2.5v3.5h5.5v-3.5M5 13.5v-4h6v4" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linejoin="round"/></svg></span>`:""}${g.emu?`<span class="play-ico" title="Playable in your browser" aria-label="Playable in your browser" role="img"><svg viewBox="0 0 16 16" aria-hidden="true"><path d="M4.5 4.5h7a3 3 0 0 1 3 3v1.2a2.3 2.3 0 0 1-4.1 1.4L9.6 9H6.4l-.8 1.1A2.3 2.3 0 0 1 1.5 8.7V7.5a3 3 0 0 1 3-3Z" fill="none" stroke="currentColor" stroke-width="1.4" stroke-linejoin="round"/><path d="M4.8 6.3v2M3.8 7.3h2" stroke="currentColor" stroke-width="1.3" stroke-linecap="round"/><circle cx="10.6" cy="6.8" r=".8" fill="currentColor"/><circle cx="12" cy="8.1" r=".8" fill="currentColor"/></svg></span>`:""}</span><span class="num">${g.checked.size}/${g.all.length} · ${pct}%</span></span>
       <span class="gbar"><span style="width:${pct}%"></span></span></button>`;
