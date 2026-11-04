@@ -9448,7 +9448,12 @@ const PLAYER = (function(){
     let resetArm = 0;
     el.reset.addEventListener("click", async ()=>{
       if(!machine || !romBytes) return;
-      if(machine.n64){ status("To reset Ocarina of Time, click the game screen and press Ctrl+R. Your saves are kept."); return; }
+      if(machine.n64){   // Ocarina of Time: start the game again from the title screen (a second press within 3 seconds confirms); saved games are kept
+        if(Date.now() > resetArm){ resetArm = Date.now() + 3000; el.reset.textContent = "Press again to reset"; setTimeout(()=>{ if(Date.now() >= resetArm) el.reset.textContent = "Reset"; }, 3050); return; }
+        resetArm = 0; el.reset.textContent = "Reset"; status("Restarting Ocarina of Time…");
+        try{ sessionStorage.setItem("triforce-resume", "oot"); }catch(e){}
+        setTimeout(()=>{ try{ location.reload(); }catch(e){} }, 400); return;
+      }
       if(Date.now() > resetArm){ resetArm = Date.now() + 3000; el.reset.textContent = "Press again to reset"; setTimeout(()=>{ if(Date.now() >= resetArm) el.reset.textContent = "Reset"; }, 3050); return; }
       resetArm = 0; el.reset.textContent = "Reset";
       const sram = machine.sram(), rec = sram && sram.length ? { sram, rtc: machine.rtc(), type: machine.saveType ? machine.saveType() : 0, t: Date.now() } : null;
