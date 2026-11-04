@@ -905,9 +905,9 @@ body.zmt-on #list,body.zmt-on .filters,body.zmt-on #fsStats,body.zmt-on #mapBox{
 .games-row .game .gname{color:#f6f6f8;min-height:2.4em}
 .games-row .game .gmeta{color:#a9abb4}
 .games-row .game .gbar{background:rgba(255,255,255,.14)}
-.games-row .game:hover{background:linear-gradient(var(--stripe),var(--stripe)) 12px 34px/calc(100% - 24px) 5px no-repeat,linear-gradient(#24252c,#24252c) 12px 34px/calc(100% - 24px) calc(100% - 56px) no-repeat,linear-gradient(180deg,rgba(255,255,255,.3),rgba(255,255,255,0) 34%,rgba(0,0,0,.22)),var(--cart);transform:translateY(-2px);border:0}
+.games-row .game:hover{background:linear-gradient(var(--stripe),var(--stripe)) 12px 34px/calc(100% - 24px) 5px no-repeat,linear-gradient(var(--labh,#24252c),var(--labh,#24252c)) 12px 34px/calc(100% - 24px) calc(100% - 56px) no-repeat,linear-gradient(180deg,rgba(255,255,255,.3),rgba(255,255,255,0) 34%,rgba(0,0,0,.22)),var(--cart);transform:translateY(-2px);border:0}
 .games-row .game[aria-pressed="true"]{transform:translateY(-5px);filter:brightness(1.1);border:0;box-shadow:none;
-  background:linear-gradient(var(--stripe),var(--stripe)) 12px 34px/calc(100% - 24px) 7px no-repeat,linear-gradient(#101116,#101116) 12px 34px/calc(100% - 24px) calc(100% - 56px) no-repeat,linear-gradient(180deg,rgba(255,255,255,.3),rgba(255,255,255,0) 34%,rgba(0,0,0,.2)),var(--cart)}
+  background:linear-gradient(var(--stripe),var(--stripe)) 12px 34px/calc(100% - 24px) 7px no-repeat,linear-gradient(var(--labp,#101116),var(--labp,#101116)) 12px 34px/calc(100% - 24px) calc(100% - 56px) no-repeat,linear-gradient(180deg,rgba(255,255,255,.3),rgba(255,255,255,0) 34%,rgba(0,0,0,.2)),var(--cart)}
 .games-row .game[aria-pressed="true"] .gname{color:#fff}
 .games-row .game[aria-pressed="false"]{opacity:1;filter:saturate(.88) brightness(.94)}
 .games-row .game:focus-visible{outline:2px solid var(--acc-fill,#c8a24a);outline-offset:-3px}
@@ -935,6 +935,18 @@ body.zmt-on #list,body.zmt-on .filters,body.zmt-on #fsStats,body.zmt-on #mapBox{
 .games-row .game[data-g="oot"]{--stripe:#2fa86a}.games-row .game[data-g="ladx"]{--stripe:#e0b040}.games-row .game[data-g="tmc"]{--stripe:#3aa84a}
 .games-row .game[data-g="pkmn"]{--stripe:#d83a3a}.games-row .game[data-g="pkgsc"]{--stripe:#d8c34a}.games-row .game[data-g="pkrse"]{--stripe:#c83a3a}
 .games-row .game[data-g="pkfrlg"]{--stripe:#e0562c}.games-row .game[data-g="gs"]{--stripe:#e0a030}.games-row .game[data-g="gstla"]{--stripe:#d06a28}.games-row .game[data-g="ac3"]{--stripe:#3a7bd5}
+
+/* every Zelda cart is gold; every Pokémon cart is red with a white label */
+.games-row .game[data-g="loz"],.games-row .game[data-g="z2"],.games-row .game[data-g="alttp"],.games-row .game[data-g="oot"],.games-row .game[data-g="ladx"],.games-row .game[data-g="tmc"]{--cart:#d2ad4c;--cartd:#a9852c;--pins:#e8e2c8}
+.games-row .game[data-g="pkmn"],.games-row .game[data-g="pkgsc"],.games-row .game[data-g="pkrse"],.games-row .game[data-g="pkfrlg"]{--cart:#c8312c;--cartd:#8c1c19;--pins:#f2f2f4;--lab:#f5f5f7;--labh:#ffffff;--labp:#ffffff;--stripe:#d62828;--ink-on:#1a1b20;--muted-on:#5a5c66}
+.games-row .game[data-box]{--cart:#c8312c;--cartd:#8c1c19;--pins:#f2f2f4;--lab:#f5f5f7;--labh:#ffffff;--labp:#ffffff;--stripe:#d62828}
+.games-row .game[data-box] .gname{color:#1a1b20}.games-row .game[data-box] .gmeta{color:#5a5c66}
+.games-row .game[data-g^="pk"] .gname{color:var(--ink-on)}
+.games-row .game[data-g^="pk"] .gmeta{color:var(--muted-on)}
+.games-row .game[data-g^="pk"] .gbar{background:rgba(0,0,0,.14)}
+.games-row .game[data-g^="pk"] .gbar span{background:#d62828}
+.games-row .game[data-g^="pk"][aria-pressed="true"] .gname{color:#000}
+.games-row .game[data-g^="pk"] .save-ico{color:#1c8a4a}.games-row .game[data-g^="pk"] .play-ico{color:#4a4fa8}
 @media (max-width:520px){ .games-row .game{padding:40px 16px 24px;min-height:120px} }
 @media (prefers-reduced-motion:reduce){ .games-row .game{transition:none} }
 </style>
