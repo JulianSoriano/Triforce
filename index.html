@@ -1069,7 +1069,7 @@ body.zmt-on #list,body.zmt-on .filters,body.zmt-on #fsStats,body.zmt-on #mapBox{
         <div class="zmt-scroll"><canvas id="zmtWorldCv" width="4096" height="1408" aria-label="The whole overworld, 16 screens across and 8 down"></canvas></div>
       </div>
       <div id="zmt-screen" hidden>
-        <div class="zmt-bar"><button type="button" class="btn" id="zmtPrev" aria-label="Previous screen">‹</button><label class="zmt-num">Screen $<input id="zmtScrNum" maxlength="2" value="77" inputmode="text" aria-label="Screen number in hex"></label><button type="button" class="btn" id="zmtNext" aria-label="Next screen">›</button><button type="button" class="btn quiet" id="zmtScrPng">Save as picture</button></div>
+        <div class="zmt-bar"><button type="button" class="btn" id="zmtPrev" aria-label="Previous screen">‹</button><label class="zmt-num">Screen $<input id="zmtScrNum" maxlength="2" value="77" inputmode="text" aria-label="Screen number in hex"></label><button type="button" class="btn" id="zmtNext" aria-label="Next screen">›</button><button type="button" class="btn quiet" id="zmtScrPng">Save as picture</button><button type="button" class="btn quiet" id="zmt3d" title="Leave the tool and highlight this screen on the 3D map">Show in 3D map</button></div>
         <canvas id="zmtScreenCv" class="zmt-screen" width="256" height="176" aria-label="One overworld screen"></canvas>
         <p class="zmt-info" id="zmtScrInfo"></p>
         <p class="zmt-note">The 16 columns this screen is built from, left to right (click one to look at it):</p>
@@ -11590,6 +11590,7 @@ const ZMT = (function(){
   function setZ(rom, name){
     try{ Z = new Zelda1Map(rom); }catch(e){ Z = null; $("zmtBody").hidden = true; $("zmtMsg").textContent = e.message || "Couldn't read that file."; return false; }
     worldCv = null; srcName = name || ""; $("zmtBody").hidden = false; $("zmtMsg").textContent = ""; $("zmtSrc").textContent = srcName ? "Reading: " + srcName : "";
+    try{ LOZ3D.apply(Z); }catch(e){}
     draw(); return true;
   }
   async function useRemembered(quiet){
@@ -11613,6 +11614,11 @@ const ZMT = (function(){
     $("zmtWorldCv").addEventListener("mousemove", e=>{ const r = e.target.getBoundingClientRect(), x = Math.floor((e.clientX - r.left) / r.width * 16), y = Math.floor((e.clientY - r.top) / r.height * 8), n = y * 16 + x; $("zmtHover").textContent = `Screen $${hex2(n)} (layout #${Z.layoutOf(n)}). Click to open it.`; });
     $("zmtWorldCv").addEventListener("click", e=>{ const r = e.target.getBoundingClientRect(), x = Math.floor((e.clientX - r.left) / r.width * 16), y = Math.floor((e.clientY - r.top) / r.height * 8); screenN = Math.max(0, Math.min(127, y * 16 + x)); mode = "screen"; draw(); });
     $("zmtWorldPng").addEventListener("click", ()=> Z && save(worldCanvas(), "zelda-overworld.png"));
+    $("zmt3d").addEventListener("click", ()=>{
+      const sc = String.fromCharCode(65 + screenN % 16) + (Math.floor(screenN / 16) + 1);
+      toggle(false); G.view.screen = sc; G.view.region = null; try{ saveView(G); }catch(e){}
+      render(); const m = document.getElementById("mapBox"); if(m) m.scrollIntoView({ behavior:"smooth", block:"start" });
+    });
     $("zmtScrPng").addEventListener("click", ()=> Z && save($("zmtScreenCv"), "zelda-screen-" + hex2(screenN) + ".png"));
     $("zmtPrev").addEventListener("click", ()=>{ screenN = (screenN + 127) % 128; drawScreen(); });
     $("zmtNext").addEventListener("click", ()=>{ screenN = (screenN + 1) % 128; drawScreen(); });
@@ -11633,6 +11639,69 @@ const ZMT = (function(){
   }
   return { isOn, toggle, sync };
 })();
+
+// ---------- Zelda 1: the 3D map built from the player's own ROM ----------
+// Every 8x8 cell of the 3D map gets a terrain class from the game's real tile and the screen's palette
+// (a=water b=white wall c=rock d=trees e=grey f=sand g=black doorway ...), and the ground picture is the game's own graphics.
+const LOZ_CLS = "------------------------------------------------------------------------------------------------------------------------------------------------g-gg----e-ff--------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------j-jjj-jj--ki--ki--aa--ff--ff--ff--ff--ff---f---f---f---f---f---f---f---f---f---f---a---f---a---a---a--ff--aa--aa--aa--ff--aa--aa--ff--aa--aa--aa--aa----e-ffb-kie-ffb-kie-ffb-kib-kib-kib-kib-kib-kib-kib-kig-ggb-kif-ki--ii--ki--ff--ff--ki--ki--ki--ff--ki--ki--ki--ki--ii--ki--ii--ki--ff--ffh---h---h---h---b-kib-kif-kif-kid-ddd-ddd-ddd-dd--ki--ki--ki--iie-ffb-kcb-kcb-kcb-kcb-kce-ffb-kcb-kce-ffb-kce-ffb-kcb-kcb-kcb-kcb-kcf-kcf-ffe-ffb-kib-kib-kib-ki------------------------------------------------------------g-gg------------------------------------------------";
+const LOZ_COL = [[44,74,200],[236,236,236],[176,82,30],[18,138,40],[128,128,138],[224,196,150],[24,18,24]];
+Zelda1Map.prototype.cell3d = function(){
+  const W = 512, H = 168, out = new Uint8Array(W * H), memo = {};
+  for(let n = 0; n < 128; n++){
+    const cols = this.screens[this.layoutOf(n)], sx = (n % 16) * 32, sy = Math.floor(n / 16) * 21;
+    for(let cx = 0; cx < 16; cx++){
+      const col = this.column(cols[cx]); if(!col) continue;
+      for(let by = 0; by < 11; by++){
+        const t = this.blockTiles(col.ids[by]);
+        for(let k = 0; k < 4; k++){
+          const r = by * 2 + (k & 1); if(r >= 21) continue;
+          const c = cx * 2 + (k >> 1), inner = c >= 4 && c < 28 && r >= 4 && r < 18, pal = inner ? this.palInner[n] : this.palOuter[n], tid = t[k];
+          let cls = tid < 256 ? LOZ_CLS.charCodeAt(tid * 4 + pal) - 97 : -1;
+          if(cls < 0 || cls > 10){
+            const key = tid * 4 + pal;
+            if(memo[key] === undefined){            // a tile the original game never uses (a hack): pick the nearest terrain colour
+              const tile = this.tiles[tid], pc = this.worldPal[pal], cnt = {}; let best = 0, bk = 0;
+              if(tile) for(let i = 0; i < 64; i++){ const v = tile[i]; cnt[v] = (cnt[v] || 0) + 1; }
+              for(const v in cnt){ if(+v === 0 && cnt[v] < 64) continue; if(cnt[v] > best){ best = cnt[v]; bk = +v; } }
+              const rgb = pc[bk]; let bd = 1e9, bc = 5;
+              LOZ_COL.forEach((q, i)=>{ const d = (q[0] - rgb[0]) ** 2 + (q[1] - rgb[1]) ** 2 + (q[2] - rgb[2]) ** 2; if(d < bd){ bd = d; bc = i; } });
+              memo[key] = bc;
+            }
+            cls = memo[key];
+          }
+          out[(sy + r) * W + sx + c] = cls;
+        }
+      }
+    }
+  }
+  return out;
+};
+/** the ground picture for the 3D map: every screen's top 168 rows (the part the game shows), 4096 x 1344 */
+Zelda1Map.prototype.tex3d = function(){
+  const c = document.createElement("canvas"); c.width = 4096; c.height = 1344; const x = c.getContext("2d");
+  for(let n = 0; n < 128; n++){ const px = this.screenPixels(n); x.putImageData(new ImageData(px.subarray(0, 256 * 168 * 4), 256, 168), (n % 16) * 256, Math.floor(n / 16) * 168); }
+  return c.toDataURL("image/png");
+};
+const LOZ3D = {
+  on: false, orig: null,
+  apply(Z){
+    const d = typeof MAP3D_DATA !== "undefined" && MAP3D_DATA.loz; if(!d) return false;
+    if(!this.orig) this.orig = { tex: d.tex, cellArr: d.cellArr };
+    d.cellArr = Z.cell3d(); d.tex = Z.tex3d(); this.on = true;
+    try{ MAP3D.invalidate(); if(G && G.id === "loz") renderMap(); }catch(e){}
+    return true;
+  },
+  reset(){
+    const d = MAP3D_DATA.loz; if(!d || !this.orig || !this.on) return;
+    d.tex = this.orig.tex; if(this.orig.cellArr) d.cellArr = this.orig.cellArr; else delete d.cellArr; this.on = false;
+    try{ MAP3D.invalidate(); if(G && G.id === "loz") renderMap(); }catch(e){}
+  },
+  /** use the Zelda ROM kept on this device, once, the first time the Zelda page opens */
+  async auto(){
+    if(this.tried) return; this.tried = true;
+    try{ const r = typeof PLAYER !== "undefined" ? await PLAYER.getRom("loz") : null; if(r){ const Z = new Zelda1Map(new Uint8Array(r)); this.apply(Z); } }catch(e){}
+  }
+};
 
 // ---------- tabs ----------
 const tabsEl = document.getElementById("tabs");
@@ -11758,6 +11827,7 @@ function layoutMap(map){
 }
 function renderMap(){
   mapBox.hidden = !G.map;
+  if(G.id === "loz" && typeof LOZ3D !== "undefined") LOZ3D.auto();
   if(G.map && G.view.region && !G.map.nodes.some(n=>n[0]===G.view.region)) G.view.region = null;
   regionChip.hidden = !G.view.region;
   if(!G.map){ G.view.region = null; G.view.screen = null; return; }
