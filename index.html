@@ -1021,7 +1021,7 @@ body.zmt-on #list,body.zmt-on .filters,body.zmt-on #fsStats,body.zmt-on #mapBox{
   <section class="fs-stats" id="fsStats" aria-label="Checklist and progress"></section>
   <section class="zmt" id="zmt" hidden aria-label="Zelda map tool">
     <div class="zmt-top">
-      <p class="zmt-note">Reads the world map straight out of your own Legend of Zelda ROM, or a hack of it such as Zelda Three Swords or one using the Zelda Expansion. Nothing is uploaded.</p>
+      <p class="zmt-note">Reads the world map straight out of your own Legend of Zelda ROM, or a hack of it such as Zelda Three Swords. Nothing is uploaded.</p>
       <div class="zmt-src"><button type="button" class="btn" id="zmtOpen">Choose a ROM (.nes)</button><button type="button" class="btn quiet" id="zmtUse">Use my remembered ROM</button><span id="zmtSrc" class="zmt-srcname"></span><input type="file" id="zmtFile" accept=".nes,.NES" hidden></div>
       <p class="zmt-msg" id="zmtMsg" role="status" aria-live="polite"></p>
     </div>
@@ -1056,8 +1056,8 @@ body.zmt-on #list,body.zmt-on .filters,body.zmt-on #fsStats,body.zmt-on #mapBox{
           <li>Pointers to the 16 column groups: <code>$19D1F</code> (the groups themselves start at about <code>$15BE8</code>)</li>
           <li>Dungeon rooms: <code>$160EE</code>, 12 bytes each; their column group pointers are at <code>$16714</code></li>
         </ul>
-        <h4>Tools and hacks mentioned</h4>
-        <p><b>Zelda Map Generator</b> is a graphical viewer for these tables, and this tab does the same job for the overworld. There is no graphical tool that can edit columns yet, so edits are made on the bytes directly. The <b>Zelda Expansion Hack</b> raises the limits: it frees up tiles, doubles the block numbers (up to 7F) by dropping the compression bit, adds 96 more columns and 4 more screens, and doubles the dungeon blocks to 16. When a ROM has it, this tab says so above.</p>
+        <h4>Tools</h4>
+        <p><b>Zelda Map Generator</b> is a graphical viewer for these tables, and this tab does the same job for the overworld. There is no graphical tool that can edit columns yet, so edits are made on the bytes directly.</p>
       </div>
     </details>
     <div id="zmtBody" hidden>
@@ -11531,12 +11531,10 @@ const ZMT = (function(){
     return worldCv = c;
   }
   function info(){
-    const ex = Z.tileExp;
-    const used = Z.usedColumns();
+        const used = Z.usedColumns();
     let free = 0; Z.groups.forEach((g, gi)=> g.forEach((c, i)=>{ if(!used[gi << 4 | i]) free++; }));
     const shared = new Set(), seen = {}; for(let n = 0; n < 128; n++){ const l = Z.layoutOf(n); if(seen[l] !== undefined) shared.add(n); seen[l] = n; }
-    return (ex ? `<b>Zelda Expansion hack found.</b> Room for ${Z.blockCount()} block types, 96 extra columns and ${Z.extraScreens} extra screen layouts. ` : `<b>Original game layout.</b> `) +
-      `${Z.screens.length} screen layouts for the 128 map squares (${shared.size} squares share a layout with another). ${free} columns are not used by any screen, so they are free to reuse. The start screen is $${hex2(Z.start)}.`;
+    return `<b>${Z.screens.length} screen layouts</b> for the 128 map squares (${shared.size} squares share a layout with another). ${free} columns are not used by any screen, so they are free to reuse. The start screen is $${hex2(Z.start)}.`;
   }
   function chips(items){ return items.map(s=> `<button type="button" class="zmt-chip" data-go="${s}">$${hex2(s)}</button>`).join(""); }
   function screensUsing(cid){ const r = []; for(let n = 0; n < 128; n++) if(Z.screens[Z.layoutOf(n)].includes(cid)) r.push(n); return r; }
