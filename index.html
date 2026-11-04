@@ -479,7 +479,9 @@ html .playarea.mapfs>.fs-stats{grid-template-columns:minmax(0,3.3fr) minmax(210p
 .pad-note{margin:0 0 8px;font-size:13px;color:var(--muted,inherit)}
 .pad-rows{display:grid;grid-template-columns:1fr auto auto;gap:6px 10px;align-items:center;font-size:14px}
 .pad-rows .cur{font-variant-numeric:tabular-nums;opacity:.8}
-.opt-panel{max-width:640px}
+.opt-panel{max-width:640px;max-height:70vh;overflow:auto}
+.opt-tools{display:flex;flex-wrap:wrap;gap:8px;align-items:center;margin:8px 0 4px}
+.opt-tools input{flex:1;min-width:160px;padding:7px 10px;border:1px solid var(--line);border-radius:8px;background:var(--ground);color:inherit;font:inherit}
 .opt-panel h4{margin:12px 0 4px;font-size:11px;letter-spacing:.08em;text-transform:uppercase;color:var(--muted)}
 .opt-panel label.opt{display:grid;grid-template-columns:auto 1fr;gap:0 10px;align-items:start;padding:6px 0;cursor:pointer}
 .opt-panel label.opt input{grid-row:1 / span 2;margin-top:3px}
@@ -895,7 +897,8 @@ h1{color:var(--ink);font-weight:650;letter-spacing:-.025em;line-height:1.1}
       <div class="pad-foot"><button type="button" class="btn" id="padReset">Back to the usual layout</button> <button type="button" class="btn" id="padClose">Done</button></div>
     </div>
     <div class="pad-panel opt-panel" id="optPanel" hidden>
-      <p class="pad-note">Pick the options you want. They take effect the next time the game starts.</p>
+      <p class="pad-note">Ship of Harkinian has its own menu with every setting, and it changes things while you play. <b>Open the game's menu</b> to use it (the F1 key does the same). The list below sets how the game starts: your picks are remembered and applied the next time it starts.</p>
+      <div class="opt-tools"><button type="button" class="btn" id="optMenu">Open the game's menu</button><input type="search" id="optFind" placeholder="Find an option" aria-label="Find an option"></div>
       <div id="optRows"></div>
       <div class="pad-foot"><button type="button" class="btn" id="optRestart" hidden>Restart to apply</button> <button type="button" class="btn" id="optClose">Done</button></div>
     </div>
@@ -6426,15 +6429,56 @@ const SOHRT = (function(){
     { g:"Time savers", k:["gEnhancements.FasterPauseMenu"], label:"Faster pause menu", note:"Menu pages slide in and out quicker." },
     { g:"Time savers", k:["gEnhancements.TimeSavers.SkipOwlInteractions", "gEnhancements.TimeSavers.SkipMiscInteractions"], label:"Skip owl and other small chats", note:"Kaepora Gaebora and similar short interruptions go by faster." },
     { g:"Time savers", k:["gEnhancements.FasterRupeeAccumulator"], label:"Rupees count up faster", note:"Picking up a big pile of rupees no longer makes you wait." },
+    { g:"Time savers", k:["gEnhancements.TimeSavers.SkipForcedDialog"], label:"Skip forced dialogue", note:"Conversations you can't walk away from go by faster." },
+    { g:"Time savers", k:["gEnhancements.TimeSavers.SkipCutscene.BossIntro"], label:"Skip boss introductions", note:"Go straight into the fight." },
+    { g:"Time savers", k:["gEnhancements.TimeSavers.SkipCutscene.Entrances"], label:"Skip entrance cutscenes", note:"Places like the Temple of Time and Death Mountain open without the scene." },
+    { g:"Time savers", k:["gEnhancements.TimeSavers.SkipCutscene.LearnSong"], label:"Skip song-learning cutscenes", note:"You still learn the song, just without the long scene." },
+    { g:"Time savers", k:["gEnhancements.TimeSavers.DisableTitleCard"], label:"Hide area title cards", note:"No name banner when you enter a new place." },
+    { g:"Time savers", k:["gEnhancements.TimeSavers.SkipTowerEscape"], label:"Skip Ganon's tower escape", note:"Skips the run down the collapsing tower." },
+    { g:"Time savers", k:["gEnhancements.FastOcarinaPlayback"], label:"Faster ocarina playback", note:"Songs you play back finish sooner." },
+    { g:"Time savers", k:["gEnhancements.InstantPutaway"], label:"Put items away instantly", note:"No waiting for Link to put an item back." },
+    { g:"Time savers", k:["gEnhancements.FastDrops"], label:"Faster item drops", note:"Rupees and hearts from enemies and pots pop out quicker." },
+    { g:"Time savers", k:["gEnhancements.FastBottles"], label:"Faster bottle actions", note:"Catching and emptying bottles takes less time." },
+    { g:"Time savers", k:["gEnhancements.SkipSaveConfirmation"], label:"Skip the save confirmation", note:"Saving goes by without the extra prompt." },
+    { g:"Time savers", k:["gEnhancements.FasterBlockPush"], label:"Push blocks faster", note:"Moves heavy blocks along at a quicker pace." },
+    { g:"Time savers", k:["gEnhancements.FasterHeavyBlockLift"], label:"Lift heavy blocks faster", note:"Cuts the slow lift animation." },
+    { g:"Time savers", k:["gEnhancements.NoForcedNavi"], label:"No forced Navi interruptions", note:"Navi stops pulling you into hint conversations." },
     { g:"Comfort", k:["gEnhancements.Autosave"], label:"Autosave", note:"Saves for you now and then, so a mistake never costs an hour." },
     { g:"Comfort", k:["gEnhancements.DpadEquips"], label:"D-pad swaps items", note:"Use the arrow pad to change the items you have equipped." },
     { g:"Comfort", k:["gEnhancements.EnemyHealthBar"], label:"Show enemy health bars", note:"A small bar over each enemy shows how hurt it is." },
     { g:"Comfort", k:["gEnhancements.BowReticle", "gEnhancements.BoomerangReticle"], label:"Aiming crosshair for the bow and boomerang", note:"Adds a sight so aiming is easier." },
     { g:"Comfort", k:["gEnhancements.FixCameraDrift"], label:"Steadier camera", note:"Stops the camera from slowly drifting on its own." },
     { g:"Comfort", k:["gEnhancements.DogFollowsEverywhere"], label:"The dog follows you everywhere", note:"Richard keeps trotting along after you, indoors and out." },
+    { g:"Comfort", k:["gEnhancements.AskToEquip"], label:"Ask to equip new items", note:"When you pick up gear, the game offers to equip it." },
+    { g:"Comfort", k:["gEnhancements.RememberMapToggleState"], label:"Remember the minimap setting", note:"The minimap stays how you left it." },
+    { g:"Comfort", k:["gEnhancements.RememberSaveLocation"], label:"Continue from where you saved", note:"Loading a save puts you back at the place you saved." },
+    { g:"Comfort", k:["gEnhancements.DisableBlackBars"], label:"Hide the black bars in scenes", note:"Removes the letterbox bars during cutscenes and some areas." },
+    { g:"Comfort", k:["gEnhancements.FileSelectMoreInfo"], label:"More details on the file select screen", note:"Shows extra progress info for each save." },
+    { g:"Comfort", k:["gEnhancements.DynamicWalletIcon"], label:"Wallet icon shows its size", note:"The rupee icon changes with your wallet." },
+    { g:"Comfort", k:["gEnhancements.AlwaysShowDungeonMinimapIcon"], label:"Always show your spot on dungeon maps", note:"The minimap marker stays visible." },
+    { g:"Comfort", k:["gEnhancements.BetterAmmoRendering"], label:"Better ammo display", note:"Clearer ammunition counts on screen." },
+    { g:"Comfort", k:["gEnhancements.NoHUDHeartAnimation"], label:"Hearts don't pulse", note:"Turns off the heart bounce on the screen." },
+    { g:"Comfort", k:["gEnhancements.SeparateArrows"], label:"Fire, ice and light arrows on their own buttons", note:"Each special arrow becomes its own item." },
+    { g:"Comfort", k:["gEnhancements.ShowDoorLocksOnBothSides"], label:"Show door locks on both sides", note:"Locked doors look locked from either side." },
+    { g:"Comfort", k:["gEnhancements.PauseAnyCursor"], label:"Pause menu cursor goes anywhere", note:"Move the cursor freely around the pause screen." },
+    { g:"Bug fixes", k:["gEnhancements.FixCameraSwing"], label:"Fix camera swing", note:"Stops the camera from swinging oddly while you move." },
+    { g:"Bug fixes", k:["gEnhancements.FixMenuLR"], label:"Fix menu shoulder buttons", note:"L and R page through the pause menu the way you expect." },
+    { g:"Bug fixes", k:["gEnhancements.FixFloorSwitches"], label:"Fix floor switches", note:"Switches react more reliably when stepped on." },
+    { g:"Bug fixes", k:["gEnhancements.FixVineFall"], label:"Fix falling off vines", note:"Stops Link slipping off climbing vines." },
+    { g:"Bug fixes", k:["gEnhancements.BushDropFix"], label:"Fix bush drops", note:"Bushes drop their items the way they should." },
+    { g:"Bug fixes", k:["gEnhancements.DekuNutUpgradeFix"], label:"Fix Deku nut upgrade", note:"Your nut capacity upgrade works properly." },
+    { g:"Bug fixes", k:["gEnhancements.BowSlingshotAmmoFix"], label:"Fix bow and slingshot ammo", note:"Ammo counts stay correct." },
+    { g:"Bug fixes", k:["gEnhancements.CrouchStabFix"], label:"Fix crouch stabs", note:"The crouching sword attack behaves correctly." },
     { g:"Assists", k:["gCheats.InfiniteHealth"], label:"Never run out of hearts", note:"Your hearts refill themselves. Handy for exploring, but it makes the game much easier." },
     { g:"Assists", k:["gCheats.InfiniteAmmo"], label:"Unlimited arrows, seeds and bombs", note:"Your ammunition never runs dry." },
-    { g:"Assists", k:["gCheats.InfiniteMoney"], label:"Unlimited rupees", note:"Your wallet stays full." }
+    { g:"Assists", k:["gCheats.InfiniteMoney"], label:"Unlimited rupees", note:"Your wallet stays full." },
+    { g:"Assists", k:["gCheats.InfiniteMagic"], label:"Unlimited magic", note:"Your magic meter never runs out." },
+    { g:"Assists", k:["gCheats.InfiniteNayru"], label:"Nayru's Love never ends", note:"The protective shield stays up." },
+    { g:"Assists", k:["gCheats.FireproofDekuShield"], label:"Fireproof Deku shield", note:"Your wooden shield no longer burns." },
+    { g:"Assists", k:["gCheats.NoRestrictItems"], label:"Use any item anywhere", note:"Removes the limits on where items work." },
+    { g:"Assists", k:["gCheats.MoonJumpOnL"], label:"Hold L to float upward", note:"A moon jump for exploring." },
+    { g:"Assists", k:["gCheats.NoClip"], label:"Walk through walls", note:"Lets you move through solid objects." },
+    { g:"Assists", k:["gCheats.FreezeTime"], label:"Freeze the time of day", note:"The sun stays where it is." }
   ];
   const OPT_KEY = "triforce-soh-opts";
   let optState = {}; try{ optState = JSON.parse(localStorage.getItem(OPT_KEY) || "{}") || {}; }catch(e){ optState = {}; }
@@ -6650,6 +6694,8 @@ const SOHRT = (function(){
     resume(){ wantPause = false; if(M && rtReady && !running && M._web_get_otr_status && M._web_get_otr_status()){ try{ M.resumeMainLoop(); }catch(e){} running = true; } resumeAudio(); try{ canvas && canvas.focus({ preventScroll:true }); }catch(e){} },
     alive(){ return !!M && !!booting; },
     module(){ return M; },
+    menu(){ try{ if(!canvas) return false; canvas.focus({ preventScroll:true }); const mk = t=> new KeyboardEvent(t, { key:"F1", code:"F1", keyCode:112, which:112, bubbles:true, cancelable:true });
+      canvas.dispatchEvent(mk("keydown")); setTimeout(()=>{ try{ canvas.dispatchEvent(mk("keyup")); }catch(e){} }, 80); return true; }catch(e){ return false; } },
     options:{ list: OPTS, on: optOn, set: optSet, needsRestart: ()=> optsAtBoot !== null && optsAtBoot !== optSig(), fs: ()=> FSx },
     pad:{ actions: ACTIONS, binding: act=> bindName(CUST[act]), set(act, c){ if(c) CUST[act] = c; else delete CUST[act]; saveCust(); }, reset(){ CUST = {}; saveCust(); }, listen: listenPad, connected: ()=>{ const p = padSnapshot(); return p ? (p.id || "controller").replace(/\s*\(.*$/, "").trim() : ""; } }
   };
@@ -6678,9 +6724,12 @@ const SOHRT = (function(){
     // game options
     const ob = $("playerOptBtn"), op = $("optPanel"), orows = $("optRows"), orestart = $("optRestart");
     if(ob && op){
+      const find = $("optFind");
       const drawOpts = ()=>{
         orows.textContent = ""; let grp = "";
+        const q = (find && find.value || "").trim().toLowerCase();
         SOHRT.options.list.forEach(o=>{
+          if(q && !(o.label + " " + o.note + " " + o.g).toLowerCase().includes(q)) return;
           if(o.g !== grp){ grp = o.g; const h = document.createElement("h4"); h.textContent = grp; orows.append(h); }
           const l = document.createElement("label"); l.className = "opt";
           const c = document.createElement("input"); c.type = "checkbox"; c.checked = SOHRT.options.on(o);
@@ -6691,6 +6740,8 @@ const SOHRT = (function(){
         orestart.hidden = !SOHRT.options.needsRestart();
       };
       ob.onclick = ()=>{ const open = op.hidden; op.hidden = !open; ob.setAttribute("aria-expanded", String(open)); if(open) drawOpts(); };
+      if(find) find.oninput = drawOpts;
+      $("optMenu").onclick = ()=>{ SOHRT.menu(); op.hidden = true; ob.setAttribute("aria-expanded", "false"); };
       $("optClose").onclick = ()=>{ op.hidden = true; ob.setAttribute("aria-expanded", "false"); };
       orestart.onclick = ()=>{ try{ location.reload(); }catch(e){} };
     }
