@@ -328,6 +328,7 @@ html .player[data-sys="n64"] .player-screen.fs .soh-canvas,html .playarea:fullsc
 .playarea:fullscreen>.player>:not(.player-screen){display:none}
 .fs-opt{display:none}
 .playarea:fullscreen>.player>.fs-opt.on{display:block;position:fixed;top:14px;left:14px;z-index:40;opacity:.5;transition:opacity .15s}
+.playarea:fullscreen>.player>#fsColBtn.on{left:148px}
 .playarea:fullscreen>.player>.fs-opt.on:hover,.playarea:fullscreen>.player>.fs-opt.on:focus-visible{opacity:1}
 .playarea:fullscreen>.player>#optPanel:not([hidden]){display:block;position:fixed;top:58px;left:14px;z-index:40;width:min(560px,calc(100vw - 28px));max-height:calc(100vh - 80px);overflow:auto;margin:0;box-shadow:0 12px 40px rgba(0,0,0,.5)}
 .playarea:fullscreen .player-screen{max-width:none;width:100%;height:100%;aspect-ratio:auto;border:0;border-radius:0;display:grid;place-items:center;background:transparent}
@@ -484,6 +485,17 @@ html .playarea.mapfs>.fs-stats{grid-template-columns:minmax(0,3.3fr) minmax(210p
 .pad-rows{display:grid;grid-template-columns:1fr auto auto;gap:6px 10px;align-items:center;font-size:14px}
 .pad-rows .cur{font-variant-numeric:tabular-nums;opacity:.8}
 .opt-panel{max-width:640px;max-height:70vh;overflow:auto}
+.opt-tabs{display:flex;gap:6px;margin:0 0 10px}
+.opt-tab[aria-pressed="true"]{background:var(--acc);color:#111;border-color:transparent}
+.col-row{padding:8px 0;border-top:1px solid var(--line)}
+.col-row:first-child{border-top:0}
+.col-head{display:flex;align-items:center;gap:10px;flex-wrap:wrap}
+.col-sw{width:30px;height:24px;border-radius:6px;border:1px solid var(--line);flex:none}
+.col-name{flex:1;min-width:140px}
+.col-hex{width:92px;padding:5px 8px;border:1px solid var(--line);border-radius:8px;background:var(--ground);color:inherit;font:inherit;font-family:ui-monospace,monospace}
+.col-pal{display:flex;flex-wrap:wrap;gap:5px;margin-top:7px}
+.col-pal button{width:24px;height:24px;border-radius:6px;border:1px solid rgba(255,255,255,.25);padding:0;cursor:pointer}
+.col-pal button:focus-visible{outline:2px solid var(--acc);outline-offset:1px}
 .opt-presets{display:flex;flex-wrap:wrap;gap:6px;margin:4px 0 2px}
 .opt-panel label.opt-color{grid-template-columns:auto 1fr auto}
 .opt-panel label.opt-color input[type=color]{grid-row:1 / span 2;width:34px;height:26px;padding:0;border:1px solid var(--line);border-radius:6px;background:none;margin-top:1px}
@@ -905,18 +917,22 @@ h1{color:var(--ink);font-weight:650;letter-spacing:-.025em;line-height:1.1}
       <div class="pad-foot"><button type="button" class="btn" id="padReset">Back to the usual layout</button> <button type="button" class="btn" id="padClose">Done</button></div>
     </div>
     <div class="pad-panel opt-panel" id="optPanel" hidden>
-      <p class="pad-note">Ship of Harkinian has its own menu with every setting, and it changes things while you play. <b>Open the game's menu</b> to use it (the Esc key does the same, but a full-screen browser takes Esc for itself, so use the button there). The list below sets how the game starts: your picks are remembered and applied the next time it starts.</p>
-      <div class="opt-tools"><button type="button" class="btn" id="optMenu">Open the game's menu</button><input type="search" id="optFind" placeholder="Find an option" aria-label="Find an option"></div>
+      <div class="opt-tabs" role="tablist"><button type="button" class="btn opt-tab" id="optTabOpts" role="tab" data-tab="opts">Options</button><button type="button" class="btn opt-tab" id="optTabCol" role="tab" data-tab="col">Colours</button></div>
+      <p class="pad-note" id="optNote">Ship of Harkinian has its own menu with every setting, and it changes things while you play. <b>Open the game's menu</b> to use it (the Esc key does the same, but a full-screen browser takes Esc for itself, so use the button there). The list below sets how the game starts: your picks are remembered and applied the next time it starts.</p>
+      <div class="opt-tools" id="optTools"><button type="button" class="btn" id="optMenu">Open the game's menu</button><input type="search" id="optFind" placeholder="Find an option" aria-label="Find an option"></div>
       <div id="optRows"></div>
+      <div id="optColors" hidden></div>
       <div class="pad-foot"><button type="button" class="btn" id="optRestart" hidden>Restart to apply</button> <button type="button" class="btn" id="optClose">Done</button></div>
     </div>
     <button type="button" class="btn fs-opt" id="fsOptBtn" aria-expanded="false" aria-controls="optPanel" title="Game options">Game options</button>
+    <button type="button" class="btn fs-opt" id="fsColBtn" aria-expanded="false" aria-controls="optPanel" title="Change colours">Colours</button>
     <div class="player-bar" id="playerBar" hidden>
       <button type="button" class="btn" id="playerPause" aria-pressed="false">Pause</button> <button type="button" class="btn" id="playerReset" title="Restart the game, like the console's reset button. In-game saves are kept.">Reset</button>
       <button type="button" class="btn" id="playerMute" aria-pressed="false">Sound on</button>
       <button type="button" class="btn" id="playerFull">Full screen</button>
       <button type="button" class="btn" id="playerPadBtn" hidden aria-expanded="false" aria-controls="padPanel" title="Choose which controller button does what">Controller</button>
       <button type="button" class="btn" id="playerOptBtn" hidden aria-expanded="false" aria-controls="optPanel" title="Turn game options on or off">Game options</button>
+      <button type="button" class="btn" id="playerColBtn" hidden aria-expanded="false" aria-controls="optPanel" title="Change Link's and the screen's colours">Colours</button>
       <button type="button" class="btn" id="player3dBtn" aria-pressed="false" hidden>3D shading</button>
       <button type="button" class="btn" id="playerLoadSave">Use a save file</button>
       <button type="button" class="btn" id="playerEdit" aria-expanded="false" aria-controls="saveEditor" hidden>Edit save</button>
@@ -6504,7 +6520,7 @@ const SOHRT = (function(){
     {"g": "Controls", "k": ["gSettings.Controls.InvertShieldAimingXAxis"], "label": "Invert left-right aiming with the shield", "note": "Flips sideways movement while holding the shield."},
     {"g": "Controls", "k": ["gSettings.Controls.InvertShieldAimingYAxis"], "label": "Invert up-down aiming with the shield", "note": "Flips vertical movement while holding the shield."},
     {"g": "Just for fun", "k": ["gEnhancements.MirroredWorld"], "label": "Mirrored world", "note": "The whole game is flipped left to right."},
-    {"g": "Just for fun", "k": ["gRandomizedEnemies"], "label": "Randomized enemies", "note": "Enemies show up as different monsters than usual."},
+    {"g": "Just for fun", "k": ["gEnhancements.RandomizedEnemies"], "label": "Randomized enemies", "note": "Enemies show up as different monsters than usual."},
     {"g": "Just for fun", "k": ["gEnhancements.IvanCoopModeEnabled"], "label": "Co-op: a second player controls Ivan", "note": "A fairy sidekick that a second controller can steer."},
     {"g": "Just for fun", "k": ["gCheats.SaveStatesEnabled"], "label": "Quick save and quick load", "note": "Press F5 to snapshot the game and F7 to jump back to it (F6 changes slot)."},
     {"g": "Look", "k": ["gCosmetics.Link.KokiriTunic"], "label": "Kokiri tunic", "note": "Pick a colour.", "t": "color", "d": "#1e691b"},
@@ -6548,7 +6564,7 @@ const SOHRT = (function(){
       const v = optGet(o);
       if(o.t === "color"){ const c = hex(v); if(c){ const b = o.k[0]; put(root.CVars, b + ".Value.R", c[0]); put(root.CVars, b + ".Value.G", c[1]); put(root.CVars, b + ".Value.B", c[2]); put(root.CVars, b + ".Value.A", 255); put(root.CVars, b + ".Changed", 1); put(root.CVars, b + ".Rainbow", 0); } }
       else if(o.t === "num" || o.t === "pick"){ if(v !== undefined) for(const k of o.k) put(root.CVars, k, v); }
-      else if(v) for(const k of o.k) put(root.CVars, k, 1);
+      else for(const k of o.k) put(root.CVars, k, v ? 1 : 0);
     }
     return root;
   }
@@ -6787,6 +6803,36 @@ const SOHRT = (function(){
     const ob = $("playerOptBtn"), op = $("optPanel"), orows = $("optRows"), orestart = $("optRestart");
     if(ob && op){
       const find = $("optFind");
+      const PAL = ["#ff0000","#ff7a00","#ffd000","#9be000","#00b84a","#00c8c8","#0080ff","#3030ff","#8a2be2","#ff40c0","#ffffff","#b0b0b0","#606060","#000000","#8b4513","#f5deb3"];
+      let tab = "opts";
+      const drawColors = ()=>{
+        const box = $("optColors"); box.textContent = "";
+        const refresh = ()=>{ orestart.hidden = !SOHRT.options.needsRestart(); };
+        SOHRT.options.list.filter(o=>o.t === "color").forEach(o=>{
+          const row = document.createElement("div"); row.className = "col-row";
+          const head = document.createElement("div"); head.className = "col-head";
+          const sw = document.createElement("span"); sw.className = "col-sw";
+          const nm = document.createElement("span"); nm.className = "col-name"; nm.textContent = o.label;
+          const hx = document.createElement("input"); hx.type = "text"; hx.className = "col-hex"; hx.maxLength = 7; hx.setAttribute("aria-label", o.label + " colour code"); hx.spellcheck = false;
+          const rs = document.createElement("button"); rs.type = "button"; rs.className = "btn quiet"; rs.textContent = "Reset";
+          const show = ()=>{ const cur = SOHRT.options.get(o); sw.style.background = cur || o.d; hx.value = cur || o.d; rs.hidden = !cur; };
+          const setc = v=>{ SOHRT.options.set(o, v); show(); refresh(); };
+          hx.oninput = ()=>{ let v = hx.value.trim(); if(v && v[0] !== "#") v = "#" + v; if(/^#[0-9a-f]{6}$/i.test(v)) setc(v.toLowerCase()); };
+          hx.onblur = show;
+          rs.onclick = ()=> setc(null);
+          head.append(sw, nm, hx, rs);
+          const pal = document.createElement("div"); pal.className = "col-pal";
+          PAL.forEach(c=>{ const b = document.createElement("button"); b.type = "button"; b.style.background = c; b.title = c; b.setAttribute("aria-label", "Use " + c); b.onclick = ()=> setc(c); pal.append(b); });
+          row.append(head, pal); box.append(row); show();
+        });
+        refresh();
+      };
+      const setTab = t=>{
+        tab = t; const col = t === "col";
+        $("optColors").hidden = !col; orows.hidden = col; $("optTools").hidden = col; $("optNote").hidden = col;
+        $("optTabOpts").setAttribute("aria-pressed", String(!col)); $("optTabCol").setAttribute("aria-pressed", String(col));
+        if(col) drawColors(); else drawOpts();
+      };
       const drawOpts = ()=>{
         orows.textContent = ""; let grp = "";
         const q = (find && find.value || "").trim().toLowerCase();
@@ -6798,6 +6844,7 @@ const SOHRT = (function(){
           orows.append(bar);
         }
         SOHRT.options.list.forEach(o=>{
+          if(o.t === "color") return;
           if(q && !(o.label + " " + o.note + " " + o.g).toLowerCase().includes(q)) return;
           if(o.g !== grp){ grp = o.g; const h = document.createElement("h4"); h.textContent = grp; orows.append(h); }
           const l = document.createElement("label"); l.className = "opt";
@@ -6817,18 +6864,24 @@ const SOHRT = (function(){
         });
         refresh();
       };
-      const fob = $("fsOptBtn");
-      ob.onclick = ()=>{ const open = op.hidden; op.hidden = !open; ob.setAttribute("aria-expanded", String(open)); if(fob) fob.setAttribute("aria-expanded", String(open)); if(open) drawOpts(); };
+      const fob = $("fsOptBtn"), cb = $("playerColBtn"), fcb = $("fsColBtn");
+      const flags = ()=>{ const o = !op.hidden; [[ob, fob, "opts"], [cb, fcb, "col"]].forEach(([a, b, t])=>{ const on = o && tab === t; if(a) a.setAttribute("aria-expanded", String(on)); if(b) b.setAttribute("aria-expanded", String(on)); }); };
+      const toggleTab = t=>{ if(!op.hidden && tab === t){ op.hidden = true; } else { op.hidden = false; setTab(t); } flags(); };
+      ob.onclick = ()=> toggleTab("opts");
       if(fob) fob.onclick = ob.onclick;
+      if(cb) cb.onclick = ()=> toggleTab("col");
+      if(fcb) fcb.onclick = cb.onclick;
+      $("optTabOpts").onclick = ()=>{ setTab("opts"); flags(); };
+      $("optTabCol").onclick = ()=>{ setTab("col"); flags(); };
       if(find) find.oninput = drawOpts;
-      $("optMenu").onclick = ()=>{ SOHRT.menu(); op.hidden = true; ob.setAttribute("aria-expanded", "false"); };
-      $("optClose").onclick = ()=>{ op.hidden = true; ob.setAttribute("aria-expanded", "false"); };
-      orestart.onclick = ()=>{ try{ location.reload(); }catch(e){} };
+      $("optMenu").onclick = ()=>{ SOHRT.menu(); op.hidden = true; flags(); };
+      $("optClose").onclick = ()=>{ op.hidden = true; flags(); };
+      orestart.onclick = ()=>{ try{ sessionStorage.setItem("triforce-resume", "oot"); }catch(e){} try{ location.reload(); }catch(e){} };
     }
     btn.onclick = ()=>{ const open = panel.hidden; panel.hidden = !open; btn.setAttribute("aria-expanded", String(open)); if(open) draw(); else cancel(); };
     $("padClose").onclick = ()=>{ cancel(); panel.hidden = true; btn.setAttribute("aria-expanded", "false"); };
     $("padReset").onclick = ()=>{ cancel(); SOHRT.pad.reset(); draw(); };
-    setInterval(()=>{ const on = SOHRT.alive() || SOHRT.started(); if(btn.hidden === on) btn.hidden = !on; if(ob && ob.hidden === on) ob.hidden = !on; { const fb = $("fsOptBtn"); if(fb) fb.classList.toggle("on", on); } if(ob && !on && op && !op.hidden) op.hidden = true; if(!on && !panel.hidden){ cancel(); panel.hidden = true; } }, 800);
+    setInterval(()=>{ const on = SOHRT.alive() || SOHRT.started(); if(btn.hidden === on) btn.hidden = !on; if(ob && ob.hidden === on) ob.hidden = !on; { const fb = $("fsOptBtn"), fc = $("fsColBtn"), pc = $("playerColBtn"); if(fb) fb.classList.toggle("on", on); if(fc) fc.classList.toggle("on", on); if(pc && pc.hidden === on) pc.hidden = !on; } if(ob && !on && op && !op.hidden) op.hidden = true; if(!on && !panel.hidden){ cancel(); panel.hidden = true; } }, 800);
     return true;
   }
   if(document.readyState === "loading") document.addEventListener("DOMContentLoaded", wire); else wire();
@@ -11716,7 +11769,14 @@ window.addEventListener("message", async ev=>{
   if(tg && tg.getAttribute("aria-expanded") !== "true") tg.click();
   PLAYER.loadFile(new File([m.bytes], m.name || "game.rom"));
 });
-try{ showFranchise(HOME_TAB); const br = document.querySelector(".brand"); if(br){ br.style.cursor = "pointer"; br.setAttribute("role", "link"); br.tabIndex = 0; br.addEventListener("click", ()=> showFranchise(HOME_TAB)); br.addEventListener("keydown", e=>{ if(e.key === "Enter") showFranchise(HOME_TAB); }); } }catch(e){}
+try{ showFranchise(HOME_TAB); }catch(e){}
+try{
+  // After "Restart to apply" the page comes back on the game it was showing, and starts it again if the ROM is remembered.
+  const rid = sessionStorage.getItem("triforce-resume"); sessionStorage.removeItem("triforce-resume");
+  const rg = rid && GBY[rid];
+  if(rg){ switchGame(rg); showFranchise(rg.franchise); setTimeout(()=>{ try{ const t = document.getElementById("playerToggle"); if(t && !t.hidden) t.click(); }catch(e){} }, 500); }
+}catch(e){}
+try{ const br = document.querySelector(".brand"); if(br){ br.style.cursor = "pointer"; br.setAttribute("role", "link"); br.tabIndex = 0; br.addEventListener("click", ()=> showFranchise(HOME_TAB)); br.addEventListener("keydown", e=>{ if(e.key === "Enter") showFranchise(HOME_TAB); }); } }catch(e){}
 // The 3D map follows Link while the game runs (the player reads his screen and position from the console; each game turns that into a spot on its own map).
 const POS_TO_CELL = {
   loz:d=>({ x:(d.room & 15) * 32 + Math.min(31.9, d.x / 8 + 1), y:(d.room >> 4) * 21 + Math.max(0.2, Math.min(20.6, (d.y - 56) / 8)), room:d.room }),
