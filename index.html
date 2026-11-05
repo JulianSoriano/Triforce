@@ -6844,11 +6844,13 @@ const SOHRT = (function(){
   function optPreset(p){ const on = new Set(p.on()); for(const o of OPTS) if(!o.t) optState[o.k[0]] = on.has(o.k[0]) ? 1 : 0; optSave(); }
   const hex = h=> { const m = /^#?([0-9a-f]{6})$/i.exec(h || ""); if(!m) return null; const n = parseInt(m[1], 16); return [(n >> 16) & 255, (n >> 8) & 255, n & 255]; };
   function put(root, key, val){ const parts = key.split("."); let n = root; parts.forEach((p, i)=>{ if(i === parts.length - 1) n[p] = val; else n = n[p] = (n[p] && typeof n[p] === "object") ? n[p] : {}; }); }
+  // this engine version names a colour "gCosmetics.Group_Name" (the older "Group.Name" spelling is only migrated from, so it is ignored)
+  const cosKey = k=> k.replace(/^gCosmetics\.([A-Za-z]+)\./, (m, g)=> "gCosmetics." + (g === "HUD" ? "Hud" : g) + "_");
   function optConfig(){
-    const root = { CVars: {} };
+    const root = { ConfigVersion: 6, CVars: {} };
     for(const o of OPTS){
       const v = optGet(o);
-      if(o.t === "color"){ const c = hex(v); if(c){ const b = o.k[0]; put(root.CVars, b + ".Value.R", c[0]); put(root.CVars, b + ".Value.G", c[1]); put(root.CVars, b + ".Value.B", c[2]); put(root.CVars, b + ".Value.A", 255); put(root.CVars, b + ".Changed", 1); put(root.CVars, b + ".Rainbow", 0); } }
+      if(o.t === "color"){ const c = hex(v); if(c){ const b = cosKey(o.k[0]); put(root.CVars, b + ".Value.R", c[0]); put(root.CVars, b + ".Value.G", c[1]); put(root.CVars, b + ".Value.B", c[2]); put(root.CVars, b + ".Value.A", 255); put(root.CVars, b + ".Value.Type", "Color"); put(root.CVars, b + ".Changed", 1); put(root.CVars, b + ".Rainbow", 0); } }
       else if(o.t === "num" || o.t === "pick"){ if(v !== undefined) for(const k of o.k) put(root.CVars, k, v); }
       else for(const k of o.k) put(root.CVars, k, v ? 1 : 0);
     }
