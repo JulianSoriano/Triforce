@@ -307,6 +307,9 @@ details.rt p b{color:var(--hud);font-weight:600}
 .hdetail button.chip:hover{border-color:var(--hud)}
 .hdetail .chip.root{cursor:default;color:var(--muted);border-style:dashed}
 .hdetail .chip.dlc{border-color:var(--dlc)}
+.playbox{display:flex;gap:12px;align-items:center;justify-content:space-between;padding:10px 12px;border:1px solid var(--hud);border-radius:6px;background:rgba(80,160,255,.08)}
+.playbox b{display:block;font-family:var(--mono);font-size:12px;letter-spacing:.08em;color:var(--hud)}.playbox span{display:block;font-size:12.5px;opacity:.85;margin-top:2px}
+.playbox button{flex:none;font-family:var(--mono);font-size:11px;letter-spacing:.08em;padding:8px 10px;border:1px solid var(--hud);background:none;color:var(--hud);cursor:pointer;border-radius:4px}.playbox button:hover{background:var(--hud);color:#04101c}
 </style>
 
 </head>
@@ -1858,6 +1861,7 @@ function renderDossier(){
     const ids=Object.keys(g.roles);
     dos.innerHTML=`<div><div class="eyebrow">${g.year} · ${g.war}</div><h2>${g.title}</h2></div>
       ${g.player||g.cast?`<dl class="facts">${g.player?`<dt>PLAYER</dt><dd>${g.player}</dd>`:""}${(g.cast||[]).map(([k,v])=>`<dt>${k}</dt><dd>${v}</dd>`).join("")}</dl>`:""}
+      ${g.id==="ac3"&&window.parent!==window?`<div class="playbox"><div><b>Play it and track it</b><span>Run the game from your own discs and tick off the story paths you have cleared, right under this briefing.</span></div><button type="button" id="playac3">PLAY &amp; CHECKLIST ▾</button></div>`:""}
       <p>${g.summary}</p>
       ${g.beats?`<div><div class="eyebrow" style="margin-bottom:6px">Course of the war</div><ol class="beats">${g.beats.map(b=>`<li>${b}</li>`).join("")}</ol></div>`:""}
       ${g.factions?`<div><div class="eyebrow" style="margin-bottom:6px">Factions</div><div class="acc">${g.factions.map(f=>`<details class="rt"><summary><b>${f.n}</b><span>${f.tag}</span></summary><p>${f.t}</p></details>`).join("")}</div></div>`:""}
@@ -1874,13 +1878,14 @@ function renderDossier(){
       <div><div class="eyebrow" style="margin-bottom:6px">Key locations · tap to locate</div><div class="chips">${LANDMARKS.map(l=>`<button type="button" class="chip" data-lm="${l.id}">${l.name.toUpperCase()}</button>`).join("")}</div></div>
       <p class="note">Laid out after the official world map from Ace Combat 8, drawn in a simplified tile style.</p>`;
   }
+  const pa=document.getElementById("playac3");if(pa)pa.onclick=()=>window.parent.postMessage({t:"lore-scroll"},"*");
   dos.querySelectorAll("[data-c]").forEach(b=>b.onclick=()=>selectCountry(b.dataset.c));
   dos.querySelectorAll("[data-lm]").forEach(b=>b.onclick=()=>selectLandmark(b.dataset.lm));
   dos.querySelectorAll("[data-gm]").forEach(b=>b.onclick=()=>selectGame(b.dataset.gm));
   dos.parentElement.scrollTop=0;
 }
 
-function selectGame(id){selGame=id;selCountry=null;selLandmark=null;renderMissions();renderDossier();updateReadouts();applyScene();
+function selectGame(id){try{if(window.parent!==window)window.parent.postMessage({t:"lore-game",id:id},"*")}catch(e){}selGame=id;selCountry=null;selLandmark=null;renderMissions();renderDossier();updateReadouts();applyScene();
   if(id){const ids=Object.keys(gameById[id].roles);const pts=ids.map(i=>COUNTRIES[i].pos);flyTo(pts.reduce((a,p)=>a+p[0],0)/pts.length,pts.reduce((a,p)=>a+p[1],0)/pts.length,ids.length>1?95:70)}
   else flyTo(0,2,175);}
 let selLandmark=null;

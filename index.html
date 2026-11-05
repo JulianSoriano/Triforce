@@ -616,7 +616,11 @@ html.playing .tab-guide{display:none}
 .home-foot{margin:28px 0 8px;color:var(--muted);font-size:13px;line-height:1.55}
 @media (max-width:640px){ .home-hero{padding:24px 18px} .home-guide{grid-template-columns:1fr} }
 
-html.lore-mode .wrap>header,html.lore-mode .wrap>.hud,html.lore-mode #playArea,html.lore-mode .wrap>.foot,html.lore-mode #importRow,html.lore-mode #missionTree,html.lore-mode #list,html.lore-mode #xfer{display:none!important}
+html.lore-mode #list,html.lore-mode #xfer{display:none!important}
+html.lore-mode:not(.lore-ac3) .wrap>header,html.lore-mode:not(.lore-ac3) .wrap>.hud,html.lore-mode:not(.lore-ac3) #importRow,html.lore-mode:not(.lore-ac3) .wrap>.bkbar,html.lore-mode:not(.lore-ac3) #playArea,html.lore-mode:not(.lore-ac3) .wrap>.foot,html.lore-mode:not(.lore-ac3) #missionTree{display:none!important}
+/* Ace Combat 3 sits under its mission briefing in the Strangereal Map */
+html.lore-ac3 .wrap{display:flex;flex-direction:column}
+html.lore-ac3 #lore{order:1}html.lore-ac3 .wrap>header{order:2;margin-top:22px}html.lore-ac3 .wrap>.hud{order:3}html.lore-ac3 #playArea{order:4}html.lore-ac3 #missionTree{order:5}html.lore-ac3 .wrap>.bkbar{order:6}html.lore-ac3 .wrap>.foot{order:7}
 html.lore-mode.playing .wrap{max-width:var(--shell)}
 .lore{margin-top:10px}
 .lore[hidden]{display:none}
@@ -1227,7 +1231,7 @@ body.zmt-on #list,body.zmt-on .filters,body.zmt-on #fsStats,body.zmt-on #mapBox{
       <details><summary>Ace Combat 3</summary><div class="g-body">
         <p>This plays the Japanese version, which has the full story, with the English fan translation built in. You need your own discs as <kbd>.bin</kbd> files: Ace Combat 3: Electrosphere (Japan) Rev 1, disc 1 and disc 2.</p>
         <p>The first start takes a minute while it builds the English discs; after that it's quick. If something's wrong, <b>Your discs</b> shows which version you loaded.</p>
-        <p>The checklist is a tree of the story's mission paths. <b>Ace Combat Lore</b>, in the Ace Combat tab, opens the Strangereal Map.</p>
+        <p>The checklist is a tree of the story's mission paths. It sits under the Ace Combat 3 mission briefing in the Strangereal Map, which is the Ace Combat tab.</p>
       </div></details>
     </div>
     <div data-guide="Golden Sun">
@@ -11265,7 +11269,8 @@ const GSPW_FR = "Golden Sun";
 const EMU_TAB = "__emu";   // Emulators: the all-in-one retro player
 const HACKS_TAB = "__hacks";   // ROM Hacks: my hacks and their links
 const GSPW_TAB = "__gspw";   // Golden Sun Password Generator
-const LORE_TAB = "__lore";   // Ace Combat Lore: the Strangereal Map page
+const LORE_TAB = "__lore";   // Ace Combat: the Strangereal Map is its main page
+let ac3Panel = false;   // true while the map shows the Ace Combat 3 mission briefing: the player and checklist then sit below the map
 const BOX_FR = "Pokémon";
 const BOX_TAB = "__box";   // the Pokémon Box tab: moving Pokémon between the Pokémon saves
 function renderGames(){
@@ -11285,7 +11290,7 @@ function renderGames(){
   tabs += `</div>`;
   let html = "";
   groups.forEach((list,f)=>{
-    html += `<div class="games-row" role="tabpanel" id="fr-${list[0].id}" aria-label="${esc(f)}"${(f===frView || (frView===LORE_TAB && f===LORE_FR) || (frView===GSPW_TAB && f===GSPW_FR) || (frView===BOX_TAB && f===BOX_FR))?"":" hidden"}>` + list.map(g=>{
+    html += `<div class="games-row" role="tabpanel" id="fr-${list[0].id}" aria-label="${esc(f)}"${(f!==LORE_FR && (f===frView || (frView===GSPW_TAB && f===GSPW_FR) || (frView===BOX_TAB && f===BOX_FR)))?"":" hidden"}>` + list.map(g=>{
       const pct = g.all.length ? Math.round(g.checked.size/g.all.length*100) : 0;
       return `<button type="button" class="game${g.playOnly ? " play-only-card" : ""}" data-g="${g.id}" data-plat="${({"NES":"nes","Super Nintendo":"snes","Nintendo 64":"n64","Game Boy":"gb","Game Boy Color":"gbc","Game Boy Advance":"gba","PlayStation":"ps"})[g.console] || "gen"}" aria-pressed="${g===G}">
       <span class="gname">${g.name}</span>
@@ -11296,6 +11301,8 @@ function renderGames(){
   gamesEl.innerHTML = tabs + html;
 }
 function showFranchise(f, focus){
+  if(f === LORE_FR) f = LORE_TAB;   // Ace Combat opens on the Strangereal Map
+  if(f !== LORE_TAB) ac3Panel = false;
   if(frView === BOX_TAB && f !== BOX_TAB && typeof PLAYER !== "undefined" && PLAYER.box && !PLAYER.box.close()) return;
   const wasBox = frView === BOX_TAB, fromHome = frView === HOME_TAB;
   frView = f; renderGames();
@@ -11306,11 +11313,12 @@ function showFranchise(f, focus){
   else if(fromHome && FRANCHISES.includes(f) && G.franchise !== f) root.classList.add("pick-mode");
   else if(FRANCHISES.includes(f) && G.franchise === f) root.classList.remove("pick-mode");
   document.documentElement.classList.toggle("box-mode", f === BOX_TAB);
+  document.documentElement.classList.toggle("lore-ac3", f === LORE_TAB && ac3Panel);
   document.documentElement.classList.toggle("lore-mode", f === LORE_TAB || f === GSPW_TAB || f === EMU_TAB || f === HACKS_TAB);
   const loreEl = document.getElementById("lore"); loreEl.hidden = f !== LORE_TAB;
   if(f === LORE_TAB){ const fr = document.getElementById("loreFrame"); if(!fr.getAttribute("srcdoc")) EMB.text("lore").then(t=>{ fr.srcdoc = t; }); }
   document.getElementById("hacks").hidden = f !== HACKS_TAB;
-  { const gk = FRANCHISES.includes(f) ? f : f === EMU_TAB ? "emu" : "";
+  { const gk = FRANCHISES.includes(f) ? f : f === EMU_TAB ? "emu" : (f === LORE_TAB && ac3Panel) ? LORE_FR : "";
     const src = gk && document.querySelector('#guideBank [data-guide="'+gk+'"] .g-body');
     for(const [id, on] of [["tabGuide", gk && gk !== "emu"], ["emuGuide", gk === "emu"]]){
       const el = document.getElementById(id); el.innerHTML = src && on ? src.innerHTML : ""; el.hidden = !(src && on); } }
@@ -11321,6 +11329,17 @@ function showFranchise(f, focus){
   if(f === BOX_TAB && !wasBox && typeof PLAYER !== "undefined" && PLAYER.box) PLAYER.box.open();
   if(focus){ const t = gamesEl.querySelector(`.fr-tab[aria-selected="true"]`); if(t) t.focus(); }
 }
+// The Strangereal Map tells us which operation is open; for Ace Combat 3 the player and the story-path checklist appear under it.
+function showAc3Panel(on){
+  if(on && GBY.ac3 && G !== GBY.ac3) switchGame(GBY.ac3);
+  ac3Panel = !!on; showFranchise(LORE_TAB);
+}
+window.addEventListener("message", ev=>{
+  const fr = document.getElementById("loreFrame"), m = ev.data;
+  if(!fr || ev.source !== fr.contentWindow || !m) return;
+  if(m.t === "lore-game") showAc3Panel(m.id === "ac3");
+  else if(m.t === "lore-scroll"){ showAc3Panel(true); const t = document.getElementById("gameTitle"); if(t) t.scrollIntoView({ behavior:"smooth", block:"start" }); }
+});
 gamesEl.addEventListener("click",e=>{
   const t = e.target.closest(".fr-tab"); if(t){
     const f = t.dataset.fr; showFranchise(f);
@@ -12745,6 +12764,7 @@ window.addEventListener("message", async ev=>{
   try{ fr.contentWindow.postMessage({ t:"emu-rom-ack", id:m.id, taken:!!g }, "*"); }catch(e){}
   if(!g) return;
   if(g !== G) switchGame(g);
+  if(g.id === "ac3") ac3Panel = true;
   showFranchise(g.franchise);
   const tg = document.getElementById("playerToggle");
   if(tg && tg.getAttribute("aria-expanded") !== "true") tg.click();
@@ -12755,7 +12775,7 @@ try{
   // After "Restart to apply" the page comes back on the game it was showing, and starts it again if the ROM is remembered.
   const rid = sessionStorage.getItem("triforce-resume"); sessionStorage.removeItem("triforce-resume");
   const rg = rid && GBY[rid];
-  if(rg){ switchGame(rg); showFranchise(rg.franchise); setTimeout(()=>{ try{ const t = document.getElementById("playerToggle"); if(t && !t.hidden) t.click(); }catch(e){} }, 500); }
+  if(rg){ switchGame(rg); if(rg.id === "ac3") ac3Panel = true; showFranchise(rg.franchise); setTimeout(()=>{ try{ const t = document.getElementById("playerToggle"); if(t && !t.hidden) t.click(); }catch(e){} }, 500); }
 }catch(e){}
 try{ const br = document.querySelector(".brand"); if(br){ br.style.cursor = "pointer"; br.setAttribute("role", "link"); br.tabIndex = 0; br.addEventListener("click", ()=> showFranchise(HOME_TAB)); br.addEventListener("keydown", e=>{ if(e.key === "Enter") showFranchise(HOME_TAB); }); } }catch(e){}
 // The 3D map follows Link while the game runs (the player reads his screen and position from the console; each game turns that into a spot on its own map).
