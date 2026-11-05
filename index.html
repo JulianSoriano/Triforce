@@ -1035,7 +1035,7 @@ body.zmt-on #list,body.zmt-on .filters,body.zmt-on #fsStats,body.zmt-on #mapBox{
       <div data-p="smoke" hidden><p class="pad-note">Runs a quick health check on the running game: engine, save data, settings, picture, errors. Run it after loading a mod.</p>
         <div class="dbg-acts"><button type="button" class="btn" data-x="smoke">Run smoke test</button></div><div id="dbgSmoke" class="dbg-state"></div></div>
       <div data-p="assets" hidden><p class="pad-note">Browse the game's own data files (built from your ROM, kept on this device). Save any one to study or replace it.</p>
-        <div class="dbg-acts"><button type="button" class="btn" data-x="list">Load file list</button><button type="button" class="btn" data-x="find">Search</button><input id="dbgAsset" placeholder="Filter, e.g. link or scene" aria-label="Filter files" style="padding:6px;border-radius:8px;border:1px solid var(--line);background:var(--surface-2);color:var(--ink)"></div><div id="dbgAssets" class="dbg-state" style="max-height:260px;overflow:auto"></div></div>
+        <div class="dbg-acts"><button type="button" class="btn" data-x="list">Load file list</button><button type="button" class="btn" data-x="find">Search</button><input id="dbgAsset" placeholder="Filter, e.g. link or scene" aria-label="Filter files" style="padding:6px;border-radius:8px;border:1px solid var(--line);background:var(--surface-2);color:var(--ink)"></div><div id="dbgAssets" class="dbg-state" style="max-height:260px;overflow:auto"></div><div id="dbgPrev" style="margin-top:8px"></div></div>
       <div data-p="mod" hidden><p class="pad-note">Pack your replacement files (textures, models, sounds) into a mod the game loads. Give each file the same path as the original it replaces; use the folder box for a prefix such as <b>alt</b>. A mod installed here stays on this device and loads at every start.</p>
         <input type="file" id="dbgModIn" multiple hidden>
         <div class="dbg-acts"><button type="button" class="btn" data-x="addmod">Add files</button><button type="button" class="btn" id="dbgModClear">Clear</button><input id="dbgModName" placeholder="Mod name" aria-label="Mod name" style="padding:6px;border-radius:8px;border:1px solid var(--line);background:var(--surface-2);color:var(--ink)"><input id="dbgModPre" placeholder="Folder prefix (optional)" aria-label="Folder prefix" style="padding:6px;border-radius:8px;border:1px solid var(--line);background:var(--surface-2);color:var(--ink)"></div>
@@ -12097,6 +12097,37 @@ const OOTTOOLS = (function(){
     if(st && st.ok){ add("Link is in a scene", true, st.playing ? "scene " + st.scene + ", room " + st.room : "still at the title or a menu"); const ok = st.hearts > 0 && st.hearts <= st.heartCapacity; add("Hearts make sense", ok, st.hearts + " of " + st.heartCapacity); }
     return R;
   }
+  // ----- previews: pictures and 3D point clouds from the game's own files -----
+  function decodeTex(u8){
+    const dv = new DataView(u8.buffer, u8.byteOffset, u8.byteLength), tt = dv.getUint32(64, true), w = dv.getUint32(68, true), h = dv.getUint32(72, true), sz = dv.getUint32(76, true), b = u8.subarray(80, 80 + sz), out = new Uint8ClampedArray(w * h * 4);
+    const nib = i=> (b[i >> 1] >> ((i & 1) ? 0 : 4)) & 15;
+    for(let i = 0; i < w * h; i++){ let r = 0, g = 0, bl = 0, a = 255;
+      switch(tt){
+        case 1: r = b[4 * i]; g = b[4 * i + 1]; bl = b[4 * i + 2]; a = b[4 * i + 3]; break;
+        case 2: { const v = (b[2 * i] << 8) | b[2 * i + 1]; r = ((v >> 11) & 31) * 255 / 31; g = ((v >> 6) & 31) * 255 / 31; bl = ((v >> 1) & 31) * 255 / 31; a = v & 1 ? 255 : 0; break; }
+        case 3: r = g = bl = nib(i) * 17; break;
+        case 4: r = g = bl = b[i]; break;
+        case 5: r = g = bl = nib(i) * 17; break;
+        case 6: r = g = bl = b[i]; break;
+        case 7: { const v = nib(i); r = g = bl = (v >> 1) * 255 / 7; a = v & 1 ? 255 : 0; break; }
+        case 8: { const v = b[i]; r = g = bl = (v >> 4) * 17; a = (v & 15) * 17; break; }
+        case 9: r = g = bl = b[2 * i]; a = b[2 * i + 1]; break;
+        default: return null; }
+      out[4 * i] = r; out[4 * i + 1] = g; out[4 * i + 2] = bl; out[4 * i + 3] = a; }
+    return { w, h, rgba: out, note: tt === 3 || tt === 4 ? "This picture uses a colour palette stored elsewhere, so it shows in greys." : "" };
+  }
+  function vertsOf(u8){ const dv = new DataView(u8.buffer, u8.byteOffset, u8.byteLength); if(u8.length < 72 || dv.getUint32(4, true) !== 0x4f415252 || dv.getUint32(64, true) !== 25) return []; const n = dv.getUint32(68, true), out = []; for(let i = 0; i < n && 72 + i * 16 + 16 <= u8.length; i++){ const p = 72 + i * 16; out.push([dv.getInt16(p, true), dv.getInt16(p + 2, true), dv.getInt16(p + 4, true), u8[p + 12], u8[p + 13], u8[p + 14]]); } return out; }
+  function cloud(box, pts){
+    box.innerHTML = ""; const c = document.createElement("canvas"); c.width = 360; c.height = 300; c.style.cssText = "width:100%;max-width:360px;border:1px solid var(--line);border-radius:8px;background:#111;touch-action:none;cursor:grab"; box.appendChild(c);
+    let cx = 0, cy = 0, cz = 0; for(const p of pts){ cx += p[0]; cy += p[1]; cz += p[2]; } cx /= pts.length; cy /= pts.length; cz /= pts.length;
+    let R = 1; for(const p of pts) R = Math.max(R, Math.hypot(p[0] - cx, p[1] - cy, p[2] - cz)); let yaw = 0.6, pitch = 0.3, zoom = 1; const g = c.getContext("2d");
+    const draw = ()=>{ g.fillStyle = "#111"; g.fillRect(0, 0, 360, 300); const cyw = Math.cos(yaw), syw = Math.sin(yaw), cp = Math.cos(pitch), sp = Math.sin(pitch), s = 135 / R * zoom;
+      for(const p of pts){ const x = p[0] - cx, y = p[1] - cy, z = p[2] - cz, x1 = x * cyw + z * syw, z1 = -x * syw + z * cyw, y1 = y * cp - z1 * sp; g.fillStyle = `rgb(${Math.max(90, p[3])},${Math.max(90, p[4])},${Math.max(90, p[5])})`; g.fillRect(180 + x1 * s, 150 - y1 * s, 1.6, 1.6); } };
+    let d = null; c.addEventListener("pointerdown", e=>{ d = [e.clientX, e.clientY]; c.setPointerCapture(e.pointerId); }); c.addEventListener("pointerup", ()=> d = null);
+    c.addEventListener("pointermove", e=>{ if(!d) return; yaw += (e.clientX - d[0]) * 0.01; pitch = Math.max(-1.5, Math.min(1.5, pitch + (e.clientY - d[1]) * 0.01)); d = [e.clientX, e.clientY]; draw(); });
+    c.addEventListener("wheel", e=>{ e.preventDefault(); zoom = Math.max(0.3, Math.min(8, zoom * (e.deltaY < 0 ? 1.15 : 0.87))); draw(); }, { passive: false }); draw();
+    box.insertAdjacentHTML("beforeend", `<p class="pad-note">${pts.length} points. Drag to turn it, scroll to zoom.</p>`);
+  }
   // ----- panel -----
   function ui(){
     const panel = document.getElementById("dbgPanel"); if(!panel || panel._tools) return; panel._tools = true;
@@ -12114,7 +12145,13 @@ const OOTTOOLS = (function(){
         else if(w === "smoke"){ $("#dbgSmoke").innerHTML = "Running…"; const R = await smoke(r=> $("#dbgSmoke").innerHTML = rowsHtml(r.map(x=> [x.name, x.ok ? "ok" : "bad", x.note || (x.ok ? "pass" : "FAIL")]))); const f = R.filter(x=> !x.ok).length; say(f ? f + " check(s) failed." : "All checks passed."); }
         else if(w === "list"){ const fs = SOHRT.options.fs(); const nm = fs.readdir("/").includes("oot.o2r") ? "/oot.o2r" : "/oot-mq.o2r"; o2r = fs.readFile(nm); listing = zipList(o2r); say(listing.length + " files in the game's data."); $("[data-x=find]").click(); }
         else if(w === "find"){ if(!listing){ say("Press “Load file list” first."); return; } const q = $("#dbgAsset").value.toLowerCase(), hits = listing.filter(f=> f.name.toLowerCase().includes(q)).slice(0, 150);
-          $("#dbgAssets").innerHTML = hits.map((f, i)=> `<div class="dbg-row"><span style="word-break:break-all">${esc(f.name)}</span><b>${(f.size / 1024).toFixed(1)} KB <button type="button" class="btn" data-x="get" data-n="${esc(f.name)}">Save</button></b></div>`).join("") || "No match."; }
+          $("#dbgAssets").innerHTML = hits.map((f, i)=> `<div class="dbg-row"><span style="word-break:break-all">${esc(f.name)}</span><b>${(f.size / 1024).toFixed(1)} KB <button type="button" class="btn" data-x="prev" data-n="${esc(f.name)}">Preview</button> <button type="button" class="btn" data-x="get" data-n="${esc(f.name)}">Save</button></b></div>`).join("") || "No match."; }
+        else if(w === "prev" || w === "prevdir"){ const box = $("#dbgPrev"); box.innerHTML = "";
+          if(w === "prevdir"){ const dir = a.dataset.n.replace(/\/[^/]*$/, "/"), fl = listing.filter(f=> f.name.startsWith(dir) && /Vtx/.test(f.name) && f.size > 72 && f.size < 400000), pts = []; let k = 0; for(const f of fl){ if(pts.length > 60000) break; if(++k % 10 === 0) box.textContent = "Reading " + k + " of " + fl.length + "…"; for(const v of vertsOf(await zipRead(o2r, f))) pts.push(v); } if(!pts.length){ box.textContent = "No 3D points in that folder."; return; } box.innerHTML = ""; box.insertAdjacentHTML("beforeend", `<p class="pad-note">Every vertex list in ${esc(dir)}. Each body part is drawn in its own space, so a character will look jumbled rather than assembled.</p>`); const hold = document.createElement("div"); box.appendChild(hold); cloud(hold, pts); return; }
+          const f = listing.find(x=> x.name === a.dataset.n), u = await zipRead(o2r, f), ty = u.length > 8 ? new DataView(u.buffer, u.byteOffset).getUint32(4, true) : 0;
+          if(ty === 0x4f544558){ const t = decodeTex(u); if(!t){ box.textContent = "I can't draw this kind of picture."; return; } const c = document.createElement("canvas"); c.width = t.w; c.height = t.h; c.getContext("2d").putImageData(new ImageData(t.rgba, t.w, t.h), 0, 0); const k = Math.max(1, Math.floor(256 / Math.max(t.w, t.h))); c.style.cssText = `width:${t.w * k}px;height:${t.h * k}px;image-rendering:pixelated;border:1px solid var(--line);background:repeating-conic-gradient(#555 0 25%,#777 0 50%) 0 0/12px 12px`; box.appendChild(c); box.insertAdjacentHTML("beforeend", `<p class="pad-note">${t.w}×${t.h}. ${esc(t.note)} <button type="button" class="btn" data-x="png">Save as PNG</button></p>`); box._png = c; box._name = f.name.split("/").pop(); }
+          else { const pts = vertsOf(u); if(pts.length){ const hold = document.createElement("div"); box.appendChild(hold); cloud(hold, pts); box.insertAdjacentHTML("beforeend", `<div class="dbg-acts"><button type="button" class="btn" data-x="prevdir" data-n="${esc(f.name)}">Show the whole folder</button></div>`); } else box.textContent = "No preview for this kind of file; use Save."; } }
+        else if(w === "png"){ const box = $("#dbgPrev"); box._png.toBlob(bl=> save(box._name + ".png", bl, "image/png")); }
         else if(w === "get"){ const f = listing.find(x=> x.name === a.dataset.n); save(f.name.split("/").pop(), await zipRead(o2r, f)); }
         else if(w === "addmod"){ $("#dbgModIn").click(); }
         else if(w === "mkmod" || w === "instmod"){ if(!modFiles.length){ say("Add some files first."); return; } const pre = $("#dbgModPre").value.replace(/^\/+|\/+$/g, ""), nm = ($("#dbgModName").value.trim() || "mymod").replace(/[^\w\- ]/g, "") + ".o2r", blob = zipWrite(modFiles.map(f=> ({ name: (pre ? pre + "/" : "") + f.name, data: f.data })));
