@@ -1039,10 +1039,14 @@ body.zmt-on #list,body.zmt-on .filters,body.zmt-on #fsStats,body.zmt-on #mapBox{
       <div data-p="mod" hidden><p class="pad-note">Pack your replacement files (textures, models, sounds) into a mod the game loads. Give each file the same path as the original it replaces; use the folder box for a prefix such as <b>alt</b>. A mod installed here stays on this device and loads at every start.</p>
         <input type="file" id="dbgModIn" multiple hidden><input type="file" id="dbgModDir" webkitdirectory hidden>
         <div class="dbg-acts"><button type="button" class="btn" data-x="addmod">Add files</button><button type="button" class="btn" data-x="adddir">Add a folder</button><button type="button" class="btn" id="dbgModClear">Clear</button><input id="dbgModName" placeholder="Mod name" aria-label="Mod name" style="padding:6px;border-radius:8px;border:1px solid var(--line);background:var(--surface-2);color:var(--ink)"><input id="dbgModPre" placeholder="Folder prefix (optional)" aria-label="Folder prefix" style="padding:6px;border-radius:8px;border:1px solid var(--line);background:var(--surface-2);color:var(--ink)"></div>
-        <div id="dbgModList" class="dbg-state"></div><div class="dbg-acts"><button type="button" class="btn" data-x="mkmod">Save as .o2r</button><button type="button" class="btn" data-x="instmod">Install here</button><button type="button" class="btn" data-x="mods">Show installed</button></div><div id="dbgMods" class="dbg-state"></div></div>
+        <div id="dbgModList" class="dbg-state"></div><div class="dbg-acts"><button type="button" class="btn" data-x="mkmod">Save as .o2r</button><button type="button" class="btn" data-x="instmod">Install here</button><button type="button" class="btn" data-x="mods">Show installed</button><button type="button" class="btn" data-x="modrep">Mod report</button></div><div id="dbgMods" class="dbg-state"></div><div id="dbgModRep" class="dbg-state"></div></div>
       <div data-p="patch" hidden><p class="pad-note">Makes a patch from your edited ROM. Pick the original, unmodified ROM first, so the patch applies only to the base game (and cannot be applied on top of another hack). The ROM never leaves your device.</p>
         <label class="pad-note">Original ROM <input type="file" id="dbgRomA"></label><br><label class="pad-note">Your edited ROM <input type="file" id="dbgRomB"></label>
-        <div class="dbg-acts"><button type="button" class="btn" data-x="bps">Make patch (.bps)</button></div><p id="dbgPatchInfo" class="pad-note"></p></div>
+        <div class="dbg-acts"><button type="button" class="btn" data-x="bps">Make patch (.bps)</button></div><p id="dbgPatchInfo" class="pad-note"></p>
+        <p class="pad-note">Already have a patch? Check it against your ROM:</p>
+        <label class="pad-note">Patch <input type="file" id="dbgPatchIn" accept=".bps"></label><br><label class="pad-note">ROM to patch <input type="file" id="dbgPatchRom"></label>
+        <div class="dbg-acts"><button type="button" class="btn" data-x="ptest">Test patch</button><button type="button" class="btn" data-x="psave">Save patched ROM</button></div><div id="dbgPatchRes" class="dbg-state"></div>
+</div>
       <div data-p="macro" hidden><p class="pad-note">Record the keys you press in the game, then replay them with one click. After a replay it checks where Link ended up and runs the smoke test, so a mod that breaks a route gets caught. Replays follow real time, so timing can drift a little.</p>
         <div class="dbg-acts"><input id="dbgMacName" placeholder="Name this recording" aria-label="Recording name" style="padding:6px;border-radius:8px;border:1px solid var(--line);background:var(--surface-2);color:var(--ink)"><button type="button" class="btn" data-y="rec">Start recording</button><label class="pad-note">Speed <select id="dbgMacSpeed" style="padding:6px;border-radius:8px;border:1px solid var(--line);background:var(--surface-2);color:var(--ink)"><option value="1">1×</option><option value="2">2×</option><option value="0.5">0.5×</option></select></label><button type="button" class="btn" data-y="stopplay">Stop replay</button><button type="button" class="btn" data-y="imp">Load a file</button></div>
         <input type="file" id="dbgMacIn" accept=".json" hidden><div id="dbgMac" class="dbg-state"></div><div id="dbgMacRes" class="dbg-state"></div></div>
@@ -11976,7 +11980,7 @@ const OOTDBG = (function(){
     return { what: "Triforce Ocarina of Time bug report", when: new Date().toISOString(), note: note || "", page: location.href.split("#")[0], browser: navigator.userAgent, state: state(), saveDataStart: save, options: opts, engineConfig: cfg, log: logs.slice(-300), inputs: inputs.slice(-300), screenshot: shot() };
   }
   function download(note){
-    const blob = new Blob([JSON.stringify(report(note), null, 1)], { type:"application/json" }), a = document.createElement("a");
+    const blob = new Blob([JSON.stringify(Object.assign(report(note), { frames: (typeof OOTTOOLS !== "undefined" ? OOTTOOLS.frames() : []) }), null, 1)], { type:"application/json" }), a = document.createElement("a");
     a.href = URL.createObjectURL(blob); a.download = "triforce-oot-bugreport-" + new Date().toISOString().replace(/[:.]/g, "-").slice(0, 19) + ".json"; document.body.appendChild(a); a.click(); setTimeout(()=>{ a.remove(); URL.revokeObjectURL(a.href); }, 500);
   }
   function ui(){
@@ -12097,6 +12101,21 @@ const OOTTOOLS = (function(){
     if(st && st.ok){ add("Link is in a scene", true, st.playing ? "scene " + st.scene + ", room " + st.room : "still at the title or a menu"); const ok = st.hearts > 0 && st.hearts <= st.heartCapacity; add("Hearts make sense", ok, st.hearts + " of " + st.heartCapacity); }
     return R;
   }
+  function bpsApply(p, src){
+    if(p.length < 19 || p[0] !== 0x42 || p[1] !== 0x50 || p[2] !== 0x53 || p[3] !== 0x31) throw new Error("That isn't a .bps patch.");
+    let i = 4; const rd = ()=>{ let d = 0, s = 1; for(;;){ const x = p[i++]; d += (x & 127) * s; if(x & 128) return d; s *= 128; d += s; } };
+    const ss = rd(), ts = rd(), ms = rd(); i += ms; const end = p.length - 12, dv = new DataView(p.buffer, p.byteOffset, p.byteLength), wantSrc = dv.getUint32(end, true), wantDst = dv.getUint32(end + 4, true), wantPatch = dv.getUint32(end + 8, true);
+    const info = { patchOk: crc32(p.subarray(0, end + 8)) === wantPatch, srcOk: src.length === ss && crc32(src) === wantSrc, srcWant: wantSrc, dstWant: wantDst, srcSize: ss, dstSize: ts };
+    if(!info.srcOk) return { info, out: null };
+    const out = new Uint8Array(ts); let o = 0, sr = 0, tr = 0;
+    while(i < end){ const v = rd(), c = v & 3, l = Math.floor(v / 4) + 1;
+      if(c === 0){ for(let k = 0; k < l; k++, o++) out[o] = src[o]; }
+      else if(c === 1){ for(let k = 0; k < l; k++) out[o++] = p[i++]; }
+      else { const d = rd(), off = (d & 1 ? -1 : 1) * Math.floor(d / 2); if(c === 2){ sr += off; for(let k = 0; k < l; k++) out[o++] = src[sr++]; } else { tr += off; for(let k = 0; k < l; k++) out[o++] = out[tr++]; } } }
+    info.dstOk = crc32(out) === wantDst; return { info, out };
+  }
+  // pictures of the game, kept for bug reports (one every 4 seconds, newest six)
+  const FR = []; setInterval(()=>{ try{ if(document.hidden || !(SOHRT.alive && SOHRT.alive())) return; const c = SOHRT.canvas(); if(!c) return; requestAnimationFrame(()=>{ try{ const t = document.createElement("canvas"); t.width = 320; t.height = 240; t.getContext("2d").drawImage(c, 0, 0, 320, 240); FR.push({ at: new Date().toISOString(), img: t.toDataURL("image/jpeg", 0.6) }); if(FR.length > 6) FR.shift(); }catch(e){} }); }catch(e){} }, 4000);
   // ----- previews: pictures and 3D point clouds from the game's own files -----
   function decodeTex(u8, pal){
     const dv = new DataView(u8.buffer, u8.byteOffset, u8.byteLength), tt = dv.getUint32(64, true), w = dv.getUint32(68, true), h = dv.getUint32(72, true), sz = dv.getUint32(76, true), b = u8.subarray(80, 80 + sz), out = new Uint8ClampedArray(w * h * 4);
@@ -12160,6 +12179,13 @@ const OOTTOOLS = (function(){
           if(w === "mkmod"){ save(nm, blob); say("Saved " + nm + "."); } else { await IDB.put(nm, new Uint8Array(await blob.arrayBuffer())); try{ SOHRT.options.fs().mkdir("/mods"); }catch(e){} SOHRT.options.fs().writeFile("/mods/" + nm, new Uint8Array(await blob.arrayBuffer())); say(nm + " installed. Press Reset, then it loads."); a.dispatchEvent(new Event("x")); $("[data-x=mods]").click(); } }
         else if(w === "mods"){ const m = await IDB.all(); $("#dbgMods").innerHTML = Object.keys(m).map(k=> `<div class="dbg-row"><span>${esc(k)}</span><b>${(m[k].length / 1024).toFixed(1)} KB <button type="button" class="btn" data-x="rmmod" data-n="${esc(k)}">Remove</button></b></div>`).join("") || "No mods installed."; }
         else if(w === "rmmod"){ await IDB.del(a.dataset.n); try{ SOHRT.options.fs().unlink("/mods/" + a.dataset.n); }catch(e){} say("Removed. It's gone after the next Reset."); $("[data-x=mods]").click(); }
+        else if(w === "ptest" || w === "psave"){ const pf = $("#dbgPatchIn").files[0], rf = $("#dbgPatchRom").files[0]; if(!pf || !rf){ say("Choose a patch and a ROM."); return; } const r = bpsApply(new Uint8Array(await pf.arrayBuffer()), new Uint8Array(await rf.arrayBuffer()));
+          const rowsP = [["Patch file is intact", r.info.patchOk ? "ok" : "bad", r.info.patchOk ? "checksum matches" : "the patch file looks damaged"], ["Fits this ROM", r.info.srcOk ? "ok" : "bad", r.info.srcOk ? "this is the base ROM the patch was made for" : "wrong ROM: the patch needs one with checksum " + hex8(r.info.srcWant) + " and size " + r.info.srcSize]]; if(r.out) rowsP.push(["Result is correct", r.info.dstOk ? "ok" : "bad", r.info.dstOk ? "patched ROM matches the expected checksum " + hex8(r.info.dstWant) : "patched ROM does not match"]);
+          $("#dbgPatchRes").innerHTML = rowsHtml(rowsP); if(w === "psave"){ if(r.out && r.info.dstOk){ save(rf.name.replace(/\.[^.]+$/, "") + " (patched).z64", r.out); say("Saved the patched ROM."); } else say("Not saved: the patch doesn't fit this ROM."); } else say(r.out && r.info.dstOk ? "The patch applies cleanly." : "The patch does not apply to this ROM."); }
+        else if(w === "modrep"){ const rep = $("#dbgModRep"); if(!listing){ const fs = SOHRT.options.fs(); const nm = fs.readdir("/").includes("oot.o2r") ? "/oot.o2r" : "/oot-mq.o2r"; o2r = fs.readFile(nm); listing = zipList(o2r); } const have = new Set(listing.map(f=> f.name.toLowerCase())), mods = await IDB.all(), sets = {}, pre = $("#dbgModPre").value.replace(/^\/+|\/+$/g, "");
+          for(const k of Object.keys(mods)){ try{ sets[k] = zipList(mods[k]).map(f=> f.name); }catch(e){ sets[k] = []; } } if(modFiles.length) sets["(files you're adding now)"] = modFiles.map(f=> (pre ? pre + "/" : "") + f.name);
+          const owner = {}, out = []; for(const k in sets){ let rp = 0, nw = 0; for(const n of sets[k]){ const b = n.replace(/\.[^./]+$/, "").toLowerCase(); if(have.has(b) || have.has(n.toLowerCase())) rp++; else nw++; (owner[n.toLowerCase()] = owner[n.toLowerCase()] || []).push(k); } out.push([k, "ok", rp + " replace originals, " + nw + " new"]); }
+          const clash = Object.entries(owner).filter(([n, o])=> o.length > 1); out.push(["Mods that change the same file", clash.length ? "bad" : "ok", clash.length ? clash.slice(0, 8).map(([n, o])=> n.split("/").pop() + " (" + o.join(" + ") + ")").join("; ") : "none"]); rep.innerHTML = rowsHtml(out); }
         else if(w === "bps"){ const o = $("#dbgRomA").files[0], n = $("#dbgRomB").files[0]; if(!o || !n){ say("Choose both ROMs."); return; } say("Working…"); const s = new Uint8Array(await o.arrayBuffer()), d = new Uint8Array(await n.arrayBuffer()), p = bpsMake(s, d); save(n.name.replace(/\.[^.]+$/, "") + ".bps", p);
           $("#dbgPatchInfo").textContent = "Patch is " + (p.length / 1024).toFixed(1) + " KB. It applies only to the base ROM with checksum " + hex8(crc32(s)) + " (the one you picked as the original). Result checksum " + hex8(crc32(d)) + "."; say("Saved."); }
       }catch(err){ say(String(err && err.message || err)); }
@@ -12171,7 +12197,7 @@ const OOTTOOLS = (function(){
     const find = $("#dbgAsset"); find && find.addEventListener("input", ()=> $("[data-x=find]").click());
   }
   if(document.readyState === "loading") document.addEventListener("DOMContentLoaded", ui); else ui();
-  return { crc32, zipWrite, zipList, zipRead, bpsMake, check, smoke, installMods, grab, diff };
+  return { crc32, zipWrite, zipList, zipRead, bpsMake, bpsApply, check, smoke, installMods, grab, diff, frames: ()=> FR.slice() };
 })();
 // ---------- Ocarina of Time: record and replay button presses, and quick save states ----------
 const OOTAUTO = (function(){
