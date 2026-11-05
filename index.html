@@ -953,6 +953,8 @@ body.zmt-on #list,body.zmt-on .filters,body.zmt-on #fsStats,body.zmt-on #mapBox{
 .dbg-state{display:grid;gap:2px;margin:8px 0}.dbg-row{display:flex;justify-content:space-between;gap:14px;padding:4px 0;border-bottom:1px solid var(--line);font-size:13px}.dbg-row span{color:var(--muted)}.dbg-row b{font-weight:500;text-align:right}
 .dbg-acts{display:flex;flex-wrap:wrap;gap:6px;margin:8px 0}.dbg-log{max-height:260px;overflow:auto;margin:8px 0;padding:8px;border:1px solid var(--line);border-radius:8px;background:var(--surface-2);font:11px/1.4 var(--mono,monospace);white-space:pre-wrap;word-break:break-word}
 #dbgNote{width:100%;box-sizing:border-box;padding:8px;border:1px solid var(--line);border-radius:8px;background:var(--surface-2);color:var(--ink);font:inherit}
+
+#dbgPanel .opt-tabs{flex-wrap:wrap}
 </style>
 
 <div class="wrap">
@@ -1019,13 +1021,28 @@ body.zmt-on #list,body.zmt-on .filters,body.zmt-on #fsStats,body.zmt-on #mapBox{
       <div class="pad-foot"><button type="button" class="btn" id="optRestart" hidden>Restart to apply</button> <button type="button" class="btn" id="optClose">Done</button></div>
     </div>
     <div class="pad-panel opt-panel" id="dbgPanel" hidden>
-      <div class="opt-tabs" role="tablist"><button type="button" class="btn opt-tab" data-t="state" aria-pressed="true">Game state</button><button type="button" class="btn opt-tab" data-t="log" aria-pressed="false">Log</button><button type="button" class="btn opt-tab" data-t="report" aria-pressed="false">Bug report</button></div>
+      <div class="opt-tabs" role="tablist"><button type="button" class="btn opt-tab" data-t="state" aria-pressed="true">Game state</button><button type="button" class="btn opt-tab" data-t="log" aria-pressed="false">Log</button><button type="button" class="btn opt-tab" data-t="report" aria-pressed="false">Bug report</button><button type="button" class="btn opt-tab" data-t="chk" aria-pressed="false">Settings check</button><button type="button" class="btn opt-tab" data-t="cmp" aria-pressed="false">Compare</button><button type="button" class="btn opt-tab" data-t="smoke" aria-pressed="false">Smoke test</button><button type="button" class="btn opt-tab" data-t="assets" aria-pressed="false">Game files</button><button type="button" class="btn opt-tab" data-t="mod" aria-pressed="false">Mod packer</button><button type="button" class="btn opt-tab" data-t="patch" aria-pressed="false">Patch maker</button></div>
       <div data-p="state"><div id="dbgState" class="dbg-state"></div>
         <div class="dbg-acts"><button type="button" class="btn" data-a="fullhp">Refill hearts</button><button type="button" class="btn" data-a="heart">+1 heart container</button><button type="button" class="btn" data-a="rup">500 rupees</button><button type="button" class="btn" data-a="mp">Fill magic</button><button type="button" class="btn" data-a="items">Give most items</button><button type="button" class="btn" data-a="gs">100 Skulltulas</button></div>
         <p class="pad-note">These change your running game's save data straight away, so they're for testing. Save normally in the game if you want to keep a change.</p></div>
       <div data-p="log" hidden><pre id="dbgLog" class="dbg-log"></pre><div class="dbg-acts"><button type="button" class="btn" data-a="copylog">Copy log</button></div></div>
       <div data-p="report" hidden><p class="pad-note">Saves one file with what the game was doing: its state, your settings, the recent log, your last key presses and a screenshot. Send it to Claude to find out what went wrong. It contains no ROM.</p>
         <textarea id="dbgNote" rows="3" placeholder="What did you expect, and what happened instead?" aria-label="What went wrong"></textarea><div class="dbg-acts"><button type="button" class="btn" data-a="report">Save bug report</button></div></div>
+      <div data-p="chk" hidden><p class="pad-note">Checks that what you picked in Game options and Colours really reached the game. Search lists every setting the game holds.</p>
+        <div class="dbg-acts"><button type="button" class="btn" data-x="chk">Check my settings</button><input id="dbgFind" placeholder="Search settings…" aria-label="Search settings" style="padding:6px;border-radius:8px;border:1px solid var(--line);background:var(--surface-2);color:var(--ink)"><button type="button" class="btn" data-x="cfgfind">Search</button></div><div id="dbgChk" class="dbg-state"></div></div>
+      <div data-p="cmp" hidden><p class="pad-note">Take picture A, change something (a colour, a mod, a spot in the game), take picture B, then compare. Red shows what changed.</p>
+        <div class="dbg-acts"><button type="button" class="btn" data-x="shotA">Picture A</button><button type="button" class="btn" data-x="shotB">Picture B</button><button type="button" class="btn" data-x="cmp">Compare</button></div><div id="dbgCmp" style="display:flex;flex-wrap:wrap;gap:6px"></div></div>
+      <div data-p="smoke" hidden><p class="pad-note">Runs a quick health check on the running game: engine, save data, settings, picture, errors. Run it after loading a mod.</p>
+        <div class="dbg-acts"><button type="button" class="btn" data-x="smoke">Run smoke test</button></div><div id="dbgSmoke" class="dbg-state"></div></div>
+      <div data-p="assets" hidden><p class="pad-note">Browse the game's own data files (built from your ROM, kept on this device). Save any one to study or replace it.</p>
+        <div class="dbg-acts"><button type="button" class="btn" data-x="list">Load file list</button><button type="button" class="btn" data-x="find">Search</button><input id="dbgAsset" placeholder="Filter, e.g. link or scene" aria-label="Filter files" style="padding:6px;border-radius:8px;border:1px solid var(--line);background:var(--surface-2);color:var(--ink)"></div><div id="dbgAssets" class="dbg-state" style="max-height:260px;overflow:auto"></div></div>
+      <div data-p="mod" hidden><p class="pad-note">Pack your replacement files (textures, models, sounds) into a mod the game loads. Give each file the same path as the original it replaces; use the folder box for a prefix such as <b>alt</b>. A mod installed here stays on this device and loads at every start.</p>
+        <input type="file" id="dbgModIn" multiple hidden>
+        <div class="dbg-acts"><button type="button" class="btn" data-x="addmod">Add files</button><button type="button" class="btn" id="dbgModClear">Clear</button><input id="dbgModName" placeholder="Mod name" aria-label="Mod name" style="padding:6px;border-radius:8px;border:1px solid var(--line);background:var(--surface-2);color:var(--ink)"><input id="dbgModPre" placeholder="Folder prefix (optional)" aria-label="Folder prefix" style="padding:6px;border-radius:8px;border:1px solid var(--line);background:var(--surface-2);color:var(--ink)"></div>
+        <div id="dbgModList" class="dbg-state"></div><div class="dbg-acts"><button type="button" class="btn" data-x="mkmod">Save as .o2r</button><button type="button" class="btn" data-x="instmod">Install here</button><button type="button" class="btn" data-x="mods">Show installed</button></div><div id="dbgMods" class="dbg-state"></div></div>
+      <div data-p="patch" hidden><p class="pad-note">Makes a patch from your edited ROM. Pick the original, unmodified ROM first, so the patch applies only to the base game (and cannot be applied on top of another hack). The ROM never leaves your device.</p>
+        <label class="pad-note">Original ROM <input type="file" id="dbgRomA"></label><br><label class="pad-note">Your edited ROM <input type="file" id="dbgRomB"></label>
+        <div class="dbg-acts"><button type="button" class="btn" data-x="bps">Make patch (.bps)</button></div><p id="dbgPatchInfo" class="pad-note"></p></div>
       <div class="pad-foot"><span id="dbgSay" class="pad-note"></span> <button type="button" class="btn" id="dbgClose">Done</button></div>
     </div>
     <button type="button" class="btn fs-opt" id="fsOptBtn" aria-expanded="false" aria-controls="optPanel" title="Game options">Game options</button>
@@ -6792,6 +6809,13 @@ const SOHRT = (function(){
     { g:"Assists", k:["gCheats.FreezeTime"], label:"Freeze the time of day", note:"The sun stays where it is." },
     {"g": "Minigames", "k": ["gEnhancements.GuaranteeFishingBite"], "label": "Fish always bite", "note": "Every cast gets a bite."},
     {"g": "Minigames", "k": ["gEnhancements.FishNeverEscape"], "label": "Hooked fish never get away", "note": "The line doesn't snap."},
+    { g:"Modder tools", k:["gDeveloperTools.DebugEnabled"], label:"Developer menu (warp, save editor, actor viewer)", note:"Adds the game's own Developer tools menu (open the game menu with Esc): jump to any scene, edit the save, list every actor in the room." },
+    { g:"Modder tools", k:["gDeveloperTools.DebugSaveFileMode"], label:"Start new games with a debug save", note:"A new file begins with items and hearts, ready for testing." },
+    { g:"Modder tools", k:["gDeveloperTools.SkipLogoTitle"], label:"Skip the logo and title screen", note:"Boots straight to the file select." },
+    { g:"Modder tools", k:["gDeveloperTools.BetterDebugWarpScreen"], label:"Nicer warp list", note:"A friendlier scene-select screen." },
+    { g:"Modder tools", k:["gDeveloperTools.ActorViewer.NameTags.Enabled"], label:"Name tags above actors", note:"Floating labels on every enemy and object, handy for finding what something is." },
+    { g:"Modder tools", k:["gDeveloperTools.ColViewer.Enabled"], label:"Show collision", note:"Draws the walls, floors and hit boxes so you can see what Link can touch." },
+    { g:"Modder tools", k:["gDeveloperTools.RegEditEnabled"], label:"Value editor (REG)", note:"Lets you tweak the game's internal numbers live, in the developer menu." },
     {"g": "Minigames", "k": ["gEnhancements.InstantFishing"], "label": "Reel fish in instantly", "note": "Skips the fight with the fish."},
     {"g": "Minigames", "k": ["gEnhancements.OcarinaUnlimitedFailTime"], "label": "Ocarina memory game: no time limit", "note": "Take as long as you like to repeat the tune."},
     {"g": "Minigames", "k": ["gEnhancements.InstantOcarinaGameWin"], "label": "Ocarina memory game: win straight away", "note": "The Skull Kids give you the prize at once."},
@@ -6839,6 +6863,7 @@ const SOHRT = (function(){
     { name:"Vanilla", note:"Everything off: the game as it came.", on: ()=>[] },
     { name:"Relaxed", note:"Faster text and chests, autosave, aiming help, and the bug fixes.", on: ()=>["gEnhancements.SkipText","gEnhancements.FastChests","gEnhancements.FasterPauseMenu","gEnhancements.Autosave","gEnhancements.DpadEquips","gEnhancements.EnemyHealthBar","gEnhancements.BowReticle","gEnhancements.FixCameraDrift","gEnhancements.RememberSaveLocation","gEnhancements.AskToEquip", ...OPTS.filter(o=>o.g==="Bug fixes").map(o=>o.k[0])] },
     { name:"Quick play", note:"Every time saver, plus autosave, the D-pad item swap and the bug fixes.", on: ()=>["gEnhancements.Autosave","gEnhancements.DpadEquips","gEnhancements.RememberSaveLocation", ...OPTS.filter(o=>o.g==="Time savers"||o.g==="Bug fixes").map(o=>o.k[0])] },
+    { name:"Modder", note:"Turns on the developer menu, a debug save, name tags and collision view, plus never running out of hearts.", on: ()=>["gDeveloperTools.DebugEnabled","gDeveloperTools.DebugSaveFileMode","gDeveloperTools.SkipLogoTitle","gDeveloperTools.BetterDebugWarpScreen","gDeveloperTools.ActorViewer.NameTags.Enabled","gDeveloperTools.ColViewer.Enabled","gCheats.InfiniteHealth"] },
     { name:"Sandbox", note:"Never run out of hearts, magic, ammo or rupees, and use any item anywhere.", on: ()=>["gCheats.InfiniteHealth","gCheats.InfiniteMagic","gCheats.InfiniteAmmo","gCheats.InfiniteMoney","gCheats.NoRestrictItems","gCheats.SaveStatesEnabled","gEnhancements.Autosave"] }
   ];
   function optPreset(p){ const on = new Set(p.on()); for(const o of OPTS) if(!o.t) optState[o.k[0]] = on.has(o.k[0]) ? 1 : 0; optSave(); }
@@ -6907,6 +6932,7 @@ const SOHRT = (function(){
         FSx.writeFile(ootArc.name, ootArc.bytes);
       }
       try{ FSx.writeFile("/shipofharkinian.json", JSON.stringify(optConfig())); optsAtBoot = optSig(); }catch(e){}
+      try{ await OOTTOOLS.installMods(FSx); }catch(e){}
       M._web_otr_loaded();
       running = true;
       if(wantPause){ try{ M.pauseMainLoop(); }catch(e){} running = false; }
@@ -11975,6 +12001,131 @@ const OOTDBG = (function(){
   hook(); if(document.readyState === "loading") document.addEventListener("DOMContentLoaded", ui); else ui();
   return { state, poke, peek, report, download, shot, logs, inputs, OFF, SLOTS };
 })();
+// ---------- Ocarina of Time: modding tools (settings check, screenshot compare, smoke test, game-file browser, mod packer, patch maker) ----------
+const OOTTOOLS = (function(){
+  const enc = new TextEncoder(), dec = new TextDecoder();
+  const CRC = (()=>{ const t = new Uint32Array(256); for(let n = 0; n < 256; n++){ let c = n; for(let k = 0; k < 8; k++) c = c & 1 ? 0xEDB88320 ^ (c >>> 1) : c >>> 1; t[n] = c >>> 0; } return t; })();
+  function crc32(u8, c = 0){ c = ~c >>> 0; for(let i = 0; i < u8.length; i++) c = CRC[(c ^ u8[i]) & 255] ^ (c >>> 8); return (~c) >>> 0; }
+  const le32 = n=> [n & 255, (n >>> 8) & 255, (n >>> 16) & 255, (n >>> 24) & 255];
+  const hex8 = n=> n.toString(16).padStart(8, "0");
+  function save(name, bytes, type){ const a = document.createElement("a"); a.href = URL.createObjectURL(new Blob([bytes], { type: type || "application/octet-stream" })); a.download = name; document.body.appendChild(a); a.click(); setTimeout(()=>{ a.remove(); URL.revokeObjectURL(a.href); }, 4000); }
+  // ----- zip (a .o2r mod is a plain zip) -----
+  function zipWrite(files){            // files: [{name, data:Uint8Array}] stored, no compression
+    const parts = [], cen = []; let off = 0;
+    for(const f of files){
+      const nm = enc.encode(f.name), crc = crc32(f.data);
+      const lh = new Uint8Array([0x50,0x4b,3,4, 20,0, 0,8, 0,0, 0,0,0,0, ...le32(crc), ...le32(f.data.length), ...le32(f.data.length), nm.length & 255, nm.length >> 8, 0,0, ...nm]);
+      cen.push(new Uint8Array([0x50,0x4b,1,2, 20,0, 20,0, 0,8, 0,0, 0,0,0,0, ...le32(crc), ...le32(f.data.length), ...le32(f.data.length), nm.length & 255, nm.length >> 8, 0,0, 0,0, 0,0, 0,0, 0,0,0,0, ...le32(off), ...nm]));
+      parts.push(lh, f.data); off += lh.length + f.data.length;
+    }
+    const cl = cen.reduce((n, c)=> n + c.length, 0);
+    parts.push(...cen, new Uint8Array([0x50,0x4b,5,6, 0,0,0,0, files.length & 255, files.length >> 8, files.length & 255, files.length >> 8, ...le32(cl), ...le32(off), 0,0]));
+    return new Blob(parts);
+  }
+  function zipList(u8){                // [{name, size, csize, method, off}]
+    const dv = new DataView(u8.buffer, u8.byteOffset, u8.byteLength); let e = u8.length - 22;
+    for(; e >= Math.max(0, u8.length - 70000); e--) if(dv.getUint32(e, true) === 0x06054b50) break;
+    if(e < 0 || dv.getUint32(e, true) !== 0x06054b50) throw new Error("This doesn't look like a zip-style game file.");
+    const n = dv.getUint16(e + 10, true); let p = dv.getUint32(e + 16, true); const out = [];
+    if(p === 0xFFFFFFFF) throw new Error("This game file uses a format my browser can't read (zip64).");
+    for(let i = 0; i < n; i++){ if(dv.getUint32(p, true) !== 0x02014b50) break; const nl = dv.getUint16(p + 28, true), xl = dv.getUint16(p + 30, true), cl = dv.getUint16(p + 32, true);
+      out.push({ name: dec.decode(u8.subarray(p + 46, p + 46 + nl)), method: dv.getUint16(p + 10, true), csize: dv.getUint32(p + 20, true), size: dv.getUint32(p + 24, true), off: dv.getUint32(p + 42, true) }); p += 46 + nl + xl + cl; }
+    return out;
+  }
+  async function zipRead(u8, f){
+    const dv = new DataView(u8.buffer, u8.byteOffset, u8.byteLength), s = f.off + 30 + dv.getUint16(f.off + 26, true) + dv.getUint16(f.off + 28, true), raw = u8.subarray(s, s + f.csize);
+    if(f.method === 0) return raw;
+    const ds = new Response(new Blob([raw]).stream().pipeThrough(new DecompressionStream("deflate-raw"))); return new Uint8Array(await ds.arrayBuffer());
+  }
+  // ----- BPS patch (works for any ROM size; applies only to the exact base ROM it was made from) -----
+  function bpsVar(out, x){ for(;;){ const b = x % 128; x = Math.floor(x / 128); if(x === 0){ out.push(b | 128); return; } out.push(b); x--; } }
+  function bpsMake(src, dst){
+    const out = [0x42, 0x50, 0x53, 0x31]; bpsVar(out, src.length); bpsVar(out, dst.length); bpsVar(out, 0);
+    const n = Math.min(src.length, dst.length), MINRUN = 8; let i = 0, tstart = -1;
+    const flushT = end=>{ if(tstart >= 0){ bpsVar(out, ((end - tstart - 1) * 4) + 1); for(let k = tstart; k < end; k++) out.push(dst[k]); tstart = -1; } };
+    while(i < dst.length){
+      if(i < n && src[i] === dst[i]){ let j = i; while(j < n && src[j] === dst[j]) j++;
+        if(j - i >= MINRUN || j >= dst.length){ flushT(i); bpsVar(out, ((j - i - 1) * 4) + 0); i = j; continue; }
+        if(tstart < 0) tstart = i; i = j; continue; }
+      if(tstart < 0) tstart = i; i++;
+    }
+    flushT(dst.length);
+    const body = Uint8Array.from(out), tail = [...le32(crc32(src)), ...le32(crc32(dst))], all = new Uint8Array(body.length + 12);
+    all.set(body); all.set(tail, body.length); all.set(le32(crc32(all.subarray(0, body.length + 8))), body.length + 8); return all;
+  }
+  // ----- mods kept on this device and put into the game's folder at every start -----
+  const IDB = { open(){ return new Promise((ok, no)=>{ const r = indexedDB.open("triforce-oot-mods", 1); r.onupgradeneeded = ()=> r.result.createObjectStore("m"); r.onsuccess = ()=> ok(r.result); r.onerror = ()=> no(r.error); }); },
+    async all(){ try{ const d = await this.open(); return await new Promise(ok=>{ const o = {}, c = d.transaction("m").objectStore("m").openCursor(); c.onsuccess = ()=>{ const k = c.result; if(k){ o[k.key] = k.value; k.continue(); } else ok(o); }; c.onerror = ()=> ok({}); }); }catch(e){ return {}; } },
+    async put(k, v){ const d = await this.open(); return new Promise((ok, no)=>{ const t = d.transaction("m", "readwrite"); t.objectStore("m").put(v, k); t.oncomplete = ok; t.onerror = ()=> no(t.error); }); },
+    async del(k){ const d = await this.open(); return new Promise(ok=>{ const t = d.transaction("m", "readwrite"); t.objectStore("m").delete(k); t.oncomplete = ok; t.onerror = ok; }); } };
+  async function installMods(fs){ const m = await IDB.all(), names = Object.keys(m); if(!names.length) return 0; try{ fs.mkdir("/mods"); }catch(e){} let n = 0; for(const k of names){ try{ fs.writeFile("/mods/" + k, m[k]); n++; }catch(e){} } return n; }
+  // ----- settings check: what you chose against what the game actually holds -----
+  function flat(o, p = "", out = {}){ for(const k in o){ const v = o[k], key = p ? p + "." + k : k; if(v && typeof v === "object") flat(v, key, out); else out[key] = v; } return out; }
+  function readCfg(){ const fs = SOHRT.options.fs(); return JSON.parse(dec.decode(fs.readFile("/shipofharkinian.json"))); }
+  function check(){
+    const cfg = flat(readCfg().CVars || {}), rows = [], keys = Object.keys(cfg);
+    let chosen = []; try{ chosen = SOHRT.options.list.map(o=> [o, SOHRT.options.get(o)]).filter(x=> x[1] !== undefined && x[1] !== null); }catch(e){}
+    const cos = k=> k.replace(/^gCosmetics\.([A-Za-z]+)\./, (m, g)=> "gCosmetics." + (g === "HUD" ? "Hud" : g) + "_");
+    for(const [o, v] of chosen){
+      if(o.t === "color"){ const h = /^#?([0-9a-f]{6})$/i.exec(v || ""); if(!h) continue; const n = parseInt(h[1], 16), b = cos(o.k[0]), got = [cfg[b + ".Value.R"], cfg[b + ".Value.G"], cfg[b + ".Value.B"]], want = [(n >> 16) & 255, (n >> 8) & 255, n & 255];
+        rows.push([o.label || o.k[0], got.join() === want.join() ? "ok" : "mismatch", "chose " + want.join(",") + " / game has " + (got[0] === undefined ? "nothing" : got.join(","))]); }
+      else { const want = o.t === "num" || o.t === "pick" ? v : (v ? 1 : 0), got = cfg[o.k[0]]; rows.push([o.label || o.k[0], got === want ? "ok" : "mismatch", "chose " + want + " / game has " + (got === undefined ? "nothing" : got)]); }
+    }
+    return { rows, keys: keys.length, version: readCfg().ConfigVersion, flat: cfg };
+  }
+  // ----- screenshots -----
+  function grab(){ return new Promise(ok=>{ try{ const c = SOHRT.canvas(); if(!c) return ok(null); requestAnimationFrame(()=>{ const t = document.createElement("canvas"); t.width = 320; t.height = 240; const g = t.getContext("2d", { willReadFrequently: true }); g.drawImage(c, 0, 0, 320, 240); ok(g.getImageData(0, 0, 320, 240)); }); }catch(e){ ok(null); } }); }
+  function diff(a, b){ const d = new ImageData(320, 240); let n = 0; for(let i = 0; i < a.data.length; i += 4){ const dd = Math.abs(a.data[i] - b.data[i]) + Math.abs(a.data[i + 1] - b.data[i + 1]) + Math.abs(a.data[i + 2] - b.data[i + 2]);
+      if(dd > 36){ n++; d.data[i] = 255; d.data[i + 1] = 40; d.data[i + 2] = 40; d.data[i + 3] = 255; } else { const g = (a.data[i] + a.data[i + 1] + a.data[i + 2]) / 3 * 0.35; d.data[i] = d.data[i + 1] = d.data[i + 2] = g; d.data[i + 3] = 255; } }
+    return { img: d, pct: n / (320 * 240) * 100 }; }
+  const blank = im=>{ if(!im) return true; let s = 0, mn = 255, mx = 0; for(let i = 0; i < im.data.length; i += 40){ const v = im.data[i] + im.data[i + 1] + im.data[i + 2]; mn = Math.min(mn, v); mx = Math.max(mx, v); } return mx - mn < 12; };
+  async function smoke(say){
+    const R = [], add = (name, ok, note)=>{ R.push({ name, ok, note: note || "" }); say && say(R); };
+    try{ add("Game engine is running", !!(SOHRT.alive && SOHRT.alive())); }catch(e){ add("Game engine is running", false, String(e)); }
+    let st = null; try{ st = OOTDBG.state(); }catch(e){} add("Save data can be read", !!(st && st.ok));
+    try{ const c = check(); add("Game settings file is readable", true, c.keys + " settings, version " + c.version); const bad = c.rows.filter(r=> r[1] !== "ok"); add("Your settings reached the game", !bad.length, bad.length ? bad.slice(0, 4).map(r=> r[0] + ": " + r[2]).join("; ") : c.rows.length + " checked"); }catch(e){ add("Game settings file is readable", false, String(e.message || e)); }
+    const a = await grab(); add("Picture is not blank", !blank(a), a ? "" : "couldn't copy the picture");
+    await new Promise(r=> setTimeout(r, 1500)); const b = await grab(); if(a && b){ const d = diff(a, b); add("Picture is moving (game isn't frozen)", d.pct > 0.01, d.pct.toFixed(2) + "% changed in 1.5 s; a paused game or a still scene can fail this"); }
+    const errs = OOTDBG.logs.filter(l=> /error|exception|abort|unreachable|out of memory/i.test(l) && !/gamecontrollerdb|game controller mappings/i.test(l)); add("No errors in the log", !errs.length, errs.slice(-2).join(" | ").slice(0, 200));
+    if(st && st.ok){ add("Link is in a scene", true, st.playing ? "scene " + st.scene + ", room " + st.room : "still at the title or a menu"); const ok = st.hearts > 0 && st.hearts <= st.heartCapacity; add("Hearts make sense", ok, st.hearts + " of " + st.heartCapacity); }
+    return R;
+  }
+  // ----- panel -----
+  function ui(){
+    const panel = document.getElementById("dbgPanel"); if(!panel || panel._tools) return; panel._tools = true;
+    const $ = s=> panel.querySelector(s), esc = s=> String(s).replace(/[&<>]/g, c=> ({ "&": "&amp;", "<": "&lt;", ">": "&gt;" }[c])), say = t=> { const e = $("#dbgSay"); if(e) e.textContent = t; };
+    let shotA = null, shotB = null, listing = null, o2r = null, modFiles = [];
+    const mk = (t, cls)=> { const c = document.createElement("canvas"); c.width = 320; c.height = 240; c.style.cssText = "width:48%;border:1px solid var(--line);border-radius:6px"; c.getContext("2d").putImageData(t, 0, 0); return c; };
+    const rowsHtml = rows=> rows.map(r=> `<div class="dbg-row"><span>${esc(r[0])}</span><b>${r[1] === "ok" ? "✓ " : "✗ "}${esc(r[2])}</b></div>`).join("");
+    panel.addEventListener("click", async e=>{
+      const a = e.target.closest("[data-x]"); if(!a) return; const w = a.dataset.x;
+      try{
+        if(w === "chk"){ const c = check(), bad = c.rows.filter(r=> r[1] !== "ok"); $("#dbgChk").innerHTML = `<p class="pad-note">The game holds ${c.keys} settings (file version ${esc(c.version)}). ${bad.length ? bad.length + " of " + c.rows.length + " of your choices did not reach it:" : "All " + c.rows.length + " of your choices are in place."}</p>` + rowsHtml(c.rows.map(r=> [r[0], r[1], r[2]]).sort((x, y)=> (x[1] === "ok") - (y[1] === "ok")).slice(0, 60)); }
+        else if(w === "cfgfind"){ const q = $("#dbgFind").value.toLowerCase(), c = check(); $("#dbgChk").innerHTML = rowsHtml(Object.entries(c.flat).filter(([k])=> k.toLowerCase().includes(q)).slice(0, 120).map(([k, v])=> [k, "ok", String(v)])) || "No match."; }
+        else if(w === "shotA" || w === "shotB"){ const im = await grab(); if(!im){ say("Start the game first."); return; } if(w === "shotA") shotA = im; else shotB = im; say((w === "shotA" ? "A" : "B") + " saved."); $("#dbgCmp").innerHTML = ""; const box = $("#dbgCmp"); if(shotA) box.appendChild(mk(shotA)); if(shotB) box.appendChild(mk(shotB)); }
+        else if(w === "cmp"){ if(!shotA || !shotB){ say("Take picture A and picture B first."); return; } const d = diff(shotA, shotB), box = $("#dbgCmp"); box.innerHTML = ""; box.appendChild(mk(shotA)); box.appendChild(mk(d.img)); box.insertAdjacentHTML("beforeend", `<p class="pad-note" style="width:100%">${d.pct.toFixed(2)}% of the picture changed (red = different).</p>`); }
+        else if(w === "smoke"){ $("#dbgSmoke").innerHTML = "Running…"; const R = await smoke(r=> $("#dbgSmoke").innerHTML = rowsHtml(r.map(x=> [x.name, x.ok ? "ok" : "bad", x.note || (x.ok ? "pass" : "FAIL")]))); const f = R.filter(x=> !x.ok).length; say(f ? f + " check(s) failed." : "All checks passed."); }
+        else if(w === "list"){ const fs = SOHRT.options.fs(); const nm = fs.readdir("/").includes("oot.o2r") ? "/oot.o2r" : "/oot-mq.o2r"; o2r = fs.readFile(nm); listing = zipList(o2r); say(listing.length + " files in the game's data."); $("[data-x=find]").click(); }
+        else if(w === "find"){ if(!listing){ say("Press “Load file list” first."); return; } const q = $("#dbgAsset").value.toLowerCase(), hits = listing.filter(f=> f.name.toLowerCase().includes(q)).slice(0, 150);
+          $("#dbgAssets").innerHTML = hits.map((f, i)=> `<div class="dbg-row"><span style="word-break:break-all">${esc(f.name)}</span><b>${(f.size / 1024).toFixed(1)} KB <button type="button" class="btn" data-x="get" data-n="${esc(f.name)}">Save</button></b></div>`).join("") || "No match."; }
+        else if(w === "get"){ const f = listing.find(x=> x.name === a.dataset.n); save(f.name.split("/").pop(), await zipRead(o2r, f)); }
+        else if(w === "addmod"){ $("#dbgModIn").click(); }
+        else if(w === "mkmod" || w === "instmod"){ if(!modFiles.length){ say("Add some files first."); return; } const pre = $("#dbgModPre").value.replace(/^\/+|\/+$/g, ""), nm = ($("#dbgModName").value.trim() || "mymod").replace(/[^\w\- ]/g, "") + ".o2r", blob = zipWrite(modFiles.map(f=> ({ name: (pre ? pre + "/" : "") + f.name, data: f.data })));
+          if(w === "mkmod"){ save(nm, blob); say("Saved " + nm + "."); } else { await IDB.put(nm, new Uint8Array(await blob.arrayBuffer())); try{ SOHRT.options.fs().mkdir("/mods"); }catch(e){} SOHRT.options.fs().writeFile("/mods/" + nm, new Uint8Array(await blob.arrayBuffer())); say(nm + " installed. Press Reset, then it loads."); a.dispatchEvent(new Event("x")); $("[data-x=mods]").click(); } }
+        else if(w === "mods"){ const m = await IDB.all(); $("#dbgMods").innerHTML = Object.keys(m).map(k=> `<div class="dbg-row"><span>${esc(k)}</span><b>${(m[k].length / 1024).toFixed(1)} KB <button type="button" class="btn" data-x="rmmod" data-n="${esc(k)}">Remove</button></b></div>`).join("") || "No mods installed."; }
+        else if(w === "rmmod"){ await IDB.del(a.dataset.n); try{ SOHRT.options.fs().unlink("/mods/" + a.dataset.n); }catch(e){} say("Removed. It's gone after the next Reset."); $("[data-x=mods]").click(); }
+        else if(w === "bps"){ const o = $("#dbgRomA").files[0], n = $("#dbgRomB").files[0]; if(!o || !n){ say("Choose both ROMs."); return; } say("Working…"); const s = new Uint8Array(await o.arrayBuffer()), d = new Uint8Array(await n.arrayBuffer()), p = bpsMake(s, d); save(n.name.replace(/\.[^.]+$/, "") + ".bps", p);
+          $("#dbgPatchInfo").textContent = "Patch is " + (p.length / 1024).toFixed(1) + " KB. It applies only to the base ROM with checksum " + hex8(crc32(s)) + " (the one you picked as the original). Result checksum " + hex8(crc32(d)) + "."; say("Saved."); }
+      }catch(err){ say(String(err && err.message || err)); }
+    });
+    const modIn = $("#dbgModIn"); modIn && modIn.addEventListener("change", async ()=>{ for(const f of modIn.files) modFiles.push({ name: f.webkitRelativePath || f.name, data: new Uint8Array(await f.arrayBuffer()) }); modIn.value = ""; $("#dbgModList").innerHTML = rowsHtml(modFiles.map(f=> [f.name, "ok", (f.data.length / 1024).toFixed(1) + " KB"])); });
+    $("#dbgModClear") && $("#dbgModClear").addEventListener("click", ()=>{ modFiles = []; $("#dbgModList").innerHTML = ""; });
+    const find = $("#dbgAsset"); find && find.addEventListener("input", ()=> $("[data-x=find]").click());
+  }
+  if(document.readyState === "loading") document.addEventListener("DOMContentLoaded", ui); else ui();
+  return { crc32, zipWrite, zipList, zipRead, bpsMake, check, smoke, installMods, grab, diff };
+})();
+
 
 // ---------- tabs ----------
 const tabsEl = document.getElementById("tabs");
