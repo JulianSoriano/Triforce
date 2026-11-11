@@ -622,6 +622,22 @@ html.lore-mode:not(.lore-ac3) .wrap>header,html.lore-mode:not(.lore-ac3) .wrap>.
 html.lore-ac3 .wrap{display:flex;flex-direction:column}
 html.lore-ac3 #lore{order:1}html.lore-ac3 .wrap>header{order:2;margin-top:22px}html.lore-ac3 .wrap>.hud{order:3}html.lore-ac3 #playArea{order:4}html.lore-ac3 #missionTree{order:5}html.lore-ac3 .wrap>.bkbar{order:6}html.lore-ac3 .wrap>.foot{order:7}
 html.lore-mode.playing .wrap{max-width:var(--shell)}
+/* mobile pass: cartridge strip, folded guides, bigger tap targets, calmer map labels */
+.guide-fold{border:1px solid var(--line);border-radius:12px;background:var(--surface);padding:0 14px}
+.guide-fold>summary{cursor:pointer;padding:12px 0;font-family:var(--display);font-weight:600;color:var(--ink);list-style:none;display:flex;justify-content:space-between}
+.guide-fold>summary::-webkit-details-marker{display:none}
+.guide-fold>summary::after{content:"+";color:var(--muted);font-family:var(--mono)}
+.guide-fold[open]>summary::after{content:"\2013"}
+.guide-fold>:not(summary){margin-bottom:8px}
+@media (max-width:520px){
+ .games-row{display:flex;grid-template-columns:none;overflow-x:auto;scroll-snap-type:x proximity;gap:8px;scrollbar-width:none;padding:6px 4px 10px}
+ .games-row::-webkit-scrollbar{display:none}
+ .games-row .game{flex:0 0 190px;scroll-snap-align:center}
+ .fs-tile.plain{min-height:36px}
+ .m3d-label small{display:none}
+ .m3d-label{font-size:10px}
+}
+
 /* UI pass: phone tab row, home about, contrast */
 .fr-tab .num{color:var(--muted)}
 .fr-tab[aria-selected="true"] .num{color:var(--surface-2)}
@@ -11293,6 +11309,7 @@ function renderGames(){
     }).join("") + (f===BOX_FR ? `<button type="button" class="game lore-card" data-box="1" aria-pressed="${frView===BOX_TAB}"><span class="gname">Pokémon Box</span><span class="gmeta"><span class="gdate">Move Pokémon between saves</span></span></button>` : "") + (f===GSPW_FR ? `<button type="button" class="game lore-card" data-gspw="1" aria-pressed="${frView===GSPW_TAB}"><span class="gname">Password Generator</span><span class="gmeta"><span class="gdate">Carry your party into The Lost Age</span></span></button>` : "") + (f===LORE_FR ? `<button type="button" class="game lore-card" data-lore="1" aria-pressed="${frView===LORE_TAB}"><span class="gname">Ace Combat Lore</span><span class="gmeta"><span class="gdate">Strangereal Map</span></span></button>` : "") + `</div>`;
   });
   gamesEl.innerHTML = tabs + html;
+  try{ const gr = gamesEl.querySelector(".games-row"), gs = gr && gr.querySelector('.game[aria-pressed="true"]'); if(gs && gr.scrollWidth > gr.clientWidth) gr.scrollLeft = gs.offsetLeft - (gr.clientWidth - gs.offsetWidth)/2; }catch(e){}
 }
 function showFranchise(f, focus){
   if(f === LORE_FR) f = LORE_TAB;   // Ace Combat opens on the Strangereal Map
@@ -11315,13 +11332,13 @@ function showFranchise(f, focus){
   { const gk = FRANCHISES.includes(f) ? f : f === EMU_TAB ? "emu" : (f === LORE_TAB && ac3Panel) ? LORE_FR : "";
     const src = gk && document.querySelector('#guideBank [data-guide="'+gk+'"] .g-body');
     for(const [id, on] of [["tabGuide", gk && gk !== "emu"], ["emuGuide", gk === "emu"]]){
-      const el = document.getElementById(id); el.innerHTML = src && on ? src.innerHTML : ""; el.hidden = !(src && on); } }
+      const el = document.getElementById(id); el.innerHTML = src && on ? (window.matchMedia("(max-width:640px)").matches ? '<details class="guide-fold"><summary>How this works</summary>' + src.innerHTML + "</details>" : src.innerHTML) : ""; el.hidden = !(src && on); } }
   document.getElementById("emu").hidden = f !== EMU_TAB;
   if(f === EMU_TAB){ const fr = document.getElementById("emuFrame"); if(!fr.getAttribute("srcdoc")) EMB.text("emu").then(t=>{ fr.srcdoc = t; }); }
   document.getElementById("gspw").hidden = f !== GSPW_TAB;
   if(f === GSPW_TAB){ const fr = document.getElementById("gspwFrame"); if(!fr.getAttribute("srcdoc")) EMB.text("gspw").then(t=>{ fr.srcdoc = t; }); }
   if(f === BOX_TAB && !wasBox && typeof PLAYER !== "undefined" && PLAYER.box) PLAYER.box.open();
-  try{ const st = gamesEl.querySelector(`.fr-tab[aria-selected="true"]`), row = gamesEl.querySelector(".fr-tabs"); if(st && row && row.scrollWidth > row.clientWidth) row.scrollLeft = st.offsetLeft - (row.clientWidth - st.offsetWidth)/2; }catch(e){}
+  try{ const st = gamesEl.querySelector(`.fr-tab[aria-selected="true"]`), row = gamesEl.querySelector(".fr-tabs"); if(st && row && row.scrollWidth > row.clientWidth) row.scrollLeft = st.offsetLeft - (row.clientWidth - st.offsetWidth)/2; for(const gr of document.querySelectorAll(".games-row")){ const gs = gr.querySelector('.game[aria-pressed="true"]'); if(gs && gr.scrollWidth > gr.clientWidth) gr.scrollLeft = gs.offsetLeft - (gr.clientWidth - gs.offsetWidth)/2; } }catch(e){}
   if(focus){ const t = gamesEl.querySelector(`.fr-tab[aria-selected="true"]`); if(t) t.focus({preventScroll:true}); }
 }
 // The Strangereal Map tells us which operation is open; for Ace Combat 3 the player and the story-path checklist appear under it.
