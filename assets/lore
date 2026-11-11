@@ -310,6 +310,13 @@ details.rt p b{color:var(--hud);font-weight:600}
 .playbox{display:flex;gap:12px;align-items:center;justify-content:space-between;padding:10px 12px;border:1px solid var(--hud);border-radius:6px;background:rgba(80,160,255,.08)}
 .playbox b{display:block;font-family:var(--mono);font-size:12px;letter-spacing:.08em;color:var(--hud)}.playbox span{display:block;font-size:12.5px;opacity:.85;margin-top:2px}
 .playbox button{flex:none;font-family:var(--mono);font-size:11px;letter-spacing:.08em;padding:8px 10px;border:1px solid var(--hud);background:none;color:var(--hud);cursor:pointer;border-radius:4px}.playbox button:hover{background:var(--hud);color:#04101c}
+.tag{display:block;width:max-content;margin:3px 0 0}
+@media(max-width:560px){
+.brand h1{font-size:18px;letter-spacing:.1em}
+.tabs{display:flex;width:100%}
+.tabs button{flex:1;padding:8px 4px;font-size:11px;letter-spacing:.08em;white-space:nowrap}
+.eyebrow{letter-spacing:.08em}
+}
 </style>
 
 </head>

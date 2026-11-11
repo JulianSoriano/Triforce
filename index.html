@@ -622,6 +622,25 @@ html.lore-mode:not(.lore-ac3) .wrap>header,html.lore-mode:not(.lore-ac3) .wrap>.
 html.lore-ac3 .wrap{display:flex;flex-direction:column}
 html.lore-ac3 #lore{order:1}html.lore-ac3 .wrap>header{order:2;margin-top:22px}html.lore-ac3 .wrap>.hud{order:3}html.lore-ac3 #playArea{order:4}html.lore-ac3 #missionTree{order:5}html.lore-ac3 .wrap>.bkbar{order:6}html.lore-ac3 .wrap>.foot{order:7}
 html.lore-mode.playing .wrap{max-width:var(--shell)}
+/* UI pass: phone tab row, home about, contrast */
+.fr-tab .num{color:var(--muted)}
+.fr-tab[aria-selected="true"] .num{color:var(--surface-2)}
+.home-steps li,.home-guide .g-body,.home-hero p,.about-lede{color:#b3b9c9}
+.home-about{border:1px solid var(--line);border-radius:12px;background:var(--surface);padding:0 16px;margin-top:34px}
+.home-about>summary{cursor:pointer;padding:14px 0;font-family:var(--display);font-weight:600;font-size:1.05rem;list-style:none;display:flex;justify-content:space-between;gap:10px}
+.home-about>summary::-webkit-details-marker{display:none}
+.home-about>summary::after{content:"+";color:var(--muted);font-family:var(--mono)}
+.home-about[open]>summary::after{content:"\2013"}
+.home-about .about-grid{padding-bottom:16px}
+.lore-bar a{white-space:nowrap}
+@media (max-width:520px){
+ .fr-tabs{display:flex;flex-wrap:nowrap;overflow-x:auto;gap:6px;scroll-snap-type:x proximity;scrollbar-width:none;-webkit-mask-image:linear-gradient(90deg,#000 92%,transparent);mask-image:linear-gradient(90deg,#000 92%,transparent);padding-right:24px}
+ .fr-tabs::-webkit-scrollbar{display:none}
+ .fr-tab{white-space:nowrap;scroll-snap-align:center;font-size:14px;padding:8px 14px}
+ .fr-tab .num{display:inline;margin:0 0 0 4px}
+ .lore-bar{font-size:12px}
+}
+
 .lore{margin-top:10px}
 .lore[hidden]{display:none}
 .lore iframe{display:block;width:100%;height:calc(100vh - 150px);min-height:560px;border:1px solid var(--line);border-radius:10px;background:#03070e}
@@ -1281,7 +1300,7 @@ body.zmt-on #list,body.zmt-on .filters,body.zmt-on #fsStats,body.zmt-on #mapBox{
         <p><b>Reset this game's progress</b> clears one game's checklist.</p>
       </div></details>
     </div>
-    <h2 id="about">About</h2>
+    <details class="home-about" id="about"><summary>About and credits</summary>
     <p class="about-lede">Triforce is one HTML file, written in plain HTML, CSS and JavaScript with no framework, and built with Claude. Everything else it does stands on these projects:</p>
     <div class="about-grid">
       <section><h3>Playing the games</h3><ul>
@@ -1310,7 +1329,7 @@ body.zmt-on #list,body.zmt-on .filters,body.zmt-on #fsStats,body.zmt-on #mapBox{
         <li>RetroLab — the project's own Node.js toolkit for studying and modding games (in the repository)</li>
         <li><a href="https://github.com/vercel/geist-font" target="_blank" rel="noopener">Geist and Geist Mono</a> — the type</li>
       </ul></section>
-    </div>
+    </div></details>
     <p class="home-foot">Pokémon, The Legend of Zelda, Golden Sun and Ace Combat are trademarks of their owners. Triforce is a fan project.</p>
   </section>
   <section class="lore" id="lore" hidden aria-label="Ace Combat Lore">
@@ -11328,7 +11347,8 @@ function showFranchise(f, focus){
   document.getElementById("gspw").hidden = f !== GSPW_TAB;
   if(f === GSPW_TAB){ const fr = document.getElementById("gspwFrame"); if(!fr.getAttribute("srcdoc")) EMB.text("gspw").then(t=>{ fr.srcdoc = t; }); }
   if(f === BOX_TAB && !wasBox && typeof PLAYER !== "undefined" && PLAYER.box) PLAYER.box.open();
-  if(focus){ const t = gamesEl.querySelector(`.fr-tab[aria-selected="true"]`); if(t) t.focus(); }
+  try{ const st = gamesEl.querySelector(`.fr-tab[aria-selected="true"]`), row = gamesEl.querySelector(".fr-tabs"); if(st && row && row.scrollWidth > row.clientWidth) row.scrollLeft = st.offsetLeft - (row.clientWidth - st.offsetWidth)/2; }catch(e){}
+  if(focus){ const t = gamesEl.querySelector(`.fr-tab[aria-selected="true"]`); if(t) t.focus({preventScroll:true}); }
 }
 // The Strangereal Map tells us which operation is open; for Ace Combat 3 the player and the story-path checklist appear under it.
 function showAc3Panel(on){
