@@ -203,6 +203,7 @@ dialog.ed::backdrop { background: rgba(4,5,8,.7); }
 .hg-planes { display: grid; grid-template-columns: repeat(auto-fill, minmax(116px, 1fr)); gap: 6px; }
 .hg-planes label { display: flex; gap: 8px; align-items: center; padding: 8px 10px; border: 1px solid var(--line); border-radius: 8px; background: var(--plastic); cursor: pointer; min-height: 40px; font-size: 13px; }
 .hg-planes input { width: 18px; height: 18px; accent-color: #f2c14e; }
+.hg-hold { display: flex; gap: 8px; align-items: flex-start; font-size: 13px; } .hg-hold input { width: 18px; height: 18px; accent-color: #f2c14e; margin-top: 1px; } .hg-hold small { color: var(--ink-faint); }
 .hbtns { display: inline-flex; gap: 6px; float: right; }
 .ed-head { display: flex; align-items: center; gap: 10px; padding: 12px 14px; border-bottom: 1px solid var(--line); flex-wrap: wrap; }
 .ed-head h2 { font: 700 15px var(--f-display); letter-spacing: .12em; text-transform: uppercase; margin: 0; flex: 1; min-width: 0; }
@@ -376,6 +377,7 @@ dialog.ed::backdrop { background: rgba(4,5,8,.7); }
       <div id="hgPlanes" class="hg-planes"></div>
       <div class="row2" style="margin-top:8px"><button id="hgAll">Unlock all</button><button id="hgNone">Clear all</button></div>
     </div>
+    <label class="hg-hold"><input type="checkbox" id="hgHold" checked> Keep these values while the game runs <small>(recommended: the game can put its own numbers back otherwise)</small></label>
     <p class="note">This changes the game while it runs. Press <b>Apply to game</b>, go back to the game, then save in the game itself as usual so it goes onto the memory card. Works with the North American (NTSC-U) disc.</p>
   </div>
   <div class="ed-foot"><button id="hgRead">Read from game</button><span class="grow"></span><button class="btn primary" id="hgApply">Apply to game</button></div>
@@ -921,6 +923,7 @@ function loop(t) {
   n = Math.min(n, 16);
   for (let i = 0; i < n; i++) {
     readInput();
+    if (HG.hold) hgWrite();
     const frames = S.core.run();
     if (!(S.ff || S.ffHold) || i % 4 === 0) A.push(S.core.audio(frames), frames);
   }
@@ -986,6 +989,7 @@ async function startGame(bytes, name, opts = {}) {
   return true;
 }
 async function afterLoad(core, sys, info, name, hash, opts, bytes) {
+  if (typeof HG !== 'undefined') { HG.hold = false; HG.vals = null; }
   S.core = core; S.coreName = sys.core; S.sys = info.sys;
   if (sys.core === 'gpgx') { core.exports.web_set_port_device(0, S.six ? 0x201 : 0x101); core.exports.web_set_port_device(1, S.six ? 0x201 : 0x101); }
   frameMs = 1000 / (core.fps() || 60);
@@ -1534,7 +1538,7 @@ $('btnEditor').onclick = () => openEditor('live');
    The game keeps your money and the planes you own in main memory (addresses from published cheat codes for that disc):
    money is one 32-bit number at $10C1C (the game's cap is 9,999,990) and the 16 planes are one byte each from $10C44 (1 = owned). */
 const HG = { MONEY: 0x10C1C, CAP: 9999990, PLANES: 0x10C44,
-  NAMES: ['A-4', 'F-4', 'CF-C7', 'A-6', 'F-16', 'X-29', 'A-10', 'MiG-29', 'F-14', 'F-117A', 'R-MO1', 'EF-2000', 'F/A-18E', 'Su-35', 'YF-23A', 'F-22'], wasPaused: false, ok: false };
+  NAMES: ['A-4', 'F-4', 'CF-C7', 'A-6', 'F-16', 'X-29', 'A-10', 'MiG-29', 'F-14', 'F-117A', 'R-MO1', 'EF-2000', 'F/A-18E', 'Su-35', 'YF-23A', 'F-22'], wasPaused: false, ok: false, hold: false, vals: null };
 const hg = $('hg');
 $('hgPlanes').innerHTML = HG.NAMES.map((n, i) => `<label><input type="checkbox" data-i="${i}"> ${n}</label>`).join('');
 function hgRead() {
@@ -1549,15 +1553,25 @@ function hgRead() {
   note.textContent = plausible ? 'Read from the running game. Change anything, then Apply.'
     : 'This does not look like the North American Ace Combat 2 yet. Load your game past the title screen (or open its hangar screen) and press Read from game. Other regions keep these in different places, so they are not supported.';
 }
+// The game can put its own copy of these numbers back (its screens read and write them as you play), so a single write
+// may not stick. Like a cheat code, the chosen values are written again on every frame while "keep" is ticked.
+function hgWrite() {
+  const ram = S.core && S.core.ram && S.core.ram(); if (!ram || !HG.vals) return;
+  wr(ram, HG.MONEY, 4, HG.vals.money);
+  for (let i = 0; i < 16; i++) ram[HG.PLANES + i] = HG.vals.planes[i];
+}
 function hgApply() {
   const ram = S.core && S.core.ram && S.core.ram(); if (!ram || !HG.ok) return;
   let m = Math.round(Number($('hgMoney').value)); if (!(m >= 0)) m = 0; m = Math.min(m, HG.CAP);
-  wr(ram, HG.MONEY, 4, m); $('hgMoney').value = m;
-  hg.querySelectorAll('#hgPlanes input').forEach((c, i) => { ram[HG.PLANES + i] = c.checked ? 1 : 0; });
-  toast('Applied. Save in the game to keep it.');
+  $('hgMoney').value = m;
+  HG.vals = { money: m, planes: [...hg.querySelectorAll('#hgPlanes input')].map((c) => (c.checked ? 1 : 0)) };
+  hgWrite();
+  HG.hold = $('hgHold').checked; if (!HG.hold) HG.vals = null;
+  toast(HG.hold ? 'Applied and held. Go back to the game and save in it.' : 'Applied once. Save in the game to keep it.');
 }
 async function openHangar() {
   if (!S.core || S.busy || S.coreName !== 'pcsx') { toast('Open your Ace Combat 2 disc first.'); return; }
+  HG.hold = false;   // show the game's own numbers, not the held ones
   HG.wasPaused = S.paused; setPaused(true);
   $('hgSrc').textContent = S.rom ? S.rom.title : '';
   hgRead();
