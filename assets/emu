@@ -204,6 +204,12 @@ dialog.ed::backdrop { background: rgba(4,5,8,.7); }
 .hg-planes label { display: flex; gap: 8px; align-items: center; padding: 8px 10px; border: 1px solid var(--line); border-radius: 8px; background: var(--plastic); cursor: pointer; min-height: 40px; font-size: 13px; }
 .hg-planes input { width: 18px; height: 18px; accent-color: #f2c14e; }
 .hg-hold { display: flex; gap: 8px; align-items: flex-start; font-size: 13px; } .hg-hold input { width: 18px; height: 18px; accent-color: #f2c14e; margin-top: 1px; } .hg-hold small { color: var(--ink-faint); }
+.fd-row { display: grid; grid-template-columns: 92px minmax(0,1fr) 110px auto auto; gap: 6px; align-items: center; padding: 6px 0; border-bottom: 1px solid var(--line); font-size: 13px; }
+.fd-row code { font: 500 12px var(--f-mono); color: var(--ink-faint); }
+.fd-row input { min-width: 0; }
+.fd-row b { font: 600 13px var(--f-mono); }
+@media (max-width: 560px) { .fd-row { grid-template-columns: 1fr 1fr; } }
+.fd-ops { display: flex; flex-wrap: wrap; gap: 6px; margin-top: 8px; }
 .hbtns { display: inline-flex; gap: 6px; float: right; }
 .ed-head { display: flex; align-items: center; gap: 10px; padding: 12px 14px; border-bottom: 1px solid var(--line); flex-wrap: wrap; }
 .ed-head h2 { font: 700 15px var(--f-display); letter-spacing: .12em; text-transform: uppercase; margin: 0; flex: 1; min-width: 0; }
@@ -328,7 +334,7 @@ dialog.ed::backdrop { background: rgba(4,5,8,.7); }
 
     <aside class="side">
       <section class="panel" aria-labelledby="h-states">
-        <h2 id="h-states">Save states <span class="hbtns"><button id="btnHangar" hidden style="padding:5px 8px;font-size:11px" title="Change your money and aircraft (money only in Air Combat)">Hangar</button> <button id="btnEditor" style="padding:5px 8px;font-size:11px" title="Inspect and change a save state">Editor</button></span></h2>
+        <h2 id="h-states">Save states <span class="hbtns"><button id="btnHangar" hidden style="padding:5px 8px;font-size:11px" title="Change your money and aircraft (money only in Air Combat)">Hangar</button> <button id="btnFinder" hidden style="padding:5px 8px;font-size:11px" title="Find and change numbers in the running game">Finder</button> <button id="btnEditor" style="padding:5px 8px;font-size:11px" title="Inspect and change a save state">Editor</button></span></h2>
         <div class="slots" id="slots"></div>
         <p class="hint" id="stateHint">States are kept in this browser, per game. F2 saves, F4 loads. Edit opens the state editor.</p>
       </section>
@@ -381,6 +387,18 @@ dialog.ed::backdrop { background: rgba(4,5,8,.7); }
     <p class="note">This changes the game while it runs. Press <b>Apply to game</b>, go back to the game, then save in the game itself as usual so it goes onto the memory card. Works with the North American (NTSC-U) disc.</p>
   </div>
   <div class="ed-foot"><button id="hgRead">Read from game</button><span class="grow"></span><button class="btn primary" id="hgApply">Apply to game</button></div>
+</dialog>
+<dialog class="ed" id="fd" aria-labelledby="fdTitle" style="width:min(720px,calc(100vw - 24px))">
+  <div class="ed-head"><h2 id="fdTitle">Value finder</h2><span class="src" id="fdSrc"></span><button id="fdClose" aria-label="Close finder">Close</button></div>
+  <div class="ed-body" style="grid-template-columns:minmax(0,1fr)">
+    <p class="note" style="margin:0">Find where the game keeps a number (money, lives, a counter). <b>1.</b> Type the number you see on screen and press <b>Find</b>. <b>2.</b> Close this, change the number in the game, come back, type the new number and press <b>Find</b> again. Repeat until a few results are left, then change one. If the number is hidden (a flag or a progress counter), use <b>Start</b>, do something in the game, then <b>Changed</b> or <b>Unchanged</b>.</p>
+    <div class="box">
+      <div class="row2"><input id="fdVal" type="text" placeholder="number on screen" inputmode="numeric" aria-label="Number to find"><select id="fdSize" aria-label="Size"><option value="4">32-bit</option><option value="2">16-bit</option><option value="1">8-bit</option></select><button id="fdFind" class="btn primary">Find</button></div>
+      <div class="fd-ops"><button id="fdStart">Start (hidden numbers)</button><button id="fdChanged">Changed</button><button id="fdSame">Unchanged</button><button id="fdUp">Increased</button><button id="fdDown">Decreased</button><button id="fdReset">Reset</button></div>
+    </div>
+    <div class="box"><h3 id="fdCount">No search yet.</h3><div id="fdList"></div><p class="note" id="fdHeld" style="margin:8px 0 0"></p></div>
+    <p class="note">A written number can be put back by the game, so use <b>Hold</b> to keep it. Then save in the game itself. Addresses are shown in the form cheat codes use.</p>
+  </div>
 </dialog>
 <dialog class="ed" id="ed" aria-labelledby="edTitle">
   <div class="ed-head">
@@ -924,6 +942,7 @@ function loop(t) {
   for (let i = 0; i < n; i++) {
     readInput();
     if (HG.hold) hgWrite();
+    if (FD.holds.size) fdHold();
     const frames = S.core.run();
     if (!(S.ff || S.ffHold) || i % 4 === 0) A.push(S.core.audio(frames), frames);
   }
@@ -990,6 +1009,7 @@ async function startGame(bytes, name, opts = {}) {
 }
 async function afterLoad(core, sys, info, name, hash, opts, bytes) {
   if (typeof HG !== 'undefined') { HG.hold = false; HG.vals = null; }
+  if (typeof FD !== 'undefined') { FD.holds.clear(); FD.res = null; FD.prev = null; $('btnFinder').hidden = sys.core !== 'pcsx'; }
   S.core = core; S.coreName = sys.core; S.sys = info.sys;
   if (sys.core === 'gpgx') { core.exports.web_set_port_device(0, S.six ? 0x201 : 0x101); core.exports.web_set_port_device(1, S.six ? 0x201 : 0x101); }
   frameMs = 1000 / (core.fps() || 60);
@@ -1593,6 +1613,63 @@ $('hgRead').onclick = hgRead; $('hgApply').onclick = hgApply;
 $('hgMax').onclick = () => { $('hgMoney').value = HG.CAP; };
 $('hgAll').onclick = () => hg.querySelectorAll('#hgPlanes input').forEach((c) => { c.checked = true; });
 $('hgNone').onclick = () => hg.querySelectorAll('#hgPlanes input').forEach((c) => { c.checked = false; });
+
+/* ---------- value finder (PlayStation main memory) ----------
+   Searches the 2 MB of live game memory, narrows by value or by how it changed, and can write or hold a number. */
+const FD = { res: null, prev: null, holds: new Map(), wasPaused: false };   // res: addresses still in the running (null = every address)
+const fd = $('fd'), fdRam = () => S.core && S.core.ram && S.core.ram();
+const fdHex = (a) => a.toString(16).toUpperCase().padStart(5, '0');
+function fdHold() { const ram = fdRam(); if (ram) for (const [a, h] of FD.holds) wr(ram, a, h.size, h.val); }
+function fdAddrs(size) {
+  if (FD.res) return FD.res;
+  const ram = fdRam(), n = ram.length - size + 1, out = new Uint32Array(Math.ceil(n / size));
+  for (let i = 0, a = 0; a < n; a += size) out[i++] = a; return out;
+}
+function fdFilter(test) {
+  const ram = fdRam(); if (!ram) { toast('Start your game first.'); return; }
+  const size = +$('fdSize').value;
+  if (!FD.res && !FD.prev && test.needsPrev) { toast('Press Start first, then change something in the game.'); return; }
+  const keep = [];
+  for (const a of fdAddrs(size)) if (test(rd(ram, a, size), FD.prev ? rd(FD.prev, a, size) : 0)) keep.push(a);
+  FD.res = Uint32Array.from(keep); FD.prev = ram.slice(); fdRender();
+}
+const fdTest = (f, needsPrev) => Object.assign(f, { needsPrev });
+function fdRender() {
+  const ram = fdRam(), size = +$('fdSize').value, list = $('fdList'); list.innerHTML = '';
+  $('fdCount').textContent = !FD.res ? (FD.prev ? 'Snapshot taken. Change something in the game, then press Changed or Unchanged.' : 'No search yet.')
+    : FD.res.length.toLocaleString() + (FD.res.length === 1 ? ' match' : ' matches') + (FD.res.length > 40 ? ' (narrow it down to see them)' : '');
+  $('fdHeld').textContent = FD.holds.size ? 'Holding ' + FD.holds.size + ' value' + (FD.holds.size === 1 ? '' : 's') + ' while the game runs.' : '';
+  if (!FD.res || FD.res.length > 40) return;
+  for (const a of FD.res) {
+    const held = FD.holds.has(a), row = document.createElement('div'); row.className = 'fd-row';
+    row.innerHTML = `<code>80${fdHex(a).padStart(6, '0')}</code><b>${rd(ram, a, size)}</b><input type="text" inputmode="numeric" placeholder="new value" aria-label="New value for ${fdHex(a)}"><button data-a="set">Set</button><button data-a="hold">${held ? 'Release' : 'Hold'}</button>`;
+    const inp = row.querySelector('input');
+    const val = () => { const v = parseNum(inp.value); if (!Number.isInteger(v) || v < 0 || v >= 2 ** (8 * size)) { toast('Type a whole number from 0 to ' + (2 ** (8 * size) - 1) + '.'); return null; } return v; };
+    row.querySelector('[data-a=set]').onclick = () => { const v = val(); if (v !== null) { wr(ram, a, size, v); row.querySelector('b').textContent = v; toast('Written. Close this and save in the game.'); } };
+    row.querySelector('[data-a=hold]').onclick = () => {
+      if (FD.holds.has(a)) FD.holds.delete(a); else { const v = val(); if (v === null) return; FD.holds.set(a, { size, val: v }); wr(ram, a, size, v); }
+      fdRender();
+    };
+    list.appendChild(row);
+  }
+}
+$('fdFind').onclick = () => { const v = parseNum($('fdVal').value); if (!Number.isInteger(v) || v < 0) { toast('Type the number you see in the game.'); return; } fdFilter(fdTest((x) => x === v, false)); };
+$('fdVal').addEventListener('keydown', (e) => { if (e.key === 'Enter') $('fdFind').click(); });
+$('fdStart').onclick = () => { const ram = fdRam(); if (!ram) return; FD.res = null; FD.prev = ram.slice(); fdRender(); toast('Snapshot taken. Close this, change something in the game, then come back.'); };
+$('fdChanged').onclick = () => fdFilter(fdTest((x, p) => x !== p, true));
+$('fdSame').onclick = () => fdFilter(fdTest((x, p) => x === p, true));
+$('fdUp').onclick = () => fdFilter(fdTest((x, p) => x > p, true));
+$('fdDown').onclick = () => fdFilter(fdTest((x, p) => x < p, true));
+$('fdReset').onclick = () => { FD.res = null; FD.prev = null; FD.holds.clear(); fdRender(); };
+$('fdSize').onchange = () => { FD.res = null; FD.prev = null; fdRender(); };
+$('btnFinder').onclick = () => {
+  if (!S.core || S.busy || S.coreName !== 'pcsx') { toast('Open a PlayStation game first.'); return; }
+  FD.wasPaused = S.paused; setPaused(true);
+  $('fdSrc').textContent = S.rom ? S.rom.title : '';
+  fdRender(); if (typeof fd.showModal === 'function') fd.showModal(); else fd.setAttribute('open', '');
+};
+$('fdClose').onclick = () => fd.close();
+fd.addEventListener('close', () => { if (S.running) setPaused(FD.wasPaused); });
 
 /* ---------- boot ---------- */
 (async function boot() {
