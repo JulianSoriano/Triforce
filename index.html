@@ -620,6 +620,11 @@ html.lore-mode #list,html.lore-mode #xfer{display:none!important}
 html.lore-mode:not(.lore-ac3) .wrap>header,html.lore-mode:not(.lore-ac3) .wrap>.hud,html.lore-mode:not(.lore-ac3) #importRow,html.lore-mode:not(.lore-ac3) .wrap>.bkbar,html.lore-mode:not(.lore-ac3) #playArea,html.lore-mode:not(.lore-ac3) .wrap>.foot,html.lore-mode:not(.lore-ac3) #missionTree{display:none!important}
 /* Ace Combat 3 sits under its mission briefing in the Strangereal Map */
 html.lore-ac3 .wrap{display:flex;flex-direction:column}
+/* Ace Combat 2 plays under its briefing in the Strangereal Map, in the Emulators tab's PlayStation player */
+.ac2-panel{display:none}
+html.lore-ac2 .ac2-panel{display:block;margin-top:18px}
+#ac2Frame{display:block;width:100%;height:calc(100vh - 40px);min-height:640px;border:1px solid var(--line);border-radius:10px;background:var(--ground)}
+@media (max-width:640px){#ac2Frame{height:calc(100vh - 20px);min-height:560px}}
 html.lore-ac3 #lore{order:1}html.lore-ac3 .wrap>header{order:2;margin-top:22px}html.lore-ac3 .wrap>.hud{order:3}html.lore-ac3 #playArea{order:4}html.lore-ac3 #missionTree{order:5}html.lore-ac3 .wrap>.bkbar{order:6}html.lore-ac3 .wrap>.foot{order:7}
 html.lore-mode.playing .wrap{max-width:var(--shell)}
 /* mobile pass: cartridge strip, folded guides, bigger tap targets, calmer map labels */
@@ -1351,6 +1356,9 @@ body.zmt-on #list,body.zmt-on .filters,body.zmt-on #fsStats,body.zmt-on #mapBox{
   <section class="lore" id="lore" hidden aria-label="Ace Combat Lore">
     <div class="lore-bar"><span>Strangereal Map — your visual Ace Combat lore.</span><a href="#" id="loreOpen">Open in its own tab ↗</a></div>
     <iframe id="loreFrame" title="Strangereal Map" loading="lazy"></iframe>
+  </section>
+  <section class="ac2-panel" id="ac2Panel" aria-label="Play Ace Combat 2">
+    <iframe id="ac2Frame" title="Ace Combat 2" allow="autoplay; gamepad; fullscreen" allowfullscreen></iframe>
   </section>
   <section class="lore" id="gspw" hidden aria-label="Golden Sun Password Generator">
     <div class="lore-bar"><span>Golden Sun Password Generator — carry your Golden Sun party into The Lost Age.</span><a href="#" id="gspwOpen">Open in its own tab ↗</a></div>
@@ -11325,6 +11333,8 @@ function showFranchise(f, focus){
   else if(FRANCHISES.includes(f) && G.franchise === f) root.classList.remove("pick-mode");
   document.documentElement.classList.toggle("box-mode", f === BOX_TAB);
   document.documentElement.classList.toggle("lore-ac3", f === LORE_TAB && ac3Panel);
+  if(f !== LORE_TAB) ac2Panel = false;
+  document.documentElement.classList.toggle("lore-ac2", f === LORE_TAB && ac2Panel);
   document.documentElement.classList.toggle("lore-mode", f === LORE_TAB || f === GSPW_TAB || f === EMU_TAB || f === HACKS_TAB);
   const loreEl = document.getElementById("lore"); loreEl.hidden = f !== LORE_TAB;
   if(f === LORE_TAB){ const fr = document.getElementById("loreFrame"); if(!fr.getAttribute("srcdoc")) EMB.text("lore").then(t=>{ fr.srcdoc = t; }); }
@@ -11342,6 +11352,12 @@ function showFranchise(f, focus){
   if(focus){ const t = gamesEl.querySelector(`.fr-tab[aria-selected="true"]`); if(t) t.focus({preventScroll:true}); }
 }
 // The Strangereal Map tells us which operation is open; for Ace Combat 3 the player and the story-path checklist appear under it.
+let ac2Panel = false;
+function showAc2Panel(on){
+  ac2Panel = !!on; document.documentElement.classList.toggle("lore-ac2", ac2Panel);
+  const fr = document.getElementById("ac2Frame");
+  if(ac2Panel && fr && !fr.getAttribute("srcdoc")) EMB.text("emu").then(t=>{ fr.srcdoc = t.replace("<head>", "<head><script>window.EMU_MODE=\"ac2\"<\/script>"); });
+}
 function showAc3Panel(on){
   if(on && GBY.ac3 && G !== GBY.ac3) switchGame(GBY.ac3);
   ac3Panel = !!on; showFranchise(LORE_TAB);
@@ -11349,7 +11365,8 @@ function showAc3Panel(on){
 window.addEventListener("message", ev=>{
   const fr = document.getElementById("loreFrame"), m = ev.data;
   if(!fr || ev.source !== fr.contentWindow || !m) return;
-  if(m.t === "lore-game") showAc3Panel(m.id === "ac3");
+  if(m.t === "lore-game"){ showAc3Panel(m.id === "ac3"); showAc2Panel(m.id === "ac2"); }
+  else if(m.t === "lore-scroll" && m.id === "ac2"){ showAc2Panel(true); document.getElementById("ac2Panel").scrollIntoView({ behavior:"smooth", block:"start" }); }
   else if(m.t === "lore-scroll"){ showAc3Panel(true); const t = document.getElementById("gameTitle"); if(t) t.scrollIntoView({ behavior:"smooth", block:"start" }); }
 });
 gamesEl.addEventListener("click",e=>{

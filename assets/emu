@@ -551,6 +551,9 @@ const SYSTEMS = {
   psx:  { name: 'PlayStation', short: 'PlayStation', core: 'pcsx', pad: 'psx', exts: ['cue', 'chd', 'pbp', 'iso', 'img', 'exe'], aspect: 4 / 3, disc: true },
 };
 const ROM_EXT = Object.values(SYSTEMS).flatMap((s) => s.exts);
+// One-game mode: Triforce embeds this page as the player for a single game (set by window.EMU_MODE or the #hash).
+const ONE = (() => { let m = ''; try { m = window.EMU_MODE || decodeURIComponent(location.hash.slice(1)); } catch (e) { m = ''; }
+  return { ac2: { sys: 'psx', title: 'Ace Combat 2' } }[m] || null; })();
 const DIRS = [['UP', 4], ['DOWN', 5], ['LEFT', 6], ['RIGHT', 7]];
 // Buttons per controller. `k` is the storage name, `id` the libretro button.
 const PADS = {
@@ -1043,7 +1046,7 @@ async function startDisc(list) {
   const dataFile = files.find((f) => f !== main) || main;
   const hash = 'psx-' + await hashBytes(new Uint8Array(await dataFile.slice(0, 4 * 1048576).arrayBuffer())) + '-' + dataFile.size.toString(16);
   const base = main.name.replace(/\.[^.]+$/, '');
-  const info = { ext: extOf(main.name), sys: 'psx', title: base.replace(/[_]+/g, ' ').replace(/\s*[\(\[].*$/, '').trim() || base, base, system: sys.name, region: '', size: files.reduce((a, f) => a + f.size, 0) };
+  const info = { ext: extOf(main.name), sys: 'psx', title: (ONE && ONE.title) || base.replace(/[_]+/g, ' ').replace(/\s*[\(\[].*$/, '').trim() || base, base, system: sys.name, region: '', size: files.reduce((a, f) => a + f.size, 0) };
   S.lastName = main.name;
   await afterLoad(core, sys, info, main.name, hash, {}, null);
   S.psxHle = !kept;
@@ -1146,7 +1149,7 @@ function renderSystems() {
   const box = $('systems'); box.innerHTML = '';
   const seen = new Set();
   for (const [k, s] of Object.entries(SYSTEMS)) {
-    if (seen.has(s.short)) continue; seen.add(s.short);
+    if (seen.has(s.short) || (ONE && k !== ONE.sys)) continue; seen.add(s.short);
     const c = document.createElement('span'); c.className = 'sys' + (k === S.sys ? ' on' : ''); c.textContent = s.short;
     box.appendChild(c);
   }
@@ -1507,10 +1510,18 @@ $('btnEditor').onclick = () => openEditor('live');
 
 /* ---------- boot ---------- */
 (async function boot() {
+  if (ONE) {
+    S.sys = ONE.sys; document.documentElement.classList.add('one-game');
+    document.querySelector('.brand h1').textContent = ONE.title; document.title = ONE.title;
+    const open = document.querySelector('label[for=file]'); open.lastChild.textContent = ' Choose disc files';
+    $('h-lib').closest('section').hidden = true;
+    $('credit').textContent = 'Runs on PCSX-ReARMed, a PlayStation emulator built for the browser. Pick the .cue together with its .bin file(s), or one .chd, .pbp or .iso file. Your console\'s BIOS file is optional. Saves and save states stay in this browser and are shared with the Emulators tab.';
+  }
   renderSystems(); renderKeys(); renderTouch(); renderOpts(); renderPads();
   await DB.open();
-  const demo = Uint8Array.from(atob(DEMO_CART), (c) => c.charCodeAt(0));
-  await startGame(demo, 'controller-test.bin', { demo: true });
+  if (ONE) showMessage(ONE.title, 'Choose your disc files to start: the .cue together with its .bin file(s), or one .chd, .pbp or .iso file.');
+  else { const demo = Uint8Array.from(atob(DEMO_CART), (c) => c.charCodeAt(0));
+  await startGame(demo, 'controller-test.bin', { demo: true }); }
   renderLib();
   requestAnimationFrame(loop);
 })();

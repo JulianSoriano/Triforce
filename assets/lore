@@ -1872,6 +1872,7 @@ function renderDossier(){
     dos.innerHTML=`<div><div class="eyebrow">${g.year} · ${g.war}</div><h2>${g.title}</h2></div>
       ${g.player||g.cast?`<dl class="facts">${g.player?`<dt>PLAYER</dt><dd>${g.player}</dd>`:""}${(g.cast||[]).map(([k,v])=>`<dt>${k}</dt><dd>${v}</dd>`).join("")}</dl>`:""}
       ${g.id==="ac3"&&window.parent!==window?`<div class="playbox"><div><b>Play it and track it</b><span>Run the game from your own discs and tick off the story paths you have cleared, right under this briefing.</span></div><button type="button" id="playac3">PLAY &amp; CHECKLIST ▾</button></div>`:""}
+      ${g.id==="ac2"&&window.parent!==window?`<div class="playbox"><div><b>Play it</b><span>Run the game from your own disc files, right under this briefing.</span></div><button type="button" id="playac2">PLAY ▾</button></div>`:""}
       <p>${g.summary}</p>
       ${g.beats?`<div><div class="eyebrow" style="margin-bottom:6px">Course of the war</div><ol class="beats">${g.beats.map(b=>`<li>${b}</li>`).join("")}</ol></div>`:""}
       ${g.factions?`<div><div class="eyebrow" style="margin-bottom:6px">Factions</div><div class="acc">${g.factions.map(f=>`<details class="rt"><summary><b>${f.n}</b><span>${f.tag}</span></summary><p>${f.t}</p></details>`).join("")}</div></div>`:""}
@@ -1889,6 +1890,7 @@ function renderDossier(){
       <p class="note">Laid out after the official world map from Ace Combat 8, drawn in a simplified tile style.</p>`;
   }
   const pa=document.getElementById("playac3");if(pa)pa.onclick=()=>window.parent.postMessage({t:"lore-scroll"},"*");
+  const p2=document.getElementById("playac2");if(p2)p2.onclick=()=>window.parent.postMessage({t:"lore-scroll",id:"ac2"},"*");
   dos.querySelectorAll("[data-c]").forEach(b=>b.onclick=()=>selectCountry(b.dataset.c));
   dos.querySelectorAll("[data-lm]").forEach(b=>b.onclick=()=>selectLandmark(b.dataset.lm));
   dos.querySelectorAll("[data-gm]").forEach(b=>b.onclick=()=>selectGame(b.dataset.gm));
