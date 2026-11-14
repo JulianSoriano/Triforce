@@ -356,7 +356,7 @@ dialog.ed::backdrop { background: rgba(4,5,8,.7); }
       </section>
     </aside>
   </main>
-  <footer class="credit" id="credit">Emulation cores: Genesis Plus GX (Genesis, Master System, Game Gear), FCEUmm (NES), Snes9x 2010 (SNES) and mGBA (Game Boy, Game Boy Color, Game Boy Advance), built for the browser. A core downloads the first time you open a game for its console. Your ROMs, saves and settings stay in this browser and are never uploaded.</footer>
+  <footer class="credit" id="credit">Emulation cores: Genesis Plus GX (Genesis, Master System, Game Gear), FCEUmm (NES), Snes9x 2010 (SNES) and mGBA (Game Boy, Game Boy Color, Game Boy Advance) and PCSX-ReARMed (PlayStation), built for the browser. For a PlayStation game, pick the .cue together with its .bin files (or one .chd, .pbp or .iso); your console's BIOS file is optional. A core downloads the first time you open a game for its console. Your ROMs, saves and settings stay in this browser and are never uploaded.</footer>
 </div>
 
 <dialog class="ed" id="ed" aria-labelledby="edTitle">
@@ -536,6 +536,7 @@ const CORES = {
   fceumm: { label: 'FCEUmm' },
   snes9x: { label: 'Snes9x 2010' },
   mgba: { label: 'mGBA', options: { mgba_sgb_borders: 'OFF', mgba_audio_low_pass_filter: 'enabled' } },
+  pcsx: { label: 'PCSX-ReARMed', options: { pcsx_rearmed_memcard1: 'libretro' } },
 };
 const SYSTEMS = {
   md:   { name: 'Genesis', short: 'Genesis', core: 'gpgx', pad: 'sega', exts: ['md', 'gen', 'bin', 'smd'], aspect: 4 / 3 },
@@ -546,6 +547,8 @@ const SYSTEMS = {
   gb:   { name: 'Game Boy', short: 'Game Boy', core: 'mgba', pad: 'gb', exts: ['gb'] },
   gbc:  { name: 'Game Boy Color', short: 'GB Color', core: 'mgba', pad: 'gb', exts: ['gbc'] },
   gba:  { name: 'Game Boy Advance', short: 'GBA', core: 'mgba', pad: 'gba', exts: ['gba', 'agb'] },
+  // discs: a .cue with its .bin tracks, or one .chd / .pbp / .iso file (a lone disc .bin is recognised by its contents)
+  psx:  { name: 'PlayStation', short: 'PlayStation', core: 'pcsx', pad: 'psx', exts: ['cue', 'chd', 'pbp', 'iso', 'img', 'exe'], aspect: 4 / 3, disc: true },
 };
 const ROM_EXT = Object.values(SYSTEMS).flatMap((s) => s.exts);
 const DIRS = [['UP', 4], ['DOWN', 5], ['LEFT', 6], ['RIGHT', 7]];
@@ -556,11 +559,13 @@ const PADS = {
   snes: { family: 'nin', title: 'SNES controls', buttons: [['B', 0], ['A', 8], ['Y', 1], ['X', 9], ['L', 10], ['R', 11], ['SELECT', 2, 'Select'], ['START', 3, 'Start']] },
   gb:   { family: 'nin', title: 'Game Boy controls', buttons: [['B', 0], ['A', 8], ['SELECT', 2, 'Select'], ['START', 3, 'Start']] },
   gba:  { family: 'nin', title: 'Game Boy Advance controls', buttons: [['B', 0], ['A', 8], ['L', 10], ['R', 11], ['SELECT', 2, 'Select'], ['START', 3, 'Start']] },
+  psx:  { family: 'psx', title: 'PlayStation controls', buttons: [['CROSS', 0, 'Cross'], ['CIRCLE', 8, 'Circle'], ['SQUARE', 1, 'Square'], ['TRIANGLE', 9, 'Triangle'], ['L1', 10], ['R1', 11], ['L2', 12], ['R2', 13], ['SELECT', 2, 'Select'], ['START', 3, 'Start']] },
 };
 // Gamepads map by position (Xbox-style layout: 0 bottom, 1 right, 2 left, 3 top, 4/5 bumpers, 6/7 triggers, 8 back, 9 start)
 const GAMEPAD = {
   sega: { A: [2], B: [0], C: [1], X: [4], Y: [3], Z: [5], MODE: [8], START: [9] },
   nin: { B: [0], A: [1], Y: [2], X: [3], L: [4, 6], R: [5, 7], SELECT: [8], START: [9] },
+  psx: { CROSS: [0], CIRCLE: [1], SQUARE: [2], TRIANGLE: [3], L1: [4], R1: [5], L2: [6], R2: [7], SELECT: [8], START: [9] },
 };
 const DEFAULT_KEYS = {
   sega: {
@@ -571,10 +576,14 @@ const DEFAULT_KEYS = {
     0: { UP: 'ArrowUp', DOWN: 'ArrowDown', LEFT: 'ArrowLeft', RIGHT: 'ArrowRight', B: 'KeyZ', A: 'KeyX', Y: 'KeyA', X: 'KeyS', L: 'KeyQ', R: 'KeyW', SELECT: 'ShiftRight', START: 'Enter' },
     1: { UP: 'KeyI', DOWN: 'KeyK', LEFT: 'KeyJ', RIGHT: 'KeyL', B: 'KeyN', A: 'KeyM', Y: 'KeyH', X: 'KeyU', L: 'KeyY', R: 'KeyO', SELECT: 'KeyT', START: 'KeyP' },
   },
+  psx: {
+    0: { UP: 'ArrowUp', DOWN: 'ArrowDown', LEFT: 'ArrowLeft', RIGHT: 'ArrowRight', CROSS: 'KeyX', CIRCLE: 'KeyC', SQUARE: 'KeyZ', TRIANGLE: 'KeyS', L1: 'KeyQ', R1: 'KeyW', L2: 'KeyE', R2: 'KeyR', SELECT: 'ShiftRight', START: 'Enter' },
+    1: { UP: 'KeyI', DOWN: 'KeyK', LEFT: 'KeyJ', RIGHT: 'KeyL', CROSS: 'KeyM', CIRCLE: 'Comma', SQUARE: 'KeyN', TRIANGLE: 'KeyH', L1: 'KeyY', R1: 'KeyO', L2: 'KeyU', R2: 'Digit9', SELECT: 'KeyT', START: 'KeyP' },
+  },
 };
 const clone = (o) => JSON.parse(JSON.stringify(o));
-const keymaps = { sega: store('gp.keys') || clone(DEFAULT_KEYS.sega), nin: store('gp.keys.nin') || clone(DEFAULT_KEYS.nin) };
-const KEY_STORE = { sega: 'gp.keys', nin: 'gp.keys.nin' };
+const keymaps = { sega: store('gp.keys') || clone(DEFAULT_KEYS.sega), nin: store('gp.keys.nin') || clone(DEFAULT_KEYS.nin), psx: store('gp.keys.psx') || clone(DEFAULT_KEYS.psx) };
+const KEY_STORE = { sega: 'gp.keys', nin: 'gp.keys.nin', psx: 'gp.keys.psx' };
 // Touch layouts: face buttons positioned inside a 158 x 136 box
 const TOUCH = {
   sega: { face: [['A', 0, 64], ['B', 55, 44], ['C', 110, 24]], mid: [['START', 'START']] },
@@ -582,6 +591,7 @@ const TOUCH = {
   gb:   { face: [['B', 20, 60], ['A', 92, 40]], mid: [['SELECT', 'SELECT'], ['START', 'START']] },
   gba:  { face: [['B', 20, 76], ['A', 92, 56]], shoulder: [['L', 0, 0], ['R', 94, 0]], mid: [['SELECT', 'SELECT'], ['START', 'START']] },
   snes: { face: [['Y', 0, 62], ['X', 55, 34], ['B', 55, 88], ['A', 110, 62]], shoulder: [['L', 0, 0], ['R', 94, 0]], mid: [['SELECT', 'SELECT'], ['START', 'START']] },
+  psx:  { face: [['SQUARE', 0, 62, '\u25A1'], ['TRIANGLE', 55, 34, '\u25B3'], ['CROSS', 55, 88, '\u2715'], ['CIRCLE', 110, 62, '\u25CB']], shoulder: [['L1', 0, 0], ['R1', 94, 0]], mid: [['SELECT', 'SELECT'], ['START', 'START']] },
 };
 
 function extOf(name) { const m = /\.([a-z0-9]+)$/i.exec(name || ''); return m ? m[1].toLowerCase() : ''; }
@@ -946,20 +956,25 @@ async function startGame(bytes, name, opts = {}) {
     toast('That file did not load as a ' + sys.name + ' game. Check the file and its extension.');
     return false;
   }
+  S.lastName = name;
+  await afterLoad(core, sys, info, name, opts.demo ? 'demo' : await hashBytes(bytes), opts, bytes);
+  return true;
+}
+async function afterLoad(core, sys, info, name, hash, opts, bytes) {
   S.core = core; S.coreName = sys.core; S.sys = info.sys;
   if (sys.core === 'gpgx') { core.exports.web_set_port_device(0, S.six ? 0x201 : 0x101); core.exports.web_set_port_device(1, S.six ? 0x201 : 0x101); }
   frameMs = 1000 / (core.fps() || 60);
   A.setRate(core.sampleRate());
   const f = core.frame();
   setAspect(sys.aspect || (core.exports.web_aspect ? core.exports.web_aspect() : f.w / f.h));
-  S.rom = info; S.hash = opts.demo ? 'demo' : await hashBytes(bytes);
+  S.rom = info; S.hash = hash;
   S.lastSram = null; S.touch = 0;
   if (!opts.demo) {
     const saved = await DB.get('sram', S.hash);
     const live = core.sram();
     if (saved && live && saved.length === live.length) { live.set(saved); S.lastSram = saved.slice(); }
     const prev = await DB.get('roms', S.hash);
-    await DB.put('roms', S.hash, { hash: S.hash, name, title: info.title, system: info.system, size: bytes.length, bytes, added: prev ? prev.added : Date.now(), played: Date.now() });
+    if (bytes) await DB.put('roms', S.hash, { hash: S.hash, name, title: info.title, system: info.system, size: bytes.length, bytes, added: prev ? prev.added : Date.now(), played: Date.now() });
     store('gp.last', S.hash);
   }
   $('gameTitle').textContent = info.title;
@@ -969,9 +984,82 @@ async function startGame(bytes, name, opts = {}) {
   S.busy = false; S.running = true; setPaused(false);
   renderSystems(); renderKeys(); renderTouch(); renderOpts(); renderSlots(); renderLib();
   if (!opts.demo) A.start();
+}
+
+/* ---------- PlayStation discs ----------
+   Discs are far bigger than cartridges, so they are read straight into the emulator's memory in pieces (one copy,
+   no unzip, nothing kept in the library). A .cue lists its .bin tracks, so pick them together. A PlayStation BIOS
+   (a 512 KB file such as SCPH1001.BIN) is optional: picked once, it is kept in this browser and used from then on;
+   without one the emulator's built-in replacement runs most games. */
+const BIOS_SIZE = 524288;
+const isDiscBin = (head, size) => size > 64 * 1048576 || (head[0] === 0 && head[1] === 0xff && head[10] === 0xff && head[11] === 0);
+async function startDisc(list) {
+  if (REC.on) REC.stop();
+  const bios = list.find((f) => f.size === BIOS_SIZE && /\.(bin|rom)$/i.test(f.name));
+  let files = list.filter((f) => f !== bios);
+  if (bios) { await DB.put('sram', 'psx-bios', { name: bios.name, bytes: new Uint8Array(await bios.arrayBuffer()) }); if (!files.length) { toast('BIOS kept. It will be used for PlayStation games from now on.'); return false; } }
+  const rank = ['cue', 'chd', 'pbp', 'iso', 'img', 'exe', 'bin'];
+  const main = files.slice().sort((a, b) => rank.indexOf(extOf(a.name)) - rank.indexOf(extOf(b.name)))[0];
+  if (extOf(main.name) === 'cue') {
+    const cue = await main.text();
+    const need = [...cue.matchAll(/FILE\s+"?([^"\r\n]+?)"?\s+\w+\s*$/gim)].map((m) => m[1].split(/[\\/]/).pop());
+    const missing = need.filter((n) => !files.some((f) => f.name.toLowerCase() === n.toLowerCase()));
+    if (missing.length) { toast('Pick the .cue together with its track file' + (missing.length > 1 ? 's' : '') + ': ' + missing.join(', ')); return false; }
+    files = files.filter((f) => f === main || need.some((n) => n.toLowerCase() === f.name.toLowerCase()));
+  } else files = [main];
+  const sys = SYSTEMS.psx;
+  if (S.hash && S.hash !== 'demo') await saveSram();
+  S.busy = true;
+  let core;
+  try {
+    if (S.coreName !== sys.core) showMessage('Loading ' + sys.short, 'Getting the ' + CORES[sys.core].label + ' emulator ready. This happens once per console.');
+    core = await getCore(sys.core);
+  } catch (e) { S.busy = false; showMessage('Could not start', 'The PlayStation emulator failed to load in this browser. Try a current version of Chrome, Edge, Firefox or Safari.'); return false; }
+  const x = core.exports, cstr = (t) => { const b = new TextEncoder().encode(t + '\0'); const p = x.web_alloc(b.length); new Uint8Array(x.memory.buffer, p, b.length).set(b); return p; };
+  x.web_clear_files();
+  const give = async (name, size, read) => {
+    const p = x.web_alloc(size); if (!p) throw new Error('Not enough memory for ' + name + '. Close other tabs and try again.');
+    await read(p); const n = cstr(name); x.web_add_file(n, p, size); x.web_free(n);
+  };
+  let kept = null;
+  try {
+    kept = await DB.get('sram', 'psx-bios');
+    if (kept && kept.bytes) await give(kept.name, kept.bytes.length, async (p) => new Uint8Array(x.memory.buffer, p, kept.bytes.length).set(kept.bytes));
+    let done = 0; const total = files.reduce((a, f) => a + f.size, 0);
+    for (const f of files) await give(f.name, f.size, async (p) => {
+      for (let o = 0; o < f.size; o += 16 * 1048576) {
+        const chunk = new Uint8Array(await f.slice(o, o + 16 * 1048576).arrayBuffer());
+        new Uint8Array(x.memory.buffer, p + o, chunk.length).set(chunk);
+        done += chunk.length; showMessage('Reading disc', Math.round(done / total * 100) + '% of ' + fmtSize(total));
+      }
+    });
+  } catch (e) { S.busy = false; showMessage('Could not start', e.message || 'The disc could not be read.'); return false; }
+  const n = cstr(main.name); const ok = x.web_load_path(n); x.web_free(n);
+  if (!ok) {
+    S.busy = false; if (S.running) setPaused(S.paused); else $('overlay').hidden = true;
+    toast('That did not load as a PlayStation disc. Use a .cue with its .bin files, or a .chd, .pbp or .iso.'); return false;
+  }
+  // a disc's save identity: its name, size and first 4 MB (hashing a whole disc would take too long)
+  const dataFile = files.find((f) => f !== main) || main;
+  const hash = 'psx-' + await hashBytes(new Uint8Array(await dataFile.slice(0, 4 * 1048576).arrayBuffer())) + '-' + dataFile.size.toString(16);
+  const base = main.name.replace(/\.[^.]+$/, '');
+  const info = { ext: extOf(main.name), sys: 'psx', title: base.replace(/[_]+/g, ' ').replace(/\s*[\(\[].*$/, '').trim() || base, base, system: sys.name, region: '', size: files.reduce((a, f) => a + f.size, 0) };
+  S.lastName = main.name;
+  await afterLoad(core, sys, info, main.name, hash, {}, null);
+  S.psxHle = !kept;
   return true;
 }
 
+async function openFiles(list) {
+  list = [...(list || [])]; if (!list.length || S.busy) return;
+  try {
+    const exts = list.map((f) => extOf(f.name));
+    let disc = list.length > 1 || exts.some((e) => SYSTEMS.psx.exts.includes(e)) || list[0].size === BIOS_SIZE;
+    if (!disc && exts[0] === 'bin') disc = isDiscBin(new Uint8Array(await list[0].slice(0, 16).arrayBuffer()), list[0].size);
+    if (disc) { if (await startDisc(list)) toast('Loaded ' + S.rom.title + (S.psxHle ? '. Using the built-in BIOS stand-in; open your console\'s BIOS file once for best results.' : '')); return; }
+  } catch (e) { S.busy = false; toast(e.message || 'Could not open that disc.'); return; }
+  return openFile(list[0]);
+}
 async function openFile(file) {
   if (!file || S.busy) return;
   try {
@@ -1104,7 +1192,7 @@ function renderTouch() {
       <button data-b="RIGHT" aria-label="Right">▶</button><button data-b="DOWN" aria-label="Down">▼</button></div>
     <div class="face"></div><div class="mid"></div>`;
   const face = box.querySelector('.face'), mid = box.querySelector('.mid');
-  for (const [b, x, y] of L.face) { const e = document.createElement('button'); e.className = 'round'; e.dataset.b = b; e.textContent = b; e.style.left = x + 'px'; e.style.top = y + 'px'; face.appendChild(e); }
+  for (const [b, x, y, lbl] of L.face) { const e = document.createElement('button'); e.className = 'round'; e.dataset.b = b; e.textContent = lbl || b; if (lbl) e.setAttribute('aria-label', b); e.style.left = x + 'px'; e.style.top = y + 'px'; face.appendChild(e); }
   for (const [b, x, y] of (L.shoulder || [])) { const e = document.createElement('button'); e.className = 'shoulder'; e.dataset.b = b; e.textContent = b; e.style.left = x + 'px'; e.style.top = y + 'px'; face.appendChild(e); }
   for (const [b, lbl] of L.mid) { const e = document.createElement('button'); e.dataset.b = b; e.textContent = lbl; mid.appendChild(e); }
   box.querySelectorAll('button').forEach((b) => {
@@ -1155,12 +1243,13 @@ window.addEventListener('pagehide', () => { saveSram(); });
 document.addEventListener('visibilitychange', () => { if (document.hidden) saveSram(); });
 
 $('file').accept = ROM_EXT.map((e) => '.' + e).concat('.zip').join(',');
-$('file').addEventListener('change', (e) => { A.start(); openFile(e.target.files[0]); e.target.value = ''; });
+$('file').multiple = true;
+$('file').addEventListener('change', (e) => { A.start(); openFiles(e.target.files); e.target.value = ''; });
 ['dragenter', 'dragover'].forEach((t) => scr.addEventListener(t, (e) => { e.preventDefault(); if (S.busy) return; scr.classList.add('drop'); showMessage('Drop to play', 'A ROM for any console listed above, or a .zip'); }));
 ['dragleave', 'drop'].forEach((t) => scr.addEventListener(t, (e) => { e.preventDefault(); scr.classList.remove('drop'); if (S.busy) return; $('overlay').hidden = !S.paused; if (S.paused) setPaused(true); }));
-scr.addEventListener('drop', (e) => { A.start(); const f = e.dataTransfer.files[0]; openFile(f); });
+scr.addEventListener('drop', (e) => { A.start(); openFiles(e.dataTransfer.files); });
 window.addEventListener('dragover', (e) => e.preventDefault());
-window.addEventListener('drop', (e) => { e.preventDefault(); if (e.target.closest && e.target.closest('#screen')) return; A.start(); openFile(e.dataTransfer.files[0]); });
+window.addEventListener('drop', (e) => { e.preventDefault(); if (e.target.closest && e.target.closest('#screen')) return; A.start(); openFiles(e.dataTransfer.files); });
 
 $('btnPause').onclick = () => { A.start(); setPaused(!S.paused); };
 $('btnReset').onclick = () => { if (S.core && !S.busy) { if (REC.on) REC.stop(); S.core.reset(); toast('Console reset'); } };
