@@ -63,6 +63,7 @@ body{background:var(--bg);color:var(--text);font-family:var(--body);font-size:15
 .mission .t strong{display:block;font-family:var(--display);font-weight:600;font-size:14px;letter-spacing:.04em;line-height:1.25}
 .mission .t small{display:block;color:var(--muted);font-size:12.5px;line-height:1.3}
 .mission.incident .t strong{color:var(--muted);font-weight:500}
+.tag.play{color:var(--hud);border-color:var(--hud-dim);background:rgba(159,227,255,.08)}
 .tag{font-family:var(--mono);font-size:10px;letter-spacing:.08em;padding:1px 5px;border:1px solid var(--line);color:var(--muted);margin-left:6px;vertical-align:1px;white-space:nowrap}
 .logbtn{font-family:var(--mono);font-size:11px;letter-spacing:.08em;background:none;border:1px solid var(--line);color:var(--muted);padding:3px 6px;cursor:pointer}
 .logbtn[aria-pressed="true"]{border-color:var(--hud);color:var(--bg);background:var(--hud)}
@@ -1813,11 +1814,12 @@ const roleWord={friendly:"Player side",hostile:"Hostile",involved:"Involved"};
 const ml=document.getElementById("missions");
 function renderMissions(){
   ml.innerHTML="";
+  const PLAYABLE=new Set(["ac1","ac2","ac3"]);
   GAMES.forEach(g=>{
     const li=document.createElement("li");
     li.className="mission"+(g.kind==="incident"?" incident":"")+(selGame===g.id?" sel":"");
     li.tabIndex=0;li.setAttribute("role","button");li.setAttribute("aria-pressed",selGame===g.id);
-    li.innerHTML=`<span class="yr">${g.year}</span><span class="t"><strong>${g.title}${g.tag?`<span class="tag">${g.tag}</span>`:""}</strong><small>${g.war}</small></span>`;
+    li.innerHTML=`<span class="yr">${g.year}</span><span class="t"><strong>${g.title}${g.tag?`<span class="tag">${g.tag}</span>`:""}${PLAYABLE.has(g.id)&&window.parent!==window?`<span class="tag play" title="Runs in this page">PLAYABLE</span>`:""}</strong><small>${g.war}</small></span>`;
     if(g.kind==="game"){
       const b=document.createElement("button");b.type="button";b.className="logbtn";
       b.setAttribute("aria-pressed",logged.has(g.id));b.textContent=logged.has(g.id)?"LOGGED":"LOG";
