@@ -1357,7 +1357,7 @@ body.zmt-on #list,body.zmt-on .filters,body.zmt-on #fsStats,body.zmt-on #mapBox{
     <div class="lore-bar"><span>Strangereal Map — your visual Ace Combat lore.</span><a href="#" id="loreOpen">Open in its own tab ↗</a></div>
     <iframe id="loreFrame" title="Strangereal Map" loading="lazy"></iframe>
   </section>
-  <section class="ac2-panel" id="ac2Panel" aria-label="Play Ace Combat 2">
+  <section class="ac2-panel" id="ac2Panel" aria-label="Play a PlayStation Ace Combat game">
     <iframe id="ac2Frame" title="Ace Combat 2" allow="autoplay; gamepad; fullscreen" allowfullscreen></iframe>
   </section>
   <section class="lore" id="gspw" hidden aria-label="Golden Sun Password Generator">
@@ -11353,10 +11353,10 @@ function showFranchise(f, focus){
 }
 // The Strangereal Map tells us which operation is open; for Ace Combat 3 the player and the story-path checklist appear under it.
 let ac2Panel = false;
-function showAc2Panel(on){
+function showAc2Panel(on, mode){
   ac2Panel = !!on; document.documentElement.classList.toggle("lore-ac2", ac2Panel);
   const fr = document.getElementById("ac2Frame");
-  if(ac2Panel && fr && !fr.getAttribute("srcdoc")) EMB.text("emu").then(t=>{ fr.srcdoc = t.replace("<head>", "<head><script>window.EMU_MODE=\"ac2\"<\/script>"); });
+  if(ac2Panel && fr && mode && fr.dataset.mode !== mode){ fr.dataset.mode = mode; fr.title = mode === "ac1" ? "Air Combat" : "Ace Combat 2"; EMB.text("emu").then(t=>{ fr.srcdoc = t.replace("<head>", "<head><script>window.EMU_MODE=\"" + mode + "\"<\/script>"); }); }
 }
 function showAc3Panel(on){
   if(on && GBY.ac3 && G !== GBY.ac3) switchGame(GBY.ac3);
@@ -11365,8 +11365,8 @@ function showAc3Panel(on){
 window.addEventListener("message", ev=>{
   const fr = document.getElementById("loreFrame"), m = ev.data;
   if(!fr || ev.source !== fr.contentWindow || !m) return;
-  if(m.t === "lore-game"){ showAc3Panel(m.id === "ac3"); showAc2Panel(m.id === "ac2"); }
-  else if(m.t === "lore-scroll" && m.id === "ac2"){ showAc2Panel(true); document.getElementById("ac2Panel").scrollIntoView({ behavior:"smooth", block:"start" }); }
+  if(m.t === "lore-game"){ showAc3Panel(m.id === "ac3"); showAc2Panel(m.id === "ac2" || m.id === "ac1", m.id); }
+  else if(m.t === "lore-scroll" && (m.id === "ac2" || m.id === "ac1")){ showAc2Panel(true, m.id); document.getElementById("ac2Panel").scrollIntoView({ behavior:"smooth", block:"start" }); }
   else if(m.t === "lore-scroll"){ showAc3Panel(true); const t = document.getElementById("gameTitle"); if(t) t.scrollIntoView({ behavior:"smooth", block:"start" }); }
 });
 gamesEl.addEventListener("click",e=>{
