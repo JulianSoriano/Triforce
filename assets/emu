@@ -200,6 +200,10 @@ svg.i { width: 16px; height: 16px; flex: none; }
 /* ---------- save state editor ---------- */
 dialog.ed { width: min(980px, calc(100vw - 24px)); max-height: calc(100vh - 24px); padding: 0; border: 1px solid var(--line); border-radius: 14px; background: var(--plastic); color: var(--ink); box-shadow: 0 20px 60px rgba(0,0,0,.6); }
 dialog.ed::backdrop { background: rgba(4,5,8,.7); }
+.hg-planes { display: grid; grid-template-columns: repeat(auto-fill, minmax(116px, 1fr)); gap: 6px; }
+.hg-planes label { display: flex; gap: 8px; align-items: center; padding: 8px 10px; border: 1px solid var(--line); border-radius: 8px; background: var(--plastic); cursor: pointer; min-height: 40px; font-size: 13px; }
+.hg-planes input { width: 18px; height: 18px; accent-color: #f2c14e; }
+.hbtns { display: inline-flex; gap: 6px; float: right; }
 .ed-head { display: flex; align-items: center; gap: 10px; padding: 12px 14px; border-bottom: 1px solid var(--line); flex-wrap: wrap; }
 .ed-head h2 { font: 700 15px var(--f-display); letter-spacing: .12em; text-transform: uppercase; margin: 0; flex: 1; min-width: 0; }
 .ed-head .src { font: 500 12px var(--f-mono); color: var(--ink-faint); }
@@ -323,7 +327,7 @@ dialog.ed::backdrop { background: rgba(4,5,8,.7); }
 
     <aside class="side">
       <section class="panel" aria-labelledby="h-states">
-        <h2 id="h-states">Save states <button id="btnEditor" style="padding:5px 8px;font-size:11px" title="Inspect and change a save state">Editor</button></h2>
+        <h2 id="h-states">Save states <span class="hbtns"><button id="btnHangar" hidden style="padding:5px 8px;font-size:11px" title="Change your money and aircraft">Hangar</button> <button id="btnEditor" style="padding:5px 8px;font-size:11px" title="Inspect and change a save state">Editor</button></span></h2>
         <div class="slots" id="slots"></div>
         <p class="hint" id="stateHint">States are kept in this browser, per game. F2 saves, F4 loads. Edit opens the state editor.</p>
       </section>
@@ -359,6 +363,23 @@ dialog.ed::backdrop { background: rgba(4,5,8,.7); }
   <footer class="credit" id="credit">Emulation cores: Genesis Plus GX (Genesis, Master System, Game Gear), FCEUmm (NES), Snes9x 2010 (SNES) and mGBA (Game Boy, Game Boy Color, Game Boy Advance) and PCSX-ReARMed (PlayStation), built for the browser. For a PlayStation game, pick the .cue together with its .bin files (or one .chd, .pbp or .iso); your console's BIOS file is optional. A core downloads the first time you open a game for its console. Your ROMs, saves and settings stay in this browser and are never uploaded.</footer>
 </div>
 
+<dialog class="ed" id="hg" aria-labelledby="hgTitle" style="width:min(560px,calc(100vw - 24px))">
+  <div class="ed-head"><h2 id="hgTitle">Ace Combat 2 hangar</h2><span class="src" id="hgSrc"></span><button id="hgClose" aria-label="Close hangar">Close</button></div>
+  <div class="ed-body" style="grid-template-columns:minmax(0,1fr)">
+    <p class="note" id="hgNote" style="margin:0"></p>
+    <div class="box">
+      <h3>Money</h3>
+      <div class="row2"><input id="hgMoney" type="number" min="0" max="9999990" step="1" inputmode="numeric" aria-label="Money"><button id="hgMax">Maximum</button></div>
+    </div>
+    <div class="box">
+      <h3>Aircraft you own</h3>
+      <div id="hgPlanes" class="hg-planes"></div>
+      <div class="row2" style="margin-top:8px"><button id="hgAll">Unlock all</button><button id="hgNone">Clear all</button></div>
+    </div>
+    <p class="note">This changes the game while it runs. Press <b>Apply to game</b>, go back to the game, then save in the game itself as usual so it goes onto the memory card. Works with the North American (NTSC-U) disc.</p>
+  </div>
+  <div class="ed-foot"><button id="hgRead">Read from game</button><span class="grow"></span><button class="btn primary" id="hgApply">Apply to game</button></div>
+</dialog>
 <dialog class="ed" id="ed" aria-labelledby="edTitle">
   <div class="ed-head">
     <h2 id="edTitle">Save state editor</h2>
@@ -502,6 +523,7 @@ async function makeCore(wasmBytes, asmFactory) {
     saveState() { const n = x.web_state_size(); const p = x.web_alloc(n); const ok = x.web_state_save(p, n); const out = new Uint8Array(mem.buffer, p, n).slice(); x.web_free(p); return ok ? out : null; },
     loadState(buf) { const p = x.web_alloc(buf.length); new Uint8Array(mem.buffer, p, buf.length).set(buf); const ok = x.web_state_load(p, buf.length); x.web_free(p); return !!ok; },
     sram() { const n = x.web_sram_size(), p = x.web_sram(); return n && p ? new Uint8Array(mem.buffer, p, n) : null; },
+    ram() { const n = x.web_ram_size && x.web_ram_size(), p = x.web_ram && x.web_ram(); return n && p ? new Uint8Array(mem.buffer, p, n) : null; },
   };
 }
 
@@ -1508,6 +1530,47 @@ $('edImport').addEventListener('change', async (e) => {
 $('edClose').onclick = closeEditor;
 $('btnEditor').onclick = () => openEditor('live');
 
+/* ---------- Ace Combat 2 hangar (North American disc, SCUS-94 version) ----------
+   The game keeps your money and the planes you own in main memory (addresses from published cheat codes for that disc):
+   money is one 32-bit number at $10C1C (the game's cap is 9,999,990) and the 16 planes are one byte each from $10C44 (1 = owned). */
+const HG = { MONEY: 0x10C1C, CAP: 9999990, PLANES: 0x10C44,
+  NAMES: ['A-4', 'F-4', 'CF-C7', 'A-6', 'F-16', 'X-29', 'A-10', 'MiG-29', 'F-14', 'F-117A', 'R-MO1', 'EF-2000', 'F/A-18E', 'Su-35', 'YF-23A', 'F-22'], wasPaused: false, ok: false };
+const hg = $('hg');
+$('hgPlanes').innerHTML = HG.NAMES.map((n, i) => `<label><input type="checkbox" data-i="${i}"> ${n}</label>`).join('');
+function hgRead() {
+  const ram = S.core && S.core.ram && S.core.ram();
+  const note = $('hgNote'); HG.ok = false;
+  if (!ram) { note.textContent = 'Start your game first.'; $('hgApply').disabled = true; return; }
+  const money = rd(ram, HG.MONEY, 4), flags = [...ram.subarray(HG.PLANES, HG.PLANES + 16)];
+  const plausible = money <= HG.CAP && flags.every((v) => v <= 1);
+  $('hgMoney').value = plausible ? money : 0;
+  hg.querySelectorAll('#hgPlanes input').forEach((c, i) => { c.checked = plausible && flags[i] === 1; });
+  HG.ok = plausible; $('hgApply').disabled = !plausible;
+  note.textContent = plausible ? 'Read from the running game. Change anything, then Apply.'
+    : 'This does not look like the North American Ace Combat 2 yet. Load your game past the title screen (or open its hangar screen) and press Read from game. Other regions keep these in different places, so they are not supported.';
+}
+function hgApply() {
+  const ram = S.core && S.core.ram && S.core.ram(); if (!ram || !HG.ok) return;
+  let m = Math.round(Number($('hgMoney').value)); if (!(m >= 0)) m = 0; m = Math.min(m, HG.CAP);
+  wr(ram, HG.MONEY, 4, m); $('hgMoney').value = m;
+  hg.querySelectorAll('#hgPlanes input').forEach((c, i) => { ram[HG.PLANES + i] = c.checked ? 1 : 0; });
+  toast('Applied. Save in the game to keep it.');
+}
+async function openHangar() {
+  if (!S.core || S.busy || S.coreName !== 'pcsx') { toast('Open your Ace Combat 2 disc first.'); return; }
+  HG.wasPaused = S.paused; setPaused(true);
+  $('hgSrc').textContent = S.rom ? S.rom.title : '';
+  hgRead();
+  if (typeof hg.showModal === 'function') hg.showModal(); else hg.setAttribute('open', '');
+}
+$('btnHangar').onclick = openHangar;
+$('hgClose').onclick = () => hg.close();
+hg.addEventListener('close', () => { if (S.running) setPaused(HG.wasPaused); });
+$('hgRead').onclick = hgRead; $('hgApply').onclick = hgApply;
+$('hgMax').onclick = () => { $('hgMoney').value = HG.CAP; };
+$('hgAll').onclick = () => hg.querySelectorAll('#hgPlanes input').forEach((c) => { c.checked = true; });
+$('hgNone').onclick = () => hg.querySelectorAll('#hgPlanes input').forEach((c) => { c.checked = false; });
+
 /* ---------- boot ---------- */
 (async function boot() {
   if (ONE) {
@@ -1515,6 +1578,7 @@ $('btnEditor').onclick = () => openEditor('live');
     document.querySelector('.brand h1').textContent = ONE.title; document.title = ONE.title;
     const open = document.querySelector('label[for=file]'); open.lastChild.textContent = ' Choose disc files';
     $('h-lib').closest('section').hidden = true;
+    if (ONE.title === 'Ace Combat 2') $('btnHangar').hidden = false;
     $('credit').textContent = 'Runs on PCSX-ReARMed, a PlayStation emulator built for the browser. Pick the .cue together with its .bin file(s), or one .chd, .pbp or .iso file. Your console\'s BIOS file is optional. Saves and save states stay in this browser and are shared with the Emulators tab.';
   }
   renderSystems(); renderKeys(); renderTouch(); renderOpts(); renderPads();

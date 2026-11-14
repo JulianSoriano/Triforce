@@ -207,6 +207,9 @@ EXPORT double web_aspect(void) { struct retro_system_av_info av; retro_get_syste
 EXPORT size_t web_state_size(void) { return retro_serialize_size(); }
 EXPORT int web_state_save(void *p, size_t n) { return retro_serialize(p, n); }
 EXPORT int web_state_load(const void *p, size_t n) { return retro_unserialize(p, n); }
+/* the console's 2 MB of main memory (for save editors and watchers) */
+EXPORT uint8_t *web_ram(void) { return retro_get_memory_data(RETRO_MEMORY_SYSTEM_RAM); }
+EXPORT size_t web_ram_size(void) { return retro_get_memory_size(RETRO_MEMORY_SYSTEM_RAM); }
 EXPORT uint8_t *web_sram(void) { return retro_get_memory_data(RETRO_MEMORY_SAVE_RAM); }
 EXPORT size_t web_sram_size(void) { return retro_get_memory_size(RETRO_MEMORY_SAVE_RAM); }
 /* "is a real BIOS in use?" so the page can say so */
