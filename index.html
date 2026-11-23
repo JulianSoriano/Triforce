@@ -999,6 +999,23 @@ body.zmt-on #list,body.zmt-on .filters,body.zmt-on #fsStats,body.zmt-on #mapBox{
 #dbgNote{width:100%;box-sizing:border-box;padding:8px;border:1px solid var(--line);border-radius:8px;background:var(--surface-2);color:var(--ink);font:inherit}
 
 #dbgPanel .opt-tabs{flex-wrap:wrap}
+/* ---------- Zelda theme: a Triforce that lights up as you progress ---------- */
+.z-tri{display:none}
+html.fr-zelda header{position:relative}
+html.fr-zelda header h1{padding-right:104px}
+html.fr-zelda .z-tri{display:block;position:absolute;right:2px;top:-2px;width:84px;height:auto;overflow:visible}
+.z-tri polygon{fill:none;stroke:var(--gold);stroke-opacity:.38;stroke-width:2;stroke-linejoin:round;transition:fill-opacity .6s,stroke-opacity .6s,filter .6s}
+.z-tri polygon.lit{fill:var(--gold);fill-opacity:.92;stroke-opacity:1;filter:drop-shadow(0 0 9px rgba(242,193,78,.42))}
+html.fr-zelda header::after{content:"";display:block;height:14px;margin-top:16px;background:
+  url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 21'%3E%3Cpath fill='%23f2c14e' d='M12 0l6 10.5H6zM6 10.5l6 10.5H0zM18 10.5l6 10.5H12z'/%3E%3C/svg%3E") center/14px 12px no-repeat,
+  linear-gradient(90deg,transparent,rgba(242,193,78,.45)) left center/calc(50% - 18px) 1px no-repeat,
+  linear-gradient(270deg,transparent,rgba(242,193,78,.45)) right center/calc(50% - 18px) 1px no-repeat}
+html.fr-zelda .fr-tab[aria-selected="true"]{background:var(--gold);border-color:var(--gold);color:#1a1405}
+html.fr-zelda .fr-tab[aria-selected="true"] .num{color:#4a3a10}
+html.fr-zelda .hud{border-color:rgba(242,193,78,.24)}
+@media (max-width:560px){html.fr-zelda .z-tri{width:54px}html.fr-zelda header h1,html.fr-zelda header .sub{padding-right:66px}}
+@media (prefers-reduced-motion:reduce){.z-tri polygon{transition:none}}
+
 </style>
 
 <div class="wrap">
@@ -1006,6 +1023,7 @@ body.zmt-on #list,body.zmt-on .filters,body.zmt-on #fsStats,body.zmt-on #mapBox{
   <nav class="games" id="games" aria-label="Choose a game"></nav>
 
   <header>
+    <svg class="z-tri" id="zTri" viewBox="0 0 100 87" aria-hidden="true"><polygon class="t1" points="50,1 75,43.3 25,43.3"/><polygon class="t2" points="25,43.3 50,86 0,86"/><polygon class="t3" points="75,43.3 100,86 50,86"/></svg>
     <h1 id="gameTitle">Ocarina of Time</h1>
     <p class="sub" id="gameSub"></p>
     <div class="tab-guide" id="tabGuide" hidden></div>
@@ -11327,6 +11345,7 @@ function showFranchise(f, focus){
   frView = f; renderGames();
   const root = document.documentElement;
   root.classList.toggle("home-mode", f === HOME_TAB);
+  root.classList.toggle("fr-zelda", f === "The Legend of Zelda");
   document.getElementById("home").hidden = f !== HOME_TAB;
   if(f === HOME_TAB){ root.classList.remove("pick-mode"); renderHome(); }
   else if(fromHome && FRANCHISES.includes(f) && G.franchise !== f) root.classList.add("pick-mode");
@@ -11659,6 +11678,7 @@ function renderHud(){
   const pct = Math.round(G.checked.size/G.all.length*1000)/10;
   document.getElementById("bar").style.width = pct+"%";
   document.getElementById("pct").textContent = pct+"% complete";
+  { const zt = document.getElementById("zTri"); if(zt){ const n = pct >= 100 ? 3 : pct >= 67 ? 2 : pct >= 34 ? 1 : 0; [".t2", ".t3", ".t1"].forEach((q, i)=> zt.querySelector(q).classList.toggle("lit", i < n)); } }
 }
 function renderHearts(){
   const hc = countCat("hc"), hp = countCat("hp");
